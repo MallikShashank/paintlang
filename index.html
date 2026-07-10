@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paintlang Studio</title>
+<link rel="stylesheet" href="css/studio.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo"><b>Paintlang</b><span class="sub">live-coded painting studio</span></div>
+    <div class="hgap"></div>
+    <button id="importBtn" title="Trace any image (PNG, JPG, SVG...) into an editable code layer - or drop a file on the canvas">Import image</button>
+    <select id="importDetail" title="Trace fidelity: more detail = more colours and shapes, longer code">
+      <option value="sketch">Sketch</option>
+      <option value="balanced">Balanced</option>
+      <option value="fine" selected>Fine</option>
+      <option value="ultra">Ultra</option>
+    </select>
+    <input type="file" id="importFile" accept="image/*,.svg" hidden>
+    <select id="examples" title="Load an example painting"></select>
+    <button id="helpBtn" title="Language reference">API reference</button>
+    <button id="shareBtn" title="Copy a link that contains this painting - code and all, no account needed">Share link</button>
+    <button id="exportBtn" title="Download the canvas as PNG">Export PNG</button>
+  </header>
+
+  <main>
+    <section id="left">
+      <div id="editor">
+        <div id="gutter"><pre id="gutterInner">1</pre></div>
+        <div id="edstack">
+          <pre id="hl" aria-hidden="true"></pre>
+          <div id="linebar"></div>
+          <textarea id="code" spellcheck="false" wrap="off" autocapitalize="off"
+            autocomplete="off" aria-label="Paintlang code"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <div id="divider" title="Drag to resize"></div>
+
+    <section id="right">
+      <div id="toolbar">
+        <button class="tool active" data-tool="paint" title="Paint - pressure-sensitive brush strokes, written back as code (B)">🖌 Paint</button>
+        <select id="pbrush" title="Brush library - keys 1...9, 0 switch brushes">
+          <option value="round" selected>● Round</option>
+          <option value="pencil">✏ Pencil</option>
+          <option value="ink">🖋 Ink pen</option>
+          <option value="calligraphy">✒ Calligraphy</option>
+          <option value="marker">🖍 Marker</option>
+          <option value="watercolor">💧 Watercolour</option>
+          <option value="oil">🎨 Oil</option>
+          <option value="charcoal">◾ Charcoal</option>
+          <option value="airbrush">💨 Airbrush</option>
+          <option value="glow">✨ Glow</option>
+          <option value="smudge">👉 Smudge</option>
+          <option value="eraser">◻ Eraser</option>
+        </select>
+        <button id="brushCfg" title="Tune this brush - tuned values are written into each stroke's code">⚙</button>
+        <span class="tsep"></span>
+        <button class="tool" data-tool="shape" title="Shape - drag on the canvas to place the selected shape (U)">△ Shape</button>
+        <select id="pshape" title="Shape library - letters L R O C S A T H also jump here">
+          <option value="line">╱ Line</option>
+          <option value="arrow">➔ Arrow</option>
+          <option value="rect" selected>▭ Rectangle</option>
+          <option value="ellipse">⬭ Ellipse</option>
+          <option value="circle">◯ Circle</option>
+          <option value="ring">◎ Ring</option>
+          <option value="triangle">△ Triangle</option>
+          <option value="diamond">◇ Diamond</option>
+          <option value="pentagon">⬠ Pentagon</option>
+          <option value="hexagon">⬡ Hexagon</option>
+          <option value="star">✶ Star</option>
+          <option value="heart">♥ Heart</option>
+          <option value="crescent">☾ Crescent</option>
+        </select>
+        <span class="tsep"></span>
+        <button class="tool" data-tool="select" title="Select - click an object; drag inside to move, drag a corner handle to resize; its code is rewritten (V). Delete hides it.">✥ Select</button>
+        <button class="tool" data-tool="eyedrop" title="Eyedropper - pick a colour off the canvas (I)">💧 Pick</button>
+        <button class="tool" data-tool="recolor" title="Recolour - click an object to give it the current colour; its code updates (G)">🎨 Recolour</button>
+        <span class="tsep"></span>
+        <button id="undoBtn" title="Undo (Ctrl+Z outside the editor)">↶ Undo</button>
+        <button id="redoBtn" title="Redo (Ctrl+Y)">↷ Redo</button>
+        <span class="tsep"></span>
+        <input type="color" id="pcolor" value="#d95d39" title="Paint colour">
+        <span class="rangewrap">size <input type="range" id="psize" min="1" max="60" value="8"><output id="psizeo">8</output></span>
+        <span class="rangewrap">opacity <input type="range" id="popacity" min="5" max="100" value="100"><output id="popacityo">1</output></span>
+      </div>
+      <div id="layersbar" hidden>
+        <span class="tlabel">Layers · back → front</span>
+        <div id="layerchips"></div>
+      </div>
+      <div id="stage">
+        <div id="canvasWrap">
+          <canvas id="paint" width="960" height="600"></canvas>
+          <canvas id="overlay" width="960" height="600" class="draw"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span id="statusMsg" class="ok">ready</span>
+    <span id="statusPos"></span>
+  </footer>
+
+  <div id="helpModal" hidden>
+    <div id="helpCard">
+      <button id="helpClose">Close</button>
+      <h2>Paintlang reference</h2>
+      <p>Everything on the canvas is a function call. The code re-renders live as you type
+        (<kbd>Ctrl</kbd>+<kbd>Enter</kbd> forces a run). Painting with any tool writes code back
+        into the editor. With <b>Select</b>: drag an object to move it, drag a corner handle to
+        resize it, press <kbd>Delete</kbd> to hide it - each rewrites the actual numbers in the
+        call that painted it, and selecting highlights that exact line in the editor.
+        <b>Recolour</b> rewrites an object's <code>color:</code> literal; <b>Eyedropper</b> picks
+        a colour off the canvas. <b>Undo / Redo</b> (<kbd>Ctrl</kbd>+<kbd>Z</kbd> /
+        <kbd>Ctrl</kbd>+<kbd>Y</kbd>) covers gestures, imports and rewrites.
+        <b>Import image</b> (or dropping a file on the canvas) traces any PNG, JPG or SVG into a
+        named <code>layer()</code> of editable shapes at your chosen detail level - imports stack,
+        and the Layers strip reorders, hides or scales each one.
+        The canvas is <b>960 × 600</b>; constants <code>W</code>, <code>H</code>, <code>PI</code> are available.</p>
+
+      <h3>Scenery</h3>
+      <table class="api">
+        <tr><td>sky({from, to})</td><td>Vertical sky gradient over the whole canvas.</td></tr>
+        <tr><td>sun(x, y, r, {color, glow})</td><td>Sun disc with a radial glow. <code>glow</code> scales the halo.</td></tr>
+        <tr><td>moon(x, y, r, {color, glow})</td><td>Moon with faint craters and halo.</td></tr>
+        <tr><td>stars(n, {max, color})</td><td>n stars in the top <code>max</code> (0-1) of the sky; big ones sparkle.</td></tr>
+        <tr><td>clouds(n, {y, color, scale})</td><td>Puffy clouds drifting around height y. Each cloud is selectable.</td></tr>
+        <tr><td>mountains({layers, base, height, color, fade, roughness})</td><td>Layered ridgelines with atmospheric fade toward <code>fade</code>.</td></tr>
+        <tr><td>hills({...})</td><td>Softer, rounder mountains.</td></tr>
+        <tr><td>water({from, color, deep, reflect})</td><td>Water from y downward. <code>reflect</code> (0-1) mirrors everything above the waterline - captured after the whole scene is painted, so trees and birds added later still reflect. <code>reflect: [0.35, 'inplace']</code> restores paint-order capture (only what was painted before the water reflects).</td></tr>
+        <tr><td>ground(y, {color})</td><td>Solid ground plane from y down.</td></tr>
+        <tr><td>tree(x, y, size, {color, type})</td><td>One tree at its base point; type <code>'pine'</code> or <code>'round'</code>.</td></tr>
+        <tr><td>trees(n, {from, to, base, size, color, type})</td><td>n trees scattered between x = from...to.</td></tr>
+        <tr><td>grass(y, {color, height, density})</td><td>Swaying grass blades along a baseline.</td></tr>
+        <tr><td>birds(n, {x, y, spread, size, color})</td><td>A flock of distant birds around (x, y).</td></tr>
+        <tr><td>fog(opacity, {y, height, color})</td><td>Soft horizontal mist band centred on y.</td></tr>
+      </table>
+
+      <h3>Shapes &amp; brush</h3>
+      <table class="api">
+        <tr><td>circle(x, y, r, {color, opacity, stroke, strokeWidth})</td><td>Filled circle.</td></tr>
+        <tr><td>ring(x, y, r, {color, size})</td><td>Outlined circle.</td></tr>
+        <tr><td>rect(x, y, w, h, {color, opacity, round})</td><td>Rectangle, optional corner radius.</td></tr>
+        <tr><td>ellipse(x, y, rx, ry, {color, rotate})</td><td>Ellipse, rotation in radians.</td></tr>
+        <tr><td>line(x1, y1, x2, y2, {color, size})</td><td>Straight stroke.</td></tr>
+        <tr><td>polygon(points, {color, smooth, seal})</td><td>Closed filled polygon from [[x,y], ...]. <code>smooth: true</code> draws it as a flowing curve through the points instead of straight edges; <code>seal: true</code> outlines it in its own colour to close hairline gaps between traced shapes.</td></tr>
+        <tr><td>form({x, y, w, h, color, shade, pts})</td><td>A traced painting mass with readable placement: <b>x, y is its centre, w, h its size</b> - edit those numbers (or click one for a slider) to move and stretch it. <code>color</code> is its dark tone; <code>shade: ['#tone', angle°]</code> grades it toward a lit tone in that direction, sampled from the imported photo. <code>pts</code> holds the packed outline (leave it be; delete it and the form becomes a plain rectangle). What the image tracer writes; positional <code>form(x, y, w, h, {...})</code> also works.</td></tr>
+        <tr><td>triangle(x1,y1, x2,y2, x3,y3, {color})</td><td>Filled triangle.</td></tr>
+        <tr><td>star(x, y, spikes, outer, inner, {color})</td><td>Star polygon.</td></tr>
+        <tr><td>ngon(x, y, sides, r, {color, rotate})</td><td>Regular polygon - diamond (4), pentagon (5), hexagon (6)...</td></tr>
+        <tr><td>arrow(x1, y1, x2, y2, {color, size, head})</td><td>Arrow from tail to tip.</td></tr>
+        <tr><td>heart(x, y, size, {color})</td><td>Heart centred at x, y.</td></tr>
+        <tr><td>crescent(x, y, r, {color})</td><td>Crescent moon opening left.</td></tr>
+        <tr><td>stroke(points, {brush, color, size, opacity})</td><td>A painted stroke - what the Paint tool writes. Points are <code>[x, y]</code> or <code>[x, y, pressure]</code> (0-1, from your pen or synthesized from mouse speed). <code>brush</code> picks from the library below; without it you get a clean plain line. Legacy <code>nib: 'chisel'</code> still works.</td></tr>
+        <tr><td>spray(points, {color, size, density, opacity})</td><td>Airbrush dots along a path (also available as the Airbrush brush).</td></tr>
+        <tr><td>text(x, y, str, {size, color, font, align})</td><td>Painted lettering.</td></tr>
+      </table>
+
+      <h3>Brush library</h3>
+      <p>All brushes are pressure- and direction-aware stamp engines - press harder (or move slower
+        with a mouse) for wider, denser marks. Keys <kbd>1</kbd>-<kbd>9</kbd>, <kbd>0</kbd> switch brushes.</p>
+      <table class="api">
+        <tr><td>round / ink</td><td>Clean hard strokes; ink tapers strongly at both ends like a nib pen.</td></tr>
+        <tr><td>pencil / charcoal</td><td>Grainy, textured marks built from speckle stamps - charcoal is broader and rougher with side-scatter.</td></tr>
+        <tr><td>calligraphy</td><td>Fixed 45° flat nib - width depends on stroke direction.</td></tr>
+        <tr><td>marker</td><td>Flat translucent nib that follows the stroke direction and <b>multiplies</b> with what's beneath - overlapping passes darken like a real marker.</td></tr>
+        <tr><td>watercolour</td><td>Low-flow soft washes with a darker wet edge and slight granulation - build colour up in passes.</td></tr>
+        <tr><td>oil</td><td>Directional bristle streaks that <b>pick up and mix with the paint already on the canvas</b> as the stroke travels.</td></tr>
+        <tr><td>airbrush / glow</td><td>Soft gradient spray; glow is additive - it brightens, for neon and light effects.</td></tr>
+        <tr><td>smudge</td><td>The blending finger: applies no colour of its own - it picks up whatever paint is under the path and drags it along. Tune its pull strength in the settings.</td></tr>
+        <tr><td>eraser</td><td>Paints paper colour over anything.</td></tr>
+      </table>
+      <p>The <b>⚙ settings panel</b> tunes any brush - spacing, flow, pressure response, taper,
+        scatter, bristles, blend mode - with a live sample stroke. Tuned values are written into
+        each stroke's code as <code>tune: { ... }</code>, so a customised stroke re-renders
+        identically anywhere, and re-tuning a brush later never changes strokes already painted.</p>
+
+      <h3>Atmosphere &amp; colour</h3>
+      <table class="api">
+        <tr><td>background(color | {from, to, angle})</td><td>Solid or angled gradient ground layer.</td></tr>
+        <tr><td>grain(amount)</td><td>Paper grain over everything painted so far.</td></tr>
+        <tr><td>vignette(amount)</td><td>Darkened edges, like an old photograph.</td></tr>
+        <tr><td>hsl(h, s, l, a?)</td><td>Colour from hue/saturation/lightness.</td></tr>
+        <tr><td>mix(c1, c2, t)</td><td>Blend two colours, t = 0...1.</td></tr>
+      </table>
+
+      <h3>Composition &amp; chance</h3>
+      <table class="api">
+        <tr><td>seed(n)</td><td>Fixes the randomness so the painting re-renders identically.</td></tr>
+        <tr><td>rand(a?, b?)</td><td>Seeded random: rand() → 0-1, rand(a,b) → a-b.</td></tr>
+        <tr><td>noise(x)</td><td>Smooth 1-D noise, 0-1 - for organic variation.</td></tr>
+        <tr><td>layer(name, {x, y, scale, hidden})</td><td>Start a named layer: everything painted after it belongs to that layer until the next <code>layer()</code>. The Layers strip above the canvas reorders, hides and scales these by rewriting this call. Imports create one automatically.</td></tr>
+        <tr><td>repeat(n, i =&gt; { ... })</td><td>Run a block n times - loops of shapes, patterns, orbits.</td></tr>
+        <tr><td>resize(i, factor)</td><td>Scale the i-th painted object around its centre. Written automatically when handle-resizing a loop-made object.</td></tr>
+        <tr><td>nudge(i, dx, dy)</td><td>Move the i-th painted object by an offset. You rarely write this: dragging with Select edits coordinates directly, and only falls back to <code>nudge()</code> when the object was born inside a loop or flock (one call, many objects), where there is no single literal to rewrite.</td></tr>
+        <tr><td>hide(i)</td><td>Hide the i-th painted object (Select + <kbd>Delete</kbd> writes this).</td></tr>
+      </table>
+      <p style="margin-top:16px">Object indices follow paint order, top of the code downward - the
+        status bar shows an object's index when you select it. If you insert new calls above
+        existing <code>nudge</code>/<code>hide</code> lines, their indices shift with the paint order.</p>
+    </div>
+  </div>
+</div>
+
+<script src="js/01-core.js"></script>
+<script src="js/02-scene.js"></script>
+<script src="js/03-scenery.js"></script>
+<script src="js/04-brush-engine.js"></script>
+<script src="js/05-forms-api.js"></script>
+<script src="js/06-run.js"></script>
+<script src="js/07-editor.js"></script>
+<script src="js/08-tools.js"></script>
+<script src="js/09-chrome-layers.js"></script>
+<script src="js/10-importer.js"></script>
+<script src="js/11-examples.js"></script>
+</body>
+</html>
