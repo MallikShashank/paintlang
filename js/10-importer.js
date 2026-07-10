@@ -5,7 +5,7 @@
    Paintlang layer back. Point TRACE_API at your deployment, or override per
    browser with localStorage 'paintlang-trace-api'. */
 const TRACE_API = localStorage.getItem('paintlang-trace-api')
-  || 'https://paintlang-trace.example.workers.dev';
+  || 'https://paintlang-trace.paintlang.workers.dev';
 const TRACE_GRID = { sketch:320, balanced:460, fine:560, ultra:720 };
 
 const importBtn=document.getElementById('importBtn');
