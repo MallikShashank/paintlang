@@ -1,4 +1,4 @@
-// - under-the-wave-off-kanag: traced from Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wav (ultra detail) -
+// - the-great-wave-off-kanagawa: traced from The Great Wave off Kanagawa (ultra detail) -
 // 24 pigments · 450 shapes (428 more merged into their masses) · biggest masses first, details last
 // recognised in this image: umbrella
 // each mass is form({ x, y, w, h, color, shade, pts }):

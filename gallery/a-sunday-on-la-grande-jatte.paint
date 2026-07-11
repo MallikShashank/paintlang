@@ -1,4 +1,4 @@
-// - a-sunday-on-la-grande-ja: traced from A Sunday on La Grande Jatte — 1884 (ultra detail) -
+// - a-sunday-on-la-grande-jatte: traced from A Sunday on La Grande Jatte (ultra detail) -
 // 24 pigments · 450 shapes (281 more merged into their masses) · biggest masses first, details last
 // recognised in this image: person, person-2, person-3, person-4, person-5, dog, person-6, person-7, person-8, umbrella, person-9, person-10, dog-2, umbrella-2, person-11, person-12, dog-3, person-13, person-14, dog-4, person-15, person-16, person-17, person-18, person-19, umbrella-3, umbrella-4, boat, person-20, person-21
 // each mass is form({ x, y, w, h, color, shade, pts }):

@@ -1,37 +1,176 @@
-[
- {
-  "title": "A Sunday on La Grande Jatte — 1884",
-  "artist": "Georges Seurat (French, 1859–1891)",
-  "slug": "a-sunday-on-la-grande-jatte-1884",
-  "shapes": 450,
-  "strokes": 29324
- },
- {
-  "title": "The Bedroom",
-  "artist": "Vincent van Gogh (Dutch, 1853–1890)",
-  "slug": "the-bedroom",
-  "shapes": 450,
-  "strokes": 48000
- },
- {
-  "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series \"Thirty-Six Views of Mount Fuji (Fugaku sanjūrokkei)\"",
-  "artist": "Katsushika Hokusai 葛飾 北斎 ",
-  "slug": "under-the-wave-off-kanagawa-kanagawa-oki",
-  "shapes": 450,
-  "strokes": 48000
- },
- {
-  "title": "Paris Street; Rainy Day",
-  "artist": "Gustave Caillebotte (French, 1848–1894)",
-  "slug": "paris-street-rainy-day",
-  "shapes": 450,
-  "strokes": 43265
- },
- {
-  "title": "Water Lilies",
-  "artist": "Claude Monet (French, 1840–1926)",
-  "slug": "water-lilies",
-  "shapes": 450,
-  "strokes": 45761
- }
-]
+{
+ "rooms": [
+  {
+   "artist": "Vincent van Gogh",
+   "bio": "Dutch post-impressionist (1853-1890) who turned paint itself into feeling - thick, directional strokes that vibrate with colour. He sold almost nothing in his lifetime and changed everything after it.",
+   "pieces": [
+    {
+     "title": "The Bedroom",
+     "year": "1889",
+     "story": "His own room at Arles, painted to feel like rest itself. The tilted perspective and flat, saturated colour were radical: a room painted the way it felt, not the way it looked.",
+     "slug": "the-bedroom",
+     "shapes": 450,
+     "strokes": 48000
+    },
+    {
+     "title": "Self-Portrait",
+     "year": "1887",
+     "story": "Painted in Paris while absorbing the pointillists. Too poor to hire models, Van Gogh turned the mirror on himself dozens of times - each self-portrait an experiment in colour theory.",
+     "slug": "self-portrait",
+     "shapes": 450,
+     "strokes": 42604
+    }
+   ]
+  },
+  {
+   "artist": "Claude Monet",
+   "bio": "Founder of French impressionism (1840-1926), obsessed with light as the true subject of painting. He painted the same motifs over and over as the hours changed them.",
+   "pieces": [
+    {
+     "title": "Water Lilies",
+     "year": "1906",
+     "story": "From the pond he built at Giverny and painted for thirty years. There is no horizon - only water, reflection and bloom, dissolving painting into pure surface.",
+     "slug": "water-lilies",
+     "shapes": 450,
+     "strokes": 45761
+    },
+    {
+     "title": "Stacks of Wheat (End of Summer)",
+     "year": "1890/91",
+     "story": "One canvas from the series that made seriality itself the subject: the same haystacks, dawn to dusk, summer to frost, until time became visible.",
+     "slug": "stacks-of-wheat-end-of-summer",
+     "shapes": 450,
+     "strokes": 13394
+    },
+    {
+     "title": "Cliff Walk at Pourville",
+     "year": "1882",
+     "story": "Wind, grass and sea air on the Normandy coast. Look at the two figures: barely a few strokes each, yet unmistakably leaning into the breeze.",
+     "slug": "cliff-walk-at-pourville",
+     "shapes": 450,
+     "strokes": 31472
+    },
+    {
+     "title": "Arrival of the Normandy Train",
+     "year": "1877",
+     "story": "Impressionism walks into the machine age: steam, iron and glass treated with the same reverence as sunsets. Monet set up his easel inside the working station.",
+     "slug": "arrival-of-the-normandy-train",
+     "shapes": 450,
+     "strokes": 36037
+    }
+   ]
+  },
+  {
+   "artist": "Georges Seurat",
+   "bio": "Inventor of pointillism (1859-1891), who rebuilt painting from optical science - millions of pure-colour dots that fuse in the viewer’s eye.",
+   "pieces": [
+    {
+     "title": "A Sunday on La Grande Jatte",
+     "year": "1884-86",
+     "story": "Two years and millions of dots to freeze one Parisian Sunday into geometry. Seurat painted with discrete points of colour - a picture computed by the eye, a century before pixels.",
+     "slug": "a-sunday-on-la-grande-jatte",
+     "shapes": 450,
+     "strokes": 29324
+    }
+   ]
+  },
+  {
+   "artist": "Gustave Caillebotte",
+   "bio": "Painter and patron of the impressionists (1848-1894), whose sharp urban realism captured the new Paris of boulevards, iron and glass.",
+   "pieces": [
+    {
+     "title": "Paris Street; Rainy Day",
+     "year": "1877",
+     "story": "The radical geometry of a modern city in the rain: a lamppost splits the canvas, umbrellas repeat into the distance, and strangers pass without meeting eyes.",
+     "slug": "paris-street-rainy-day",
+     "shapes": 450,
+     "strokes": 43265
+    }
+   ]
+  },
+  {
+   "artist": "Katsushika Hokusai",
+   "bio": "Japanese ukiyo-e master (1760-1849) whose woodblock prints crossed the ocean and rewired European art. He signed late work \"the old man mad about painting\".",
+   "pieces": [
+    {
+     "title": "The Great Wave off Kanagawa",
+     "year": "1830/33",
+     "story": "The most reproduced image in art history: a wave like a claw, boats like slivers, and tiny, immovable Fuji at the centre. Printed from carved woodblocks, thousands of times.",
+     "slug": "the-great-wave-off-kanagawa",
+     "shapes": 450,
+     "strokes": 48000
+    }
+   ]
+  },
+  {
+   "artist": "Pierre-Auguste Renoir",
+   "bio": "French impressionist (1841-1919) devoted to warmth: skin, sunlight, and the pleasure of ordinary afternoons.",
+   "pieces": [
+    {
+     "title": "Two Sisters (On the Terrace)",
+     "year": "1881",
+     "story": "A riverside terrace at Chatou. The little girl’s hat is almost pure pigment - Renoir letting paint be paint exactly where the eye wants sweetness.",
+     "slug": "two-sisters-on-the-terrace",
+     "shapes": 450,
+     "strokes": 48000
+    }
+   ]
+  },
+  {
+   "artist": "Paul Cézanne",
+   "bio": "The bridge between impressionism and everything after (1839-1906). Both Matisse and Picasso called him \"the father of us all\".",
+   "pieces": [
+    {
+     "title": "The Basket of Apples",
+     "year": "c. 1893",
+     "story": "A still life that quietly breaks the rules of space: the table edges don’t line up, the bottle leans, each object is seen from its own angle. Cubism starts here.",
+     "slug": "the-basket-of-apples",
+     "shapes": 450,
+     "strokes": 28091
+    }
+   ]
+  },
+  {
+   "artist": "Mary Cassatt",
+   "bio": "American painter in Paris (1844-1926), the only American the impressionists ever invited in. She made domestic life monumental.",
+   "pieces": [
+    {
+     "title": "The Child’s Bath",
+     "year": "1893",
+     "story": "Seen from above like a Japanese print: patterns colliding, and at the centre the quiet weight of care - a hand steadying a child’s foot.",
+     "slug": "the-child-s-bath",
+     "shapes": 450,
+     "strokes": 28533
+    }
+   ]
+  },
+  {
+   "artist": "Henri de Toulouse-Lautrec",
+   "bio": "Chronicler of Montmartre nightlife (1864-1901), painting dancers, singers and outsiders with affection and zero sentimentality.",
+   "pieces": [
+    {
+     "title": "At the Moulin Rouge",
+     "year": "1892/95",
+     "story": "Gaslight green and theatre-box framing: a face glows acid at the edge, friends huddle at a table, and the artist paints himself passing in the background.",
+     "slug": "at-the-moulin-rouge",
+     "shapes": 450,
+     "strokes": 16661
+    }
+   ]
+  },
+  {
+   "artist": "Edgar Degas",
+   "bio": "Impressionist of movement and artificial light (1834-1917) - ballet rehearsals, racehorses, laundresses - always from unexpected angles.",
+   "pieces": [
+    {
+     "title": "The Millinery Shop",
+     "year": "1879/86",
+     "story": "A hat maker absorbed in her work, crowded to the edge by her own creations. Degas cropped like a photographer decades before it was normal.",
+     "slug": "the-millinery-shop",
+     "shapes": 450,
+     "strokes": 15357
+    }
+   ]
+  }
+ ]
+}
