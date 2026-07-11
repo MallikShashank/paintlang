@@ -78,11 +78,11 @@ function startReplay(){
     if(op.hidden||(op.layer&&op.layer.hidden)) continue;
     if(op._strokes){
       const n=op._strokes.list.length;
-      const per=Math.max(4,Math.ceil(n/48));
+      const per=Math.max(3,Math.ceil(n/64));
       for(let i=0;i<n;i+=per) plan.push({op, s0:i, s1:Math.min(n,i+per)});
     } else plan.push({op});
   }
-  const totalFrames=Math.max(180,Math.min(720,plan.length*2));
+  const totalFrames=Math.max(480,Math.min(1600,Math.round(plan.length*2.2)));
   const perFrame=plan.length/totalFrames;
   let idx=0, acc=0;
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -230,23 +230,20 @@ function renderLayerChips(){
   [...layersRun].reverse().forEach(L=>{
     const row=document.createElement('div');
     row.className='lrow'+(L.hidden?' off':'');
-    row.appendChild(mkBtn(L.hidden?'🙈':'👁','show / hide this layer',()=>toggleLayer(L.name)));
-    const nm=document.createElement('b');
+    const nm=document.createElement('div');
+    nm.className='lname';
     nm.textContent=L.name; nm.title=L.name+' - double-click to rename';
     nm.addEventListener('dblclick',()=>{
       const n=prompt('Rename layer', L.name);
       if(n&&n.trim()) renameLayer(L.name, n.trim());
     });
     row.appendChild(nm);
-    row.appendChild(mkBtn('▲','bring forward',()=>moveLayer(L.name,1)));
-    row.appendChild(mkBtn('▼','send back',()=>moveLayer(L.name,-1)));
-    const sc=document.createElement('input');
-    sc.type='number'; sc.step='0.1'; sc.min='0.1'; sc.max='6'; sc.value=L.scale;
-    sc.className='lscale';
-    sc.title='layer scale (also editable in code: layer(name, { scale, x, y }))';
-    sc.addEventListener('change',()=>setLayerOpt(L.name,'scale',parseFloat(sc.value)||1));
-    row.appendChild(sc);
-    row.appendChild(mkBtn('📋','copy this layer as a reusable component (paste into any tab)',()=>{
+    const ctl=document.createElement('div');
+    ctl.className='lctl';
+    ctl.appendChild(mkBtn(L.hidden?'🙈':'👁','show / hide this layer',()=>toggleLayer(L.name)));
+    ctl.appendChild(mkBtn('▲','bring forward',()=>moveLayer(L.name,1)));
+    ctl.appendChild(mkBtn('▼','send back',()=>moveLayer(L.name,-1)));
+    ctl.appendChild(mkBtn('📋','copy this layer as a reusable component (paste into any tab)',()=>{
       const bs=layerBlocks(); const b=bs.find(x=>x.name===L.name);
       if(!b) return;
       const snippet=ta.value.slice(b.start,b.end);
@@ -255,10 +252,41 @@ function renderLayerChips(){
         statusMsgEl.className='ok';
       }).catch(()=>{ statusMsgEl.textContent='could not reach the clipboard'; statusMsgEl.className='ok'; });
     }));
-    row.appendChild(mkBtn('🗑','delete this layer',()=>deleteLayer(L.name)));
+    ctl.appendChild(mkBtn('🗑','delete this layer',()=>deleteLayer(L.name)));
+    const sc=document.createElement('input');
+    sc.type='number'; sc.step='0.1'; sc.min='0.1'; sc.max='6'; sc.value=L.scale;
+    sc.className='lscale';
+    sc.title='layer scale (also editable in code: layer(name, { scale, x, y }))';
+    sc.addEventListener('change',()=>setLayerOpt(L.name,'scale',parseFloat(sc.value)||1));
+    ctl.appendChild(sc);
+    row.appendChild(ctl);
     list.appendChild(row);
   });
 }
+/* resizable layers pane */
+(function(){
+  const pane=document.getElementById('layersPane');
+  const grip=document.getElementById('lpResize');
+  if(!pane||!grip) return;
+  try{ const w=localStorage.getItem('paintlang-lpw');
+    if(w) pane.style.width=Math.min(420,Math.max(150,+w))+'px'; }catch(e){}
+  grip.addEventListener('pointerdown', e=>{
+    grip.setPointerCapture(e.pointerId);
+    const startX=e.clientX, startW=pane.getBoundingClientRect().width;
+    const move=ev=>{
+      const w=Math.min(420,Math.max(150,startW+(startX-ev.clientX)));
+      pane.style.width=w+'px';
+    };
+    const up=ev=>{
+      grip.removeEventListener('pointermove',move);
+      grip.removeEventListener('pointerup',up);
+      try{ localStorage.setItem('paintlang-lpw',
+        String(Math.round(pane.getBoundingClientRect().width))); }catch(e2){}
+    };
+    grip.addEventListener('pointermove',move);
+    grip.addEventListener('pointerup',up);
+  });
+})();
 
 /* ============================ document tabs ============================
    One painting per tab, mirrored above the code and the canvas; the layers

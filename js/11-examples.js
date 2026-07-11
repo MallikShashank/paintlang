@@ -107,4 +107,6 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
     }catch(e){}
   }
   activateDoc(activeDoc);
+  if(new URLSearchParams(location.search).get('replay')==='1')
+    setTimeout(()=>{ if(typeof startReplay==='function') startReplay(); }, 800);
 })();
