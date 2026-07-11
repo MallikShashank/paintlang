@@ -24,7 +24,7 @@ function applyOpTransform(c,op){
    of re-painting the whole document; dragging pre-renders everything
    beneath the selection once ---- */
 const opCache={canvas:document.createElement('canvas'), src:null, count:0, t:[], endMax:-1};
-opCache.canvas.width=W; opCache.canvas.height=H;
+opCache.canvas.width=W*DPR; opCache.canvas.height=H*DPR;
 function layerKey(op){ const L=op.layer;
   return L?L.name+','+L.x+','+L.y+','+L.scale+','+(L.hidden?1:0):''; }
 function opT(op){ return [op.tx,op.ty,op.rs,op.psc,!!op.hidden,layerKey(op)]; }
@@ -44,7 +44,7 @@ function cacheUsable(){
 function bakeCache(){
   const g=opCache.canvas.getContext('2d');
   g.setTransform(1,0,0,1,0,0);
-  g.clearRect(0,0,W,H); g.drawImage(paintCanvas,0,0);
+  g.clearRect(0,0,W*DPR,H*DPR); g.drawImage(paintCanvas,0,0);
   opCache.src=lastRunSrc; opCache.count=ops.length;
   opCache.t=ops.map(opT);
   let em=-1;
@@ -60,9 +60,9 @@ function bakeCache(){
 let dragCacheCanvas=null, dragCacheUpto=-1;
 function buildDragCache(upto){
   if(!dragCacheCanvas){ dragCacheCanvas=document.createElement('canvas');
-    dragCacheCanvas.width=W; dragCacheCanvas.height=H; }
+    dragCacheCanvas.width=W*DPR; dragCacheCanvas.height=H*DPR; }
   const g=dragCacheCanvas.getContext('2d');
-  g.setTransform(1,0,0,1,0,0);
+  g.setTransform(DPR,0,0,DPR,0,0);
   g.fillStyle='#f6f1e7'; g.fillRect(0,0,W,H);
   for(let i=0;i<upto;i++){ const op=ops[i];
     if(op.hidden||(op.layer&&op.layer.hidden)) continue;
@@ -78,9 +78,9 @@ function runPostPasses(){
   }
 }
 function renderOps(rebake){
-  ctx.setTransform(1,0,0,1,0,0);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
   let start=0;
-  if(cacheUsable()){ ctx.drawImage(opCache.canvas,0,0); start=opCache.count; }
+  if(cacheUsable()){ ctx.drawImage(opCache.canvas,0,0,W,H); start=opCache.count; }
   else { ctx.fillStyle='#f6f1e7'; ctx.fillRect(0,0,W,H); }
   for(let i=start;i<ops.length;i++){ const op=ops[i];
     if(op.hidden||(op.layer&&op.layer.hidden)) continue;
@@ -93,8 +93,8 @@ function renderOps(rebake){
 }
 function previewRender(){
   if(dragCacheUpto>=0&&dragCacheCanvas){
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.drawImage(dragCacheCanvas,0,0);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.drawImage(dragCacheCanvas,0,0,W,H);
     for(let i=dragCacheUpto;i<ops.length;i++){ const op=ops[i];
       if(op.hidden||(op.layer&&op.layer.hidden)) continue;
       ctx.save(); applyOpTransform(ctx,op);

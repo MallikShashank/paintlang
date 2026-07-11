@@ -346,8 +346,8 @@ overlay.addEventListener('pointerdown', e=>{
     return;
   }
   if(tool==='eyedrop'){
-    const d=ctx.getImageData(Math.max(0,Math.min(W-1,Math.round(p.x))),
-      Math.max(0,Math.min(H-1,Math.round(p.y))),1,1).data;
+    const d=ctx.getImageData(Math.max(0,Math.min(W*DPR-1,Math.round(p.x*DPR))),
+      Math.max(0,Math.min(H*DPR-1,Math.round(p.y*DPR))),1,1).data;
     pcolor.value='#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
     statusMsgEl.textContent='picked colour '+pcolor.value; statusMsgEl.className='ok';
     return;

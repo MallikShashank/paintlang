@@ -84,12 +84,14 @@ function water(o={}){
     c.restore(); };
   const idx=addOp('water',[0,y,W,H-y],c=>{
     const hR=Math.min(y,H-y); let tmp=null;
-    if(inplace&&refl>0&&hR>4){ tmp=document.createElement('canvas'); tmp.width=W; tmp.height=hR;
-      tmp.getContext('2d').drawImage(paintCanvas,0,y-hR,W,hR,0,0,W,hR); }
+    if(inplace&&refl>0&&hR>4){ tmp=document.createElement('canvas');
+      tmp.width=W*DPR; tmp.height=hR*DPR;
+      tmp.getContext('2d').drawImage(paintCanvas,
+        0,(y-hR)*DPR,W*DPR,hR*DPR, 0,0,W*DPR,hR*DPR); }
     const g=c.createLinearGradient(0,y,0,H); g.addColorStop(0,col); g.addColorStop(1,deep);
     c.fillStyle=g; c.fillRect(0,y,W,H-y);
     if(tmp){ c.save(); c.globalAlpha=refl; c.translate(0,y); c.scale(1,-1);
-      c.drawImage(tmp,0,-hR); c.restore(); }
+      c.drawImage(tmp,0,-hR,W,hR); c.restore(); }
     if(!deferred) drawGlints(c);          // deferred mode re-draws them after the mirror
   },false);
   if(deferred){
@@ -101,11 +103,12 @@ function water(o={}){
       yy=Math.round(yy);
       const hR=Math.min(yy,H-yy);
       if(hR<5) return;
-      _reflCanvas.width=W; _reflCanvas.height=hR;
-      _reflCanvas.getContext('2d').drawImage(paintCanvas,0,yy-hR,W,hR,0,0,W,hR);
-      c.save(); c.setTransform(1,0,0,1,0,0);
+      _reflCanvas.width=W*DPR; _reflCanvas.height=hR*DPR;
+      _reflCanvas.getContext('2d').drawImage(paintCanvas,
+        0,(yy-hR)*DPR,W*DPR,hR*DPR, 0,0,W*DPR,hR*DPR);
+      c.save(); c.setTransform(DPR,0,0,DPR,0,0);
       c.globalAlpha=refl; c.translate(0,yy); c.scale(1,-1);
-      c.drawImage(_reflCanvas,0,-hR);
+      c.drawImage(_reflCanvas,0,-hR,W,hR);
       c.restore();
       c.save(); applyOpTransform(c,op); drawGlints(c); c.restore();
     };

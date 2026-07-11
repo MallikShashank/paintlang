@@ -6,7 +6,7 @@
    browser with localStorage 'paintlang-trace-api'. */
 const TRACE_API = localStorage.getItem('paintlang-trace-api')
   || 'https://paintlang-trace.paintlang.workers.dev';
-const TRACE_GRID = { sketch:320, balanced:460, fine:560, ultra:720 };
+const TRACE_GRID = { sketch:320, balanced:460, fine:800, ultra:1280 };
 
 const importBtn=document.getElementById('importBtn');
 const importFile=document.getElementById('importFile');

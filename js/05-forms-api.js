@@ -55,22 +55,26 @@ function strokes(blob,o={}){
     if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0];
     if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
   addOp('strokes',[x0-size,y0-size,x1-x0+size*2,y1-y0+size*2],c=>{
-    c.globalAlpha=al; c.lineCap='round'; c.lineJoin='round'; c.lineWidth=size;
+    c.globalAlpha=al; c.lineCap='round'; c.lineJoin='round';
     for(const s of list){
       c.strokeStyle=s.col;
-      const p=s.pts;
-      if(p.length===1){
+      const p=s.pts, m=p.length;
+      if(m===1){
         c.fillStyle=s.col; c.beginPath();
         c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); continue;
       }
-      c.beginPath(); c.moveTo(p[0][0],p[0][1]);
-      if(p.length===2) c.lineTo(p[1][0],p[1][1]);
-      else{
-        for(let i2=1;i2<p.length-1;i2++)
-          c.quadraticCurveTo(p[i2][0],p[i2][1],(p[i2][0]+p[i2+1][0])/2,(p[i2][1]+p[i2+1][1])/2);
-        c.lineTo(p[p.length-1][0],p[p.length-1][1]);
+      if(m===2){
+        c.lineWidth=size*.85;
+        c.beginPath(); c.moveTo(p[0][0],p[0][1]); c.lineTo(p[1][0],p[1][1]); c.stroke();
+        continue;
       }
-      c.stroke();
+      // tapered brush touch: full width mid-stroke, slimmer at the tips
+      for(let i2=0;i2<m-1;i2++){
+        const t=(i2+.5)/(m-1);
+        c.lineWidth=size*(.55+.45*Math.sin(Math.PI*t));
+        c.beginPath(); c.moveTo(p[i2][0],p[i2][1]);
+        c.lineTo(p[i2+1][0],p[i2+1][1]); c.stroke();
+      }
     }
   });
 }

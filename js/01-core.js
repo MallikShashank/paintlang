@@ -2,10 +2,16 @@
 'use strict';
 /* ================================ core ================================ */
 const W = 960, H = 600;
+/* the canvas is backed by 2x real pixels for crisp detail and 2x exports;
+   all coordinates in the app stay in the 960x600 logical space */
+const DPR = 2;
 const paintCanvas = document.getElementById('paint');
 const overlay = document.getElementById('overlay');
+paintCanvas.width=W*DPR; paintCanvas.height=H*DPR;
+overlay.width=W*DPR; overlay.height=H*DPR;
 const ctx = paintCanvas.getContext('2d');
 const octx = overlay.getContext('2d');
+octx.setTransform(DPR,0,0,DPR,0,0);
 const ta = document.getElementById('code');
 const hl = document.getElementById('hl');
 const gutterInner = document.getElementById('gutterInner');
