@@ -164,6 +164,21 @@
   .bp-row output{width:34px;text-align:right;font:10.5px var(--mono);color:var(--text)}
   .bp-row select{padding:2px 6px;font-size:11px;flex:1}
 
+  /* ---- first-visit welcome ---- */
+  #welcome{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;
+    align-items:center;justify-content:center;z-index:60}
+  #welcome[hidden]{display:none}
+  #welcomeCard{background:var(--panel);border:1px solid var(--line2);border-radius:6px;
+    width:min(460px,92vw);padding:26px 28px;box-shadow:0 18px 48px rgba(0,0,0,.6)}
+  #welcomeCard h2{margin:0 0 2px;font-size:22px;font-weight:600}
+  #welcomeCard .wtag{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.5}
+  #welcomeCard ul{margin:0 0 18px;padding-left:18px;color:var(--text);
+    font-size:13px;line-height:1.9}
+  #welcomeCard li b{color:#75beff}
+  .wrow{display:flex;gap:8px}
+  #welcomeGo{background:#0e639c;border-color:#0e639c;color:#fff;font-weight:600;flex:none}
+  #welcomeGo:hover{background:var(--accent-hi)}
+
   /* ---- mobile: stack the workspace, canvas first ---- */
   @media (max-width: 820px){
     main{flex-direction:column}

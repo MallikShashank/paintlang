@@ -3,7 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Paintlang Studio</title>
+<title>Paintlang - the live-coding painting studio</title>
+<meta name="description" content="Paintlang is a live-coding painting studio: write scenery as code and watch it render, paint by hand and your strokes become code, or import any photo and get a layered painting made of editable code. Free, in your browser.">
+<meta name="keywords" content="creative coding, live coding, painting app, generative art, image to code, digital painting, paint programming language">
+<meta name="author" content="Shashank Mallik">
+<meta property="og:title" content="Paintlang - the live-coding painting studio">
+<meta property="og:description" content="The code and the canvas are the same artwork, edited from either side. Import any photo and it becomes a layered painting made of editable code.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://paintlang.com/">
+<meta property="og:image" content="https://paintlang.com/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1e1e1e">
+<link rel="canonical" href="https://paintlang.com/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication",
+ "name":"Paintlang","applicationCategory":"DesignApplication",
+ "operatingSystem":"Web browser","url":"https://paintlang.com/",
+ "description":"A live-coding painting studio where the code and the canvas are the same artwork, edited from either side. Paint by hand, write scenery as code, or import any image and get an editable painting program.",
+ "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
 <link rel="stylesheet" href="css/studio.css">
 </head>
 <body>
@@ -108,6 +127,23 @@
     <span id="statusMsg" class="ok">ready</span>
     <span id="statusPos"></span>
   </footer>
+
+  <div id="welcome" hidden>
+    <div id="welcomeCard">
+      <h2>Paintlang</h2>
+      <p class="wtag">The code and the canvas are the same artwork - edited from either side.</p>
+      <ul>
+        <li><b>Write code</b> - the painting renders live as you type; click any number for a slider</li>
+        <li><b>Paint by hand</b> - brush strokes come back as code, with pen pressure</li>
+        <li><b>Import any photo</b> - it becomes a layered painting made of editable code</li>
+        <li><b>Drag anything</b> on the canvas - its source code rewrites itself</li>
+      </ul>
+      <div class="wrow">
+        <button id="welcomeGo">Start painting</button>
+        <button id="welcomeRef">Read the language reference</button>
+      </div>
+    </div>
+  </div>
 
   <div id="helpModal" hidden>
     <div id="helpCard">

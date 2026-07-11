@@ -58,6 +58,20 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   statusMsgEl.className='ok';
   if(!copied) location.hash=h;
 });
+/* ---- first-visit welcome card ---- */
+const welcomeEl=document.getElementById('welcome');
+try{ if(!localStorage.getItem('paintlang-welcomed')) welcomeEl.hidden=false; }catch(e){}
+function dismissWelcome(){
+  welcomeEl.hidden=true;
+  try{ localStorage.setItem('paintlang-welcomed','1'); }catch(e){}
+}
+document.getElementById('welcomeGo').addEventListener('click',dismissWelcome);
+document.getElementById('welcomeRef').addEventListener('click',()=>{
+  dismissWelcome();
+  document.getElementById('helpModal').hidden=false;
+});
+welcomeEl.addEventListener('click',e=>{ if(e.target===welcomeEl) dismissWelcome(); });
+
 const helpModal=document.getElementById('helpModal');
 document.getElementById('helpBtn').addEventListener('click',()=>helpModal.hidden=false);
 document.getElementById('helpClose').addEventListener('click',()=>helpModal.hidden=true);
