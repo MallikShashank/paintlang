@@ -6,7 +6,8 @@
    browser with localStorage 'paintlang-trace-api'. */
 const TRACE_API = localStorage.getItem('paintlang-trace-api')
   || 'https://paintlang-trace.paintlang.workers.dev';
-const TRACE_GRID = { sketch:320, balanced:460, fine:800, ultra:1280 };
+const TRACE_GRID = { sketch:320, balanced:460, fine:960, ultra:1280 };
+const TRACE_MAX_CELLS = 1600000;
 
 const importBtn=document.getElementById('importBtn');
 const importFile=document.getElementById('importFile');
@@ -54,7 +55,11 @@ async function traceToCode(img,fname){
   const iw=img.naturalWidth||800, ih=img.naturalHeight||500;
   const fit=Math.min(W/iw,H/ih), dw=iw*fit, dh=ih*fit, ox=(W-dw)/2, oy=(H-dh)/2;
   const gk=GRID/Math.max(dw,dh);
-  const gw=Math.max(16,Math.round(dw*gk)), gh=Math.max(16,Math.round(dh*gk));
+  let gw=Math.max(16,Math.round(dw*gk)), gh=Math.max(16,Math.round(dh*gk));
+  if(gw*gh>TRACE_MAX_CELLS){                 // square-ish images: keep the cell budget
+    const k=Math.sqrt(TRACE_MAX_CELLS/(gw*gh));
+    gw=Math.max(16,Math.floor(gw*k)); gh=Math.max(16,Math.floor(gh*k));
+  }
   traceStatus('preparing '+fname+' ('+gw+'×'+gh+')...');
   const oc=document.createElement('canvas'); oc.width=gw; oc.height=gh;
   const g2=oc.getContext('2d',{willReadFrequently:true});
