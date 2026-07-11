@@ -23,6 +23,7 @@ function instrument(src){
   return { code: out, sites };
 }
 function runCode(){
+  if(typeof cancelReplay==="function") cancelReplay();
   const src = ta.value;
   const inst = instrument(src);
   lastRunSrc = src; runSites = inst.sites;

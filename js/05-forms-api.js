@@ -53,6 +53,64 @@ function shadeRGB(col,f){
   return 'rgb('+Math.round(+m[0]+(t-+m[0])*a)+','+Math.round(+m[1]+(t-+m[1])*a)
     +','+Math.round(+m[2]+(t-+m[2])*a)+')';
 }
+function _slPolyline(c,p,w){ c.lineWidth=w;
+  c.beginPath(); c.moveTo(p[0][0],p[0][1]);
+  for(let i2=1;i2<p.length;i2++) c.lineTo(p[i2][0],p[i2][1]);
+  c.stroke(); }
+function _slTaper(c,p,w){ const m=p.length;
+  for(let i2=0;i2<m-1;i2++){
+    const t=(i2+.5)/(m-1);
+    c.lineWidth=w*(.55+.45*Math.sin(Math.PI*t));
+    c.beginPath(); c.moveTo(p[i2][0],p[i2][1]);
+    c.lineTo(p[i2+1][0],p[i2+1][1]); c.stroke();
+  } }
+function drawOneStroke(c,s,size,al,media,rng){
+  const p=s.pts, m=p.length;
+  if(m===1){
+    c.globalAlpha=al; c.fillStyle=s.col; c.beginPath();
+    c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); return;
+  }
+  if(media==='watercolor'){
+    c.strokeStyle=shadeRGB(s.col,-.3); c.globalAlpha=al*.10; _slPolyline(c,p,size*2.1);
+    c.strokeStyle=s.col; c.globalAlpha=al*.30; _slPolyline(c,p,size*1.7);
+    c.globalAlpha=al*.55; _slPolyline(c,p,size*.95);
+  } else if(media==='oil'){
+    c.strokeStyle=s.col; c.globalAlpha=al;
+    if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size);
+    const dx=p[m-1][0]-p[0][0], dy=p[m-1][1]-p[0][1];
+    const L=Math.hypot(dx,dy)||1;
+    const nx=-dy/L*size*.3, ny=dx/L*size*.3;
+    c.globalAlpha=al*.75;
+    c.strokeStyle=shadeRGB(s.col,.16);
+    c.beginPath(); c.moveTo(p[0][0]+nx,p[0][1]+ny);
+    for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]+nx,p[i2][1]+ny);
+    c.lineWidth=Math.max(.5,size*.3); c.stroke();
+    c.strokeStyle=shadeRGB(s.col,-.16);
+    c.beginPath(); c.moveTo(p[0][0]-nx,p[0][1]-ny);
+    for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]-nx,p[i2][1]-ny);
+    c.stroke();
+  } else if(media==='chalk'){
+    c.strokeStyle=s.col;
+    for(let i2=0;i2<m-1;i2++){
+      const jx=(rng()-.5)*size*.4, jy=(rng()-.5)*size*.4;
+      c.globalAlpha=al*(.35+rng()*.55);
+      c.lineWidth=Math.max(.5,size*(.5+rng()*.5));
+      c.beginPath(); c.moveTo(p[i2][0]+jx,p[i2][1]+jy);
+      c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
+    }
+  } else {
+    c.strokeStyle=s.col; c.globalAlpha=al;
+    if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size);
+  }
+}
+/* draw a slice of a bundle - the replay engine reveals bundles gradually */
+function drawStrokesRange(c,st,from,to){
+  const rng=mulberry32((((st.seed||9)+from)>>>0)||9);
+  c.lineCap='round'; c.lineJoin='round';
+  const end=Math.min(to,st.list.length);
+  for(let i=from;i<end;i++) drawOneStroke(c,st.list[i],st.size,st.al,st.media,rng);
+  c.globalAlpha=1;
+}
 function strokes(blob,o={}){
   const list=unpackStrokes(blob);
   if(!list) return;
@@ -62,68 +120,12 @@ function strokes(blob,o={}){
   for(const s of list) for(const p of s.pts){
     if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0];
     if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
-  const seedVal=Math.floor(rand(0,1e9));
-  const polyline=(c,p,w)=>{ c.lineWidth=w;
-    c.beginPath(); c.moveTo(p[0][0],p[0][1]);
-    for(let i2=1;i2<p.length;i2++) c.lineTo(p[i2][0],p[i2][1]);
-    c.stroke(); };
-  const taper=(c,p,w)=>{ const m=p.length;
-    for(let i2=0;i2<m-1;i2++){
-      const t=(i2+.5)/(m-1);
-      c.lineWidth=w*(.55+.45*Math.sin(Math.PI*t));
-      c.beginPath(); c.moveTo(p[i2][0],p[i2][1]);
-      c.lineTo(p[i2+1][0],p[i2+1][1]); c.stroke();
-    } };
+  const st={list, size, al, media, seed:Math.floor(rand(0,1e9))};
   // not click-selectable: bundles belong to their layer (hide/move/scale in
   // the Layers pane) and their code line - clicks always reach the forms
-  addOp('strokes',[x0-size*2,y0-size*2,x1-x0+size*4,y1-y0+size*4],c=>{
-    const rng=mulberry32(seedVal||9);
-    c.lineCap='round'; c.lineJoin='round';
-    for(const s of list){
-      const p=s.pts, m=p.length;
-      if(m===1){
-        c.globalAlpha=al; c.fillStyle=s.col; c.beginPath();
-        c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); continue;
-      }
-      if(media==='watercolor'){
-        // soft wash: darker rim halo, broad translucent body, tinted core
-        c.strokeStyle=shadeRGB(s.col,-.3); c.globalAlpha=al*.10; polyline(c,p,size*2.1);
-        c.strokeStyle=s.col; c.globalAlpha=al*.30; polyline(c,p,size*1.7);
-        c.globalAlpha=al*.55; polyline(c,p,size*.95);
-      } else if(media==='oil'){
-        // directional bristle: tapered body with lighter and darker filaments
-        c.strokeStyle=s.col; c.globalAlpha=al;
-        if(m===2||size<3) polyline(c,p,size*.9); else taper(c,p,size);
-        const dx=p[m-1][0]-p[0][0], dy=p[m-1][1]-p[0][1];
-        const L=Math.hypot(dx,dy)||1;
-        const nx=-dy/L*size*.3, ny=dx/L*size*.3;
-        c.globalAlpha=al*.75;
-        c.strokeStyle=shadeRGB(s.col,.16);
-        c.beginPath(); c.moveTo(p[0][0]+nx,p[0][1]+ny);
-        for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]+nx,p[i2][1]+ny);
-        c.lineWidth=Math.max(.5,size*.3); c.stroke();
-        c.strokeStyle=shadeRGB(s.col,-.16);
-        c.beginPath(); c.moveTo(p[0][0]-nx,p[0][1]-ny);
-        for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]-nx,p[i2][1]-ny);
-        c.stroke();
-      } else if(media==='chalk'){
-        // dry grain: broken sub-segments with jittered weight and offset
-        c.strokeStyle=s.col;
-        for(let i2=0;i2<m-1;i2++){
-          const jx=(rng()-.5)*size*.4, jy=(rng()-.5)*size*.4;
-          c.globalAlpha=al*(.35+rng()*.55);
-          c.lineWidth=Math.max(.5,size*(.5+rng()*.5));
-          c.beginPath(); c.moveTo(p[i2][0]+jx,p[i2][1]+jy);
-          c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
-        }
-      } else {
-        // flat: clean tapered touch
-        c.strokeStyle=s.col; c.globalAlpha=al;
-        if(m===2||size<3) polyline(c,p,size*.9); else taper(c,p,size);
-      }
-    }
-    c.globalAlpha=1;
-  },false);
+  const idx=addOp('strokes',[x0-size*2,y0-size*2,x1-x0+size*4,y1-y0+size*4],
+    c=>drawStrokesRange(c,st,0,st.list.length), false);
+  ops[idx]._strokes=st;
 }
 function form(x,y,w,h,o={}){
   if(x&&typeof x==='object'){ o=x;

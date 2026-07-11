@@ -58,6 +58,66 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   statusMsgEl.className='ok';
   if(!copied) location.hash=h;
 });
+/* ---- painting replay: reveal the ops in paint order, strokes gradually ---- */
+let replayActive=false;
+function cancelReplay(){
+  if(!replayActive) return;
+  replayActive=false;
+  const b=document.getElementById('replayBtn');
+  if(b) b.textContent='▶ Replay';
+}
+function startReplay(){
+  if(replayActive) return;
+  if(!ops.length){ statusMsgEl.textContent='nothing to replay yet'; return; }
+  replayActive=true;
+  document.getElementById('replayBtn').textContent='■ Stop';
+  statusMsgEl.textContent='replaying the painting...'; statusMsgEl.className='ok';
+  // build the reveal plan: forms appear whole, stroke bundles in slices
+  const plan=[];
+  for(const op of ops){
+    if(op.hidden||(op.layer&&op.layer.hidden)) continue;
+    if(op._strokes){
+      const n=op._strokes.list.length;
+      const per=Math.max(4,Math.ceil(n/48));
+      for(let i=0;i<n;i+=per) plan.push({op, s0:i, s1:Math.min(n,i+per)});
+    } else plan.push({op});
+  }
+  const totalFrames=Math.max(180,Math.min(720,plan.length*2));
+  const perFrame=plan.length/totalFrames;
+  let idx=0, acc=0;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#f6f1e7'; ctx.fillRect(0,0,W,H);
+  octx.clearRect(0,0,W,H);
+  if(typeof hideSelAction==='function') hideSelAction();
+  function frame(){
+    if(!replayActive){ renderOps(); return; }
+    acc+=perFrame;
+    while(acc>=1&&idx<plan.length){
+      acc-=1;
+      const it=plan[idx++];
+      ctx.save(); applyOpTransform(ctx,it.op);
+      try{
+        if(it.op._strokes&&it.s0!==undefined)
+          drawStrokesRange(ctx,it.op._strokes,it.s0,it.s1);
+        else it.op.draw(ctx);
+      }catch(e){}
+      ctx.restore();
+    }
+    if(idx>=plan.length){
+      cancelReplay();
+      renderOps();   // final proper render (reflections and all)
+      statusMsgEl.textContent='replay finished'; statusMsgEl.className='ok';
+      return;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+document.getElementById('replayBtn').addEventListener('click',()=>{
+  if(replayActive){ cancelReplay(); renderOps(); }
+  else startReplay();
+});
+
 /* ---- first-visit welcome card ---- */
 const welcomeEl=document.getElementById('welcome');
 try{ if(!localStorage.getItem('paintlang-welcomed')) welcomeEl.hidden=false; }catch(e){}
@@ -186,6 +246,15 @@ function renderLayerChips(){
     sc.title='layer scale (also editable in code: layer(name, { scale, x, y }))';
     sc.addEventListener('change',()=>setLayerOpt(L.name,'scale',parseFloat(sc.value)||1));
     row.appendChild(sc);
+    row.appendChild(mkBtn('📋','copy this layer as a reusable component (paste into any tab)',()=>{
+      const bs=layerBlocks(); const b=bs.find(x=>x.name===L.name);
+      if(!b) return;
+      const snippet=ta.value.slice(b.start,b.end);
+      navigator.clipboard.writeText(snippet).then(()=>{
+        statusMsgEl.textContent='layer '+JSON.stringify(L.name)+' copied as a component - paste it into any painting tab';
+        statusMsgEl.className='ok';
+      }).catch(()=>{ statusMsgEl.textContent='could not reach the clipboard'; statusMsgEl.className='ok'; });
+    }));
     row.appendChild(mkBtn('🗑','delete this layer',()=>deleteLayer(L.name)));
     list.appendChild(row);
   });
