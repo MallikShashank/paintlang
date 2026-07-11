@@ -46,39 +46,81 @@ function unpackStrokes(s){
   }
   return out.length?out:null;
 }
+/* fast numeric tint for 'rgb(r,g,b)' strings: f>0 toward white, f<0 toward black */
+function shadeRGB(col,f){
+  const m=col.match(/\d+/g); if(!m) return col;
+  const t=f>0?255:0, a=Math.abs(f);
+  return 'rgb('+Math.round(+m[0]+(t-+m[0])*a)+','+Math.round(+m[1]+(t-+m[1])*a)
+    +','+Math.round(+m[2]+(t-+m[2])*a)+')';
+}
 function strokes(blob,o={}){
   const list=unpackStrokes(blob);
   if(!list) return;
   const size=o.size===undefined?6:o.size, al=o.opacity===undefined?1:o.opacity;
+  const media=o.media||'flat';
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   for(const s of list) for(const p of s.pts){
     if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0];
     if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
-  addOp('strokes',[x0-size,y0-size,x1-x0+size*2,y1-y0+size*2],c=>{
-    c.globalAlpha=al; c.lineCap='round'; c.lineJoin='round';
+  const seedVal=Math.floor(rand(0,1e9));
+  const polyline=(c,p,w)=>{ c.lineWidth=w;
+    c.beginPath(); c.moveTo(p[0][0],p[0][1]);
+    for(let i2=1;i2<p.length;i2++) c.lineTo(p[i2][0],p[i2][1]);
+    c.stroke(); };
+  const taper=(c,p,w)=>{ const m=p.length;
+    for(let i2=0;i2<m-1;i2++){
+      const t=(i2+.5)/(m-1);
+      c.lineWidth=w*(.55+.45*Math.sin(Math.PI*t));
+      c.beginPath(); c.moveTo(p[i2][0],p[i2][1]);
+      c.lineTo(p[i2+1][0],p[i2+1][1]); c.stroke();
+    } };
+  addOp('strokes',[x0-size*2,y0-size*2,x1-x0+size*4,y1-y0+size*4],c=>{
+    const rng=mulberry32(seedVal||9);
+    c.lineCap='round'; c.lineJoin='round';
     for(const s of list){
-      c.strokeStyle=s.col;
       const p=s.pts, m=p.length;
       if(m===1){
-        c.fillStyle=s.col; c.beginPath();
+        c.globalAlpha=al; c.fillStyle=s.col; c.beginPath();
         c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); continue;
       }
-      if(m===2||size<3){
-        // tiny strokes: taper is invisible - one path keeps huge bundles fast
-        c.lineWidth=size*.9;
-        c.beginPath(); c.moveTo(p[0][0],p[0][1]);
-        for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0],p[i2][1]);
+      if(media==='watercolor'){
+        // soft wash: darker rim halo, broad translucent body, tinted core
+        c.strokeStyle=shadeRGB(s.col,-.3); c.globalAlpha=al*.10; polyline(c,p,size*2.1);
+        c.strokeStyle=s.col; c.globalAlpha=al*.30; polyline(c,p,size*1.7);
+        c.globalAlpha=al*.55; polyline(c,p,size*.95);
+      } else if(media==='oil'){
+        // directional bristle: tapered body with lighter and darker filaments
+        c.strokeStyle=s.col; c.globalAlpha=al;
+        if(m===2||size<3) polyline(c,p,size*.9); else taper(c,p,size);
+        const dx=p[m-1][0]-p[0][0], dy=p[m-1][1]-p[0][1];
+        const L=Math.hypot(dx,dy)||1;
+        const nx=-dy/L*size*.3, ny=dx/L*size*.3;
+        c.globalAlpha=al*.75;
+        c.strokeStyle=shadeRGB(s.col,.16);
+        c.beginPath(); c.moveTo(p[0][0]+nx,p[0][1]+ny);
+        for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]+nx,p[i2][1]+ny);
+        c.lineWidth=Math.max(.5,size*.3); c.stroke();
+        c.strokeStyle=shadeRGB(s.col,-.16);
+        c.beginPath(); c.moveTo(p[0][0]-nx,p[0][1]-ny);
+        for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]-nx,p[i2][1]-ny);
         c.stroke();
-        continue;
-      }
-      // tapered brush touch: full width mid-stroke, slimmer at the tips
-      for(let i2=0;i2<m-1;i2++){
-        const t=(i2+.5)/(m-1);
-        c.lineWidth=size*(.55+.45*Math.sin(Math.PI*t));
-        c.beginPath(); c.moveTo(p[i2][0],p[i2][1]);
-        c.lineTo(p[i2+1][0],p[i2+1][1]); c.stroke();
+      } else if(media==='chalk'){
+        // dry grain: broken sub-segments with jittered weight and offset
+        c.strokeStyle=s.col;
+        for(let i2=0;i2<m-1;i2++){
+          const jx=(rng()-.5)*size*.4, jy=(rng()-.5)*size*.4;
+          c.globalAlpha=al*(.35+rng()*.55);
+          c.lineWidth=Math.max(.5,size*(.5+rng()*.5));
+          c.beginPath(); c.moveTo(p[i2][0]+jx,p[i2][1]+jy);
+          c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
+        }
+      } else {
+        // flat: clean tapered touch
+        c.strokeStyle=s.col; c.globalAlpha=al;
+        if(m===2||size<3) polyline(c,p,size*.9); else taper(c,p,size);
       }
     }
+    c.globalAlpha=1;
   });
 }
 function form(x,y,w,h,o={}){

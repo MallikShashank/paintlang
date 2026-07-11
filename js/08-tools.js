@@ -58,6 +58,9 @@ window.addEventListener('keydown', e=>{
       if(tool!=='paint'){ const pb=document.querySelector('.tool[data-tool=paint]'); if(pb) pb.click(); }
       statusMsgEl.textContent='brush: '+opt.textContent.trim(); statusMsgEl.className='ok'; }
   }
+  if(e.key==='p' && sel>=0 && sel<ops.length && ops[sel].name==='form'){
+    unpackSelectedForm(); return;
+  }
   if((e.key==='Delete'||e.key==='Backspace') && sel>=0 && sel<ops.length){
     appendCode(`hide(${sel})  // hide ${ops[sel].name} #${sel}`);
     sel=-1;
@@ -296,6 +299,45 @@ function tryRecolor(opIndex, color){
   renderHL(); clearTimeout(debounceT); runCode();
   return true;
 }
+/* ---- unpack a traced form's outline into an editable polygon ---- */
+function unpackSelectedForm(){
+  if(sel<0||sel>=ops.length) return;
+  const op=ops[sel];
+  if(op.name!=='form'||op.site<0){ return; }
+  if(siteOpsCount[op.site]!==1) return;
+  const site=runSites[op.site];
+  if(site.name!=='form') return;
+  if(ta.value!==lastRunSrc){ clearTimeout(debounceT); runCode(); return; }
+  const src=lastRunSrc;
+  const sc=scanArgs(src,site.open); if(!sc||!sc.args[0]) return;
+  const a0=sc.args[0], body=src.slice(a0.start,a0.end);
+  if(!/^\s*\{/.test(body)){
+    statusMsgEl.textContent='only labelled form({ ... }) calls can be unpacked';
+    statusMsgEl.className='ok'; return;
+  }
+  const num=k=>{ const m=body.match(new RegExp('(^|[{,\\s])'+k+'\\s*:\\s*(-?\\d+(?:\\.\\d+)?)'));
+    return m?+m[2]:null; };
+  const x=num('x'), y=num('y'), w=num('w'), h=num('h');
+  const colM=body.match(/color\s*:\s*'([^']*)'/);
+  const shadeM=body.match(/shade\s*:\s*(\[[^\]]*\])/);
+  const ptsM=body.match(/pts\s*:\s*'([A-Za-z0-9\-_]*)'/);
+  if(x===null||y===null||w===null||h===null||!ptsM){
+    statusMsgEl.textContent='could not read this form\'s parameters'; statusMsgEl.className='ok'; return;
+  }
+  const norm=unpackPts(ptsM[1]);
+  if(!norm){ statusMsgEl.textContent='this form has no packed outline'; statusMsgEl.className='ok'; return; }
+  const points=norm.map(p=>[Math.round(x-w/2+p[0]*w), Math.round(y-h/2+p[1]*h)]);
+  const repl='polygon('+JSON.stringify(points)+", { color: '"+(colM?colM[1]:'#888')+"'"
+    +(shadeM?', shade: '+shadeM[1]:'')+', smooth: true, seal: true })';
+  const keep=sel;
+  snapshotUndo(); ta.focus();
+  ta.setRangeText(repl, site.start, sc.close+1, 'preserve');
+  renderHL(); clearTimeout(debounceT); runCode();
+  if(keep<ops.length){ sel=keep; drawSel(); }
+  statusMsgEl.textContent='✓ outline unpacked into '+points.length
+    +' editable polygon points - every coordinate is now yours to edit';
+  statusMsgEl.className='ok';
+}
 function addNudge(i,dx,dy){
   dx=Math.round(dx); dy=Math.round(dy);
   if(!dx&&!dy) return;
@@ -338,7 +380,8 @@ overlay.addEventListener('pointerdown', e=>{
       if(site) revealLine(srcLine(site.start));
       statusMsgEl.textContent=`selected ${op.name} #${sel}`
         +(site?` → line ${srcLine(site.start)}`:'')
-        +' - drag to move · corner handles resize · Delete hides';
+        +' - drag to move · handles resize · Delete hides'
+        +(op.name==='form'?' · P unpacks the outline':'');
       statusMsgEl.className='ok';
     } else { dragStart=null; linebarLine=-1; positionLinebar();
       statusMsgEl.textContent='nothing selectable there (skies, water and texture layers are fixed)';

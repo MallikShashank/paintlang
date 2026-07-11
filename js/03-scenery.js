@@ -206,7 +206,19 @@ function polygon(pts,o={}){ if(!pts||pts.length<3) return;
   for(const p of pts){ x0=Math.min(x0,p[0]); y0=Math.min(y0,p[1]);
     x1=Math.max(x1,p[0]); y1=Math.max(y1,p[1]); }
   addOp('polygon',[x0,y0,x1-x0,y1-y0],c=>{
-    c.globalAlpha=o.opacity===undefined?1:o.opacity; c.fillStyle=o.color||'#333';
+    c.globalAlpha=o.opacity===undefined?1:o.opacity;
+    let fill=o.color||'#333';
+    if(o.shade&&o.shade.length){
+      // same lighting model as form(): colour on the dark side -> lit tone
+      const ang=(o.shade[1]||0)*Math.PI/180;
+      const cx2=(x0+x1)/2, cy2=(y0+y1)/2;
+      const ux=Math.cos(ang), uy=Math.sin(ang);
+      const ext=Math.abs(ux)*(x1-x0)/2+Math.abs(uy)*(y1-y0)/2||1;
+      const g=c.createLinearGradient(cx2-ux*ext,cy2-uy*ext,cx2+ux*ext,cy2+uy*ext);
+      g.addColorStop(0,o.color||'#333'); g.addColorStop(1,o.shade[0]);
+      fill=g;
+    }
+    c.fillStyle=fill;
     c.beginPath();
     if(o.smooth&&pts.length>3){
       // closed curve through segment midpoints - organic, hand-drawn outlines
