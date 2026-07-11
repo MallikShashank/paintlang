@@ -74,6 +74,8 @@ function strokes(blob,o={}){
       c.beginPath(); c.moveTo(p[i2][0],p[i2][1]);
       c.lineTo(p[i2+1][0],p[i2+1][1]); c.stroke();
     } };
+  // not click-selectable: bundles belong to their layer (hide/move/scale in
+  // the Layers pane) and their code line - clicks always reach the forms
   addOp('strokes',[x0-size*2,y0-size*2,x1-x0+size*4,y1-y0+size*4],c=>{
     const rng=mulberry32(seedVal||9);
     c.lineCap='round'; c.lineJoin='round';
@@ -121,7 +123,7 @@ function strokes(blob,o={}){
       }
     }
     c.globalAlpha=1;
-  });
+  },false);
 }
 function form(x,y,w,h,o={}){
   if(x&&typeof x==='object'){ o=x;
