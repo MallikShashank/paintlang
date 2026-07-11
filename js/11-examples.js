@@ -92,5 +92,19 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
       statusMsgEl.className='ok';
     }catch(e){}
   }
+  const openQ=new URLSearchParams(location.search).get('open');
+  if(openQ&&/^gallery\/[a-z0-9\-]+\.paint$/.test(openQ)){
+    try{
+      const r=await fetch('/'+openQ);
+      if(r.ok){
+        const src=await r.text();
+        docs.push({name:uniqueDocName(openQ.split('/')[1].replace('.paint','').slice(0,24)),
+          code:src, undo:[], redo:[]});
+        activeDoc=docs.length-1;
+        statusMsgEl.textContent='✓ gallery piece opened - replay it, remix it, or copy its layers';
+        statusMsgEl.className='ok';
+      }
+    }catch(e){}
+  }
   activateDoc(activeDoc);
 })();

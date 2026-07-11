@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Coded Gallery - masterpieces as editable Paintlang code</title>
+<meta name="description" content="Public-domain masterpieces traced into editable Paintlang code. Open any painting, read it as a program, and remix it in your browser.">
+<meta property="og:title" content="The Coded Gallery - masterpieces as editable code">
+<meta property="og:description" content="Van Gogh, Hokusai, Seurat and Monet as living programs you can open and remix.">
+<meta name="theme-color" content="#1e1e1e">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1e1e1e;color:#ccc;
+  font-family:"Segoe UI",ui-sans-serif,system-ui,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:14px 22px;
+  background:#323233;border-bottom:1px solid #333}
+header b{font-size:15px}
+header .sub{color:#8a8a8a;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+header a{margin-left:auto;color:#fff;background:#0e639c;border-radius:3px;
+  padding:6px 14px;text-decoration:none;font-size:13px}
+header a:hover{background:#1177bb}
+.intro{max-width:64ch;padding:26px 22px 6px;color:#8a8a8a;font-size:14px;line-height:1.65}
+.intro b{color:#ccc}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:18px;padding:22px}
+.card{background:#252526;border:1px solid #333;border-radius:6px;overflow:hidden;
+  display:flex;flex-direction:column}
+.card img{width:100%;aspect-ratio:960/600;display:block;background:#f6f1e7}
+.card .meta{padding:12px 14px;display:flex;flex-direction:column;gap:3px;flex:1}
+.card .t{font-weight:600;font-size:14px;color:#e8e8e8}
+.card .a{font-size:12px;color:#8a8a8a}
+.card .s{font-size:11px;color:#5a5a5a;font-family:Consolas,monospace;margin-top:4px}
+.card .open{margin:10px 14px 14px;text-align:center;background:#0e639c;color:#fff;
+  border-radius:3px;padding:7px 0;text-decoration:none;font-size:13px;font-weight:600}
+.card .open:hover{background:#1177bb}
+footer{padding:18px 22px 32px;color:#5a5a5a;font-size:12px;line-height:1.6;max-width:70ch}
+footer a{color:#75beff}
+</style>
+</head>
+<body>
+<header>
+  <b>The Coded Gallery</b>
+  <span class="sub">masterpieces as living programs</span>
+  <a href="/">Open the studio</a>
+</header>
+<p class="intro">Every painting below is <b>public-domain art traced into Paintlang code</b>:
+masses, light, and thousands of brush strokes, organised into named layers.
+Open one and it loads as a program in your browser - read it, replay it painting
+itself, hide the sky, change one word to repaint it in watercolour, or copy a
+layer into your own work. Images courtesy of the
+<a style="color:#75beff" href="https://www.artic.edu/open-access/open-access-images">Art Institute of Chicago's open access program</a> (CC0).</p>
+<div class="grid" id="grid"></div>
+<footer>
+  Built with <a href="/">Paintlang</a>, the live-coding painting studio where the
+  code and the canvas are the same artwork. Trace your own images the same way -
+  free, in your browser.
+</footer>
+<script>
+fetch('gallery/pieces.json').then(r=>r.json()).then(pieces=>{
+  const g=document.getElementById('grid');
+  for(const p of pieces){
+    const el=document.createElement('div'); el.className='card';
+    el.innerHTML='<img loading="lazy" src="gallery/'+p.slug+'.svg" alt="'+p.title+'">'
+      +'<div class="meta"><span class="t">'+p.title+'</span>'
+      +'<span class="a">'+p.artist+'</span>'
+      +'<span class="s">'+p.shapes+' shapes · '+(p.strokes||0)+' strokes · editable code</span></div>'
+      +'<a class="open" href="/?open=gallery/'+p.slug+'.paint">Open &amp; remix</a>';
+    g.appendChild(el);
+  }
+});
+</script>
+</body>
+</html>

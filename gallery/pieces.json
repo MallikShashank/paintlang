@@ -1,0 +1,37 @@
+[
+ {
+  "title": "A Sunday on La Grande Jatte — 1884",
+  "artist": "Georges Seurat (French, 1859–1891)",
+  "slug": "a-sunday-on-la-grande-jatte-1884",
+  "shapes": 450,
+  "strokes": 29324
+ },
+ {
+  "title": "The Bedroom",
+  "artist": "Vincent van Gogh (Dutch, 1853–1890)",
+  "slug": "the-bedroom",
+  "shapes": 450,
+  "strokes": 48000
+ },
+ {
+  "title": "Under the Wave off Kanagawa (Kanagawa oki nami ura), also known as The Great Wave, from the series \"Thirty-Six Views of Mount Fuji (Fugaku sanjūrokkei)\"",
+  "artist": "Katsushika Hokusai 葛飾 北斎 ",
+  "slug": "under-the-wave-off-kanagawa-kanagawa-oki",
+  "shapes": 450,
+  "strokes": 48000
+ },
+ {
+  "title": "Paris Street; Rainy Day",
+  "artist": "Gustave Caillebotte (French, 1848–1894)",
+  "slug": "paris-street-rainy-day",
+  "shapes": 450,
+  "strokes": 43265
+ },
+ {
+  "title": "Water Lilies",
+  "artist": "Claude Monet (French, 1840–1926)",
+  "slug": "water-lilies",
+  "shapes": 450,
+  "strokes": 45761
+ }
+]
