@@ -617,4 +617,14 @@ overlay.addEventListener('pointerup', e=>{
   }
 });
 overlay.addEventListener('pointerleave', ()=>{ statusPosEl.textContent=''; });
+/* double-click any traced mass to unpack its outline, from any tool */
+overlay.addEventListener('dblclick', e=>{
+  const p=toCanvas(e);
+  if(ta.value!==lastRunSrc){ clearTimeout(debounceT); runCode(); }
+  const i=hitTest(p.x,p.y);
+  if(i>=0&&ops[i].name==='form'){
+    sel=i; drawSel();
+    unpackSelectedForm();
+  }
+});
 
