@@ -63,9 +63,12 @@ function strokes(blob,o={}){
         c.fillStyle=s.col; c.beginPath();
         c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); continue;
       }
-      if(m===2){
-        c.lineWidth=size*.85;
-        c.beginPath(); c.moveTo(p[0][0],p[0][1]); c.lineTo(p[1][0],p[1][1]); c.stroke();
+      if(m===2||size<3){
+        // tiny strokes: taper is invisible - one path keeps huge bundles fast
+        c.lineWidth=size*.9;
+        c.beginPath(); c.moveTo(p[0][0],p[0][1]);
+        for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0],p[i2][1]);
+        c.stroke();
         continue;
       }
       // tapered brush touch: full width mid-stroke, slimmer at the tips
