@@ -30,7 +30,7 @@ document.querySelectorAll('.tool').forEach(b=>{
     document.querySelectorAll('.tool').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); tool = b.dataset.tool;
     overlay.className = tool==='select' ? 'pick' : 'draw';
-    sel = -1; octx.clearRect(0,0,W,H);
+    sel = -1; octx.clearRect(0,0,W,H); hideSelAction();
     statusMsgEl.textContent = tool==='select'
       ? 'select: click an object, drag to move - the code updates'
       : tool+': draw on the canvas - it becomes code';
@@ -86,8 +86,12 @@ function selHandles(b){
   return [[b[0]-3,b[1]-3],[b[0]+b[2]+3,b[1]-3],
           [b[0]-3,b[1]+b[3]+3],[b[0]+b[2]+3,b[1]+b[3]+3]];
 }
+const selActionBtn=document.getElementById('selAction');
+function hideSelAction(){ selActionBtn.hidden=true; }
+selActionBtn.addEventListener('click',()=>unpackSelectedForm());
 function drawSel(){
   octx.clearRect(0,0,W,H);
+  hideSelAction();
   if(sel<0||sel>=ops.length) return;
   const op=ops[sel], b=opBox(op);
   octx.save(); octx.strokeStyle='#3794ff'; octx.lineWidth=1.6;
@@ -108,6 +112,14 @@ function drawSel(){
   octx.fillRect(tx0,ty0,tw+12,19);
   octx.fillStyle='#cccccc'; octx.fillText(tip,tx0+6,ty0+14);
   octx.restore();
+  // visible affordance: unpack button beside any selected traced form
+  if(op.name==='form'&&op.site>=0&&siteOpsCount[op.site]===1){
+    selActionBtn.hidden=false;
+    const bx=Math.max(2,Math.min(84,(b[0]+b[2]+8)/W*100));
+    const by=Math.max(2,Math.min(92,(b[1]+b[3]/2)/H*100));
+    selActionBtn.style.left=bx+'%';
+    selActionBtn.style.top=by+'%';
+  }
 }
 /* ---- moving objects rewrites their coordinates in the source ---- */
 const MOVE_SPEC = {

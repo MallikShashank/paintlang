@@ -113,6 +113,7 @@
           <div id="canvasWrap">
             <canvas id="paint" width="960" height="600"></canvas>
             <canvas id="overlay" width="960" height="600" class="draw"></canvas>
+            <button id="selAction" hidden title="Rewrite this mass's packed outline into an editable polygon point list (P)">⇱ Unpack outline</button>
           </div>
         </div>
         <aside id="layersPane" hidden>
@@ -159,7 +160,7 @@
         <kbd>Ctrl</kbd>+<kbd>Y</kbd>) covers gestures, imports and rewrites.
         <b>Import image</b> (or dropping a file on the canvas) traces any PNG, JPG or SVG into
         editable code at your chosen detail level. Each import opens in its own tab, and its
-        underpainting and brush passes appear as layers in the Layers pane - show, hide, reorder,
+        underpainting, brush passes, and recognised objects (a person, a dog, a boat...) appear as named layers in the Layers pane - show, hide, reorder,
         rename, rescale or delete them there. Tabs are mirrored above the code and the canvas,
         and your open paintings are remembered by this browser.
         The canvas is <b>960 × 600</b>; constants <code>W</code>, <code>H</code>, <code>PI</code> are available.</p>

@@ -40,7 +40,7 @@ function runCode(){
   renderOps(true);
   octx.clearRect(0,0,W,H);
   if(sel>=0 && sel<ops.length) drawSel();
-  else{ sel=-1; linebarLine=-1; positionLinebar(); }
+  else{ sel=-1; linebarLine=-1; positionLinebar(); if(typeof hideSelAction==="function") hideSelAction(); }
   const ms = (performance.now()-t0).toFixed(0);
   if(lastErr){ statusMsgEl.textContent = '✕ ' + lastErr.message;
     statusMsgEl.className='err'; }

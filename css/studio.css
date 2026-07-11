@@ -77,6 +77,11 @@
     background:#f6f1e7}
   #canvasWrap.fith{width:auto;height:100%}
   #paint,#overlay{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #selAction{position:absolute;z-index:7;font-size:11px;padding:3px 9px;
+    background:#0e639c;border:1px solid #0e639c;color:#fff;border-radius:3px;
+    box-shadow:0 4px 12px rgba(0,0,0,.45);white-space:nowrap}
+  #selAction:hover{background:var(--accent-hi)}
+  #selAction[hidden]{display:none}
   #overlay{touch-action:none}
   #overlay.draw{cursor:crosshair}
   #overlay.pick{cursor:default}

@@ -70,10 +70,17 @@ async function traceToCode(img,fname){
   let bin=''; const CH=0x8000;
   for(let i=0;i<data.length;i+=CH)
     bin+=String.fromCharCode.apply(null,data.subarray(i,Math.min(i+CH,data.length)));
+  // small JPEG rides along for server-side object detection (semantic layers)
+  const jscale=Math.min(1,640/Math.max(gw,gh));
+  const jw=Math.max(16,Math.round(gw*jscale)), jh=Math.max(16,Math.round(gh*jscale));
+  const jc=document.createElement('canvas'); jc.width=jw; jc.height=jh;
+  jc.getContext('2d').drawImage(oc,0,0,jw,jh);
+  const jpeg=jc.toDataURL('image/jpeg',.82).split(',')[1]||'';
   const payload=JSON.stringify({
     gw, gh, ox:Math.round(ox), oy:Math.round(oy),
     dw:Math.round(dw), dh:Math.round(dh),
     detail, slug:docName, fname,
+    jw, jh, jpeg,
     rgba:btoa(bin)
   });
   traceStatus('tracing '+fname+' ('+detail+' detail)...');
