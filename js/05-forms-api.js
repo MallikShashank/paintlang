@@ -24,6 +24,56 @@ function unpackPts(s){
   }
   return pts.length>2?pts:null;
 }
+/* ---- strokes: a packed bundle of painterly detail strokes ----
+   What the trace service emits for its coarse-to-fine paint layers.
+   Each stroke in the blob: [1 char point-count][4 chars RGB][n x 4 chars xy].
+   Coordinates are canvas-absolute, 12-bit. One bundle = one selectable op. */
+function unpackStrokes(s){
+  if(typeof s!=='string'||s.length<9) return null;
+  const out=[]; let i=0;
+  while(i<s.length){
+    const n=B64R[s[i]]; if(n===undefined||n<1){ return out.length?out:null; }
+    if(i+1+4+n*4>s.length) break;
+    const c=(B64R[s[i+1]]<<18)|(B64R[s[i+2]]<<12)|(B64R[s[i+3]]<<6)|B64R[s[i+4]];
+    const col='rgb('+((c>>16)&255)+','+((c>>8)&255)+','+(c&255)+')';
+    i+=5;
+    const pts=[];
+    for(let k=0;k<n;k++){
+      const nx=(B64R[s[i]]<<6)|B64R[s[i+1]], ny=(B64R[s[i+2]]<<6)|B64R[s[i+3]];
+      pts.push([nx/4095*W, ny/4095*H]); i+=4;
+    }
+    out.push({col, pts});
+  }
+  return out.length?out:null;
+}
+function strokes(blob,o={}){
+  const list=unpackStrokes(blob);
+  if(!list) return;
+  const size=o.size===undefined?6:o.size, al=o.opacity===undefined?1:o.opacity;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  for(const s of list) for(const p of s.pts){
+    if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0];
+    if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
+  addOp('strokes',[x0-size,y0-size,x1-x0+size*2,y1-y0+size*2],c=>{
+    c.globalAlpha=al; c.lineCap='round'; c.lineJoin='round'; c.lineWidth=size;
+    for(const s of list){
+      c.strokeStyle=s.col;
+      const p=s.pts;
+      if(p.length===1){
+        c.fillStyle=s.col; c.beginPath();
+        c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); continue;
+      }
+      c.beginPath(); c.moveTo(p[0][0],p[0][1]);
+      if(p.length===2) c.lineTo(p[1][0],p[1][1]);
+      else{
+        for(let i2=1;i2<p.length-1;i2++)
+          c.quadraticCurveTo(p[i2][0],p[i2][1],(p[i2][0]+p[i2+1][0])/2,(p[i2][1]+p[i2+1][1])/2);
+        c.lineTo(p[p.length-1][0],p[p.length-1][1]);
+      }
+      c.stroke();
+    }
+  });
+}
 function form(x,y,w,h,o={}){
   if(x&&typeof x==='object'){ o=x;
     x=o.x===undefined?W/2:o.x; y=o.y===undefined?H/2:o.y;
@@ -105,7 +155,7 @@ const api = { seed, rand, noise, hsl, mix,
   background, sky, sun, moon, stars, clouds, mountains, hills, water, ground,
   tree, trees, grass, birds, fog,
   circle, ring, rect, ellipse, line, polygon, triangle, star, ngon, arrow, heart, crescent,
-  stroke, spray, form, text,
+  stroke, spray, form, strokes, text,
   grain, vignette, repeat, nudge, hide, resize, layer, __call,
   W, H, PI: Math.PI };
 const apiSet = new Set(Object.keys(api).filter(k=>k!=='__call'));

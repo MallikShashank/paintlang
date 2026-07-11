@@ -83,7 +83,8 @@ async function traceToCode(img,fname){
   if(!resp.ok||out.error) throw new Error(out.error||('trace service error '+resp.status));
   sel=-1;
   appendCode(out.code);
-  statusMsgEl.textContent='✓ traced '+fname+' → '+out.shapes
-    +' editable shapes in '+out.pigments+' pigments - reorder or hide the layer in the Layers strip';
+  statusMsgEl.textContent='✓ traced '+fname+' → '+out.shapes+' shapes in '+out.pigments
+    +' pigments'+(out.strokes?' + '+out.strokes+' painted detail strokes':'')
+    +' - reorder or hide the layer in the Layers strip';
   statusMsgEl.className='ok';
 }
