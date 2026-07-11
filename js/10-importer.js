@@ -65,6 +65,7 @@ async function traceToCode(img,fname){
   const g2=oc.getContext('2d',{willReadFrequently:true});
   g2.fillStyle='#f6f1e7'; g2.fillRect(0,0,gw,gh);
   g2.drawImage(img,0,0,gw,gh);
+  const docName=layerSlug(fname);
   const data=g2.getImageData(0,0,gw,gh).data;
   let bin=''; const CH=0x8000;
   for(let i=0;i<data.length;i+=CH)
@@ -72,7 +73,7 @@ async function traceToCode(img,fname){
   const payload=JSON.stringify({
     gw, gh, ox:Math.round(ox), oy:Math.round(oy),
     dw:Math.round(dw), dh:Math.round(dh),
-    detail, slug:layerSlug(fname), fname,
+    detail, slug:docName, fname,
     rgba:btoa(bin)
   });
   traceStatus('tracing '+fname+' ('+detail+' detail)...');
@@ -87,9 +88,9 @@ async function traceToCode(img,fname){
   const out=await resp.json();
   if(!resp.ok||out.error) throw new Error(out.error||('trace service error '+resp.status));
   sel=-1;
-  appendCode(out.code);
+  newDoc(docName, out.code.replace(/^\n+/,''));
   statusMsgEl.textContent='✓ traced '+fname+' → '+out.shapes+' shapes in '+out.pigments
     +' pigments'+(out.strokes?' + '+out.strokes+' painted detail strokes':'')
-    +' - reorder or hide the layer in the Layers strip';
+    +' - opened in its own tab; its paint layers are in the Layers pane';
   statusMsgEl.className='ok';
 }

@@ -35,7 +35,7 @@ ta.addEventListener('input', ()=>{
 });
 
 /* ---- undo / redo: snapshots of the whole document ---- */
-const undoStack=[], redoStack=[];
+let undoStack=[], redoStack=[];   // reassigned per document tab
 let lastSnapT=0;
 function snapshotUndo(){
   const v=ta.value;

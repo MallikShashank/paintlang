@@ -66,16 +66,31 @@ for(const k of Object.keys(EXAMPLES)){
 }
 exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); });
 
-/* boot - a share link in the URL wins over the default example */
+/* boot - restore tabs from localStorage; a share link opens as a new tab */
 (async ()=>{
+  try{
+    const raw=localStorage.getItem('paintlang-docs-v1');
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s&&Array.isArray(s.d)&&s.d.length){
+        docs=s.d.map(x=>({name:String(x.n||'painting').slice(0,40),
+          code:String(x.c||''), undo:[], redo:[]}));
+        activeDoc=Math.min(Math.max(0,s.a|0), docs.length-1);
+      }
+    }
+  }catch(e){}
+  if(!docs.length){
+    docs=[{name:'sunset-lake', code:EXAMPLES['Sunset Lake'], undo:[], redo:[]}];
+    activeDoc=0;
+  }
   if(location.hash.length>2){
     try{
       const src=await hashToCode(location.hash.slice(1));
-      setCode(src);
+      docs.push({name:uniqueDocName('shared'), code:src, undo:[], redo:[]});
+      activeDoc=docs.length-1;
       statusMsgEl.textContent='✓ painting loaded from the share link';
       statusMsgEl.className='ok';
-      return;
     }catch(e){}
   }
-  setCode(EXAMPLES['Sunset Lake']);
+  activateDoc(activeDoc);
 })();

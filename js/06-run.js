@@ -36,6 +36,7 @@ function runCode(){
   siteOpsCount = [];
   for(const op of ops) if(op.site>=0) siteOpsCount[op.site]=(siteOpsCount[op.site]||0)+1;
   renderLayerChips();
+  if(typeof persistDocs==="function") persistDocs();
   renderOps(true);
   octx.clearRect(0,0,W,H);
   if(sel>=0 && sel<ops.length) drawSel();
