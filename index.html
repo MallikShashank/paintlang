@@ -28,23 +28,53 @@
 <body>
 <div id="app">
   <header>
+    <button id="menuBtn" title="Menu - import, examples, gallery, account, sharing">☰</button>
     <div class="logo"><b>Paintlang</b><span class="sub">live-coded painting studio</span></div>
     <div class="hgap"></div>
-    <button id="importBtn" title="Trace any image (PNG, JPG, SVG...) into an editable code layer - or drop a file on the canvas">Import image</button>
-    <select id="importDetail" title="Trace fidelity: more detail = more colours and shapes, longer code">
-      <option value="sketch">Sketch</option>
-      <option value="balanced">Balanced</option>
-      <option value="fine" selected>Fine</option>
-      <option value="ultra">Ultra</option>
-    </select>
-    <input type="file" id="importFile" accept="image/*,.svg" hidden>
-    <select id="examples" title="Load an example painting"></select>
-    <a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them" style="text-decoration:none"><button>🖼 Gallery</button></a>
-    <button id="helpBtn" title="Language reference">API reference</button>
-    <button id="replayBtn" title="Watch this painting paint itself, stroke by stroke">▶ Replay</button>
-    <button id="shareBtn" title="Copy a link that contains this painting - code and all, no account needed">Share link</button>
+    <button id="acctBtn" title="Your account - cloud saves and version history">👤 <span id="acctBtnLabel">Sign in</span></button>
     <button id="exportBtn" title="Download the canvas as PNG">Export PNG</button>
   </header>
+
+  <div id="drawerWrap" hidden>
+    <div id="drawerShade"></div>
+    <nav id="drawer" aria-label="Main menu">
+      <div class="dhead"><b>Menu</b><span class="hgap"></span><button id="drawerClose" title="Close menu">×</button></div>
+      <div class="dsec">
+        <div class="dlabel">Create</div>
+        <div class="drow">
+          <button id="importBtn" title="Trace any image (PNG, JPG, SVG...) into an editable code layer - or drop a file on the canvas">Import image</button>
+          <select id="importDetail" title="Trace fidelity: more detail = more colours and shapes, longer code">
+            <option value="sketch">Sketch</option>
+            <option value="balanced">Balanced</option>
+            <option value="fine" selected>Fine</option>
+            <option value="ultra">Ultra</option>
+          </select>
+        </div>
+        <input type="file" id="importFile" accept="image/*,.svg" hidden>
+        <div class="drow"><select id="examples" title="Load an example painting"></select></div>
+      </div>
+      <div class="dsec">
+        <div class="dlabel">Explore</div>
+        <div class="drow"><a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><button>🖼 The Coded Gallery</button></a></div>
+        <div class="drow"><button id="libraryBtn" title="Ready-made scenery and motifs - every component is a code snippet you add to your painting">🧩 Component library</button></div>
+      </div>
+      <div class="dsec">
+        <div class="dlabel">This painting</div>
+        <div class="drow">
+          <button id="replayBtn" title="Watch this painting paint itself, stroke by stroke">▶ Replay</button>
+          <button id="shareBtn" title="Copy a link that contains this painting - code and all, no account needed">Share link</button>
+        </div>
+      </div>
+      <div class="dsec" id="acctSec">
+        <div class="dlabel">Account</div>
+        <div id="acctBody"></div>
+      </div>
+      <div class="dsec">
+        <div class="dlabel">Help</div>
+        <div class="drow"><button id="helpBtn" title="Language reference">API reference</button></div>
+      </div>
+    </nav>
+  </div>
 
   <main>
     <section id="left">
@@ -64,6 +94,12 @@
 
     <section id="right">
       <div id="canvasTabs" class="tabstrip"></div>
+      <div id="toolbox">
+        <div id="tbHead" title="Drag to move the toolbox">
+          <span class="tbgrip">⠿</span><span class="tbtitle">Tools</span>
+          <span class="hgap"></span>
+          <button id="tbMin" title="Collapse / expand the toolbox">▾</button>
+        </div>
       <div id="toolbar">
         <button class="tool active" data-tool="paint" title="Paint - pressure-sensitive brush strokes, written back as code (B)">🖌 Paint</button>
         <select id="pbrush" title="Brush library - keys 1...9, 0 switch brushes">
@@ -110,6 +146,7 @@
         <span class="rangewrap">size <input type="range" id="psize" min="1" max="60" value="8"><output id="psizeo">8</output></span>
         <span class="rangewrap">opacity <input type="range" id="popacity" min="5" max="100" value="100"><output id="popacityo">1</output></span>
       </div>
+      </div>
       <div id="workarea">
         <div id="stage">
           <div id="canvasWrap">
@@ -149,13 +186,28 @@
     </div>
   </div>
 
+  <div id="libModal" hidden>
+    <div id="libCard">
+      <button id="libClose">Close</button>
+      <h2>Component library</h2>
+      <p class="libintro">Every component is a snippet of Paintlang code. <b>Insert</b> appends it
+        to the painting you have open - then edit its numbers and colours like anything else.
+        Sign in to contribute your own: name a layer of your work and share it with everyone.</p>
+      <div id="libContrib"></div>
+      <div id="libList"><p class="libintro">loading...</p></div>
+    </div>
+  </div>
+
   <div id="helpModal" hidden>
     <div id="helpCard">
       <button id="helpClose">Close</button>
       <h2>Paintlang reference</h2>
       <p>Everything on the canvas is a function call. The code re-renders live as you type
         (<kbd>Ctrl</kbd>+<kbd>Enter</kbd> forces a run). Painting with any tool writes code back
-        into the editor. With <b>Select</b>: drag an object to move it, drag a corner handle to
+        into the editor. The <b>☰ menu</b> holds importing, examples, the Coded Gallery, the
+        component library, sharing and your account (cloud saves with version history). The
+        <b>Tools box</b> floats over the canvas - drag its header to move it, its corner to
+        resize it, <b>▾</b> to collapse it. With <b>Select</b>: drag an object to move it, drag a corner handle to
         resize it, press <kbd>Delete</kbd> to hide it - each rewrites the actual numbers in the
         call that painted it, and selecting highlights that exact line in the editor.
         <b>Recolour</b> rewrites an object's <code>color:</code> literal; <b>Eyedropper</b> picks
@@ -264,5 +316,6 @@
 <script src="js/09-chrome-layers.js"></script>
 <script src="js/10-importer.js"></script>
 <script src="js/11-examples.js"></script>
+<script src="js/12-account.js"></script>
 </body>
 </html>

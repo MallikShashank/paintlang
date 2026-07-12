@@ -74,7 +74,7 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
       const s=JSON.parse(raw);
       if(s&&Array.isArray(s.d)&&s.d.length){
         docs=s.d.map(x=>({name:String(x.n||'painting').slice(0,40),
-          code:String(x.c||''), undo:[], redo:[]}));
+          code:String(x.c||''), cloudId:x.w||undefined, undo:[], redo:[]}));
         activeDoc=Math.min(Math.max(0,s.a|0), docs.length-1);
       }
     }

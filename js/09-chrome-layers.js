@@ -299,7 +299,8 @@ function persistDocs(){
     try{
       if(docs[activeDoc]) docs[activeDoc].code=ta.value;
       localStorage.setItem('paintlang-docs-v1',
-        JSON.stringify({a:activeDoc, d:docs.map(d=>({n:d.name, c:d.code}))}));
+        JSON.stringify({a:activeDoc,
+          d:docs.map(d=>({n:d.name, c:d.code, w:d.cloudId||undefined}))}));
     }catch(e){ /* storage quota: keep working without persistence */ }
   },800);
 }
