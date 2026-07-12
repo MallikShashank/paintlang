@@ -215,13 +215,18 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
 #gateSkip:hover{border-color:#e2c08d;color:#e2c08d}
 html.gated{overflow:hidden}
 
+@media (max-width:600px){
+  #gate .roller3d{width:32px}
+  #gate .pt{white-space:normal}
+}
 @media (max-width:880px){
   #rail,#railYear,#inkline{display:none}
   .stage{height:auto;perspective:none;max-width:none;overflow-x:auto;
     display:flex;gap:6vw;scroll-snap-type:x mandatory;padding:10px 12vw 40px;
     scrollbar-width:none}
   .stage::-webkit-scrollbar{display:none}
-  .piece{position:static;width:76vw;margin-left:0;flex:none;scroll-snap-align:center;
+  .piece{position:static;width:76vw;left:auto;margin-left:0 !important;flex:none;
+    scroll-snap-align:center;
     transform:none !important;opacity:1 !important;filter:none !important}
   .stage .nav{display:none}
   .piece .tag{display:none}
@@ -310,16 +315,14 @@ html.gated{overflow:hidden}
 <section id="vestibule">
   <div class="kicker">Paintlang presents</div>
   <h1 id="vtitle">The Coded Gallery</h1>
-  <p class="sub">A museum where every painting is a living program. Walk the rooms in
-  the order history painted them, from Edo in 1831 to Paris at the turn of the century.
-  Rest your eyes on any canvas and it will paint itself for you, stroke by stroke.
-  Open any of them as code, and it is yours to remix.</p>
+  <p class="sub">Every painting here is a living program. Watch it paint itself,
+  stroke by stroke, then open the code and make it yours.</p>
   <div class="doors">
     <button id="tourStart">Begin the guided tour</button>
     <a class="ghost" href="#room-0">Wander freely</a>
     <a class="ghost" href="/">Open the studio</a>
   </div>
-  <div class="hint">SCROLL, OR LET THE TOUR CARRY YOU</div>
+  <div class="hint">TEN ROOMS · 1831 TO 1900 · SCROLL, OR LET THE TOUR CARRY YOU</div>
 </section>
 
 <div id="rooms"></div>
@@ -549,7 +552,8 @@ const yearNum=y=>{ const m=String(y).match(/\d{4}/); return m?+m[0]:9999; };
     document.documentElement.classList.remove('gated');
   }
   if(matchMedia('(prefers-reduced-motion: reduce)').matches){ finish(true); return; }
-  const maxW=Math.min(innerWidth*.8,1480);
+  // leave room for both rollers on narrow screens
+  const maxW=Math.min(innerWidth-(innerWidth<600?96:150), innerWidth*.84, 1480);
   const T0=850, DUR=3100;
   const start=performance.now();
   asm.style.transform='rotateX(24deg) rotateY(-18deg) translateZ(-260px)';
@@ -654,6 +658,22 @@ function buildRoom(room,ri){
   }
   sec.appendChild(stage);
 
+  // on a phone the stage is a swipe row: the plaque follows the swipe
+  let swipeT=null;
+  stage.addEventListener('scroll',()=>{
+    if(!matchMedia('(max-width:880px)').matches) return;
+    clearTimeout(swipeT);
+    swipeT=setTimeout(()=>{
+      const mid=stage.scrollLeft+stage.clientWidth/2;
+      let best=0, bd=1e9;
+      cards.forEach((c,i)=>{
+        const d=Math.abs(c.offsetLeft+c.offsetWidth/2-mid);
+        if(d<bd){ bd=d; best=i; }
+      });
+      if(best!==state.cur[ri]){ state.cur[ri]=best; renderPlaque(ri,true); }
+    },120);
+  },{passive:true});
+
   const plaque=document.createElement('div'); plaque.className='plaque';
   sec.appendChild(plaque);
   const hint=document.createElement('div'); hint.className='hoverhint';
@@ -684,6 +704,7 @@ function buildCard(room,p,ri,pi,era){
   card.appendChild(tag);
 
   card.addEventListener('click',()=>{
+    if(matchMedia('(max-width:880px)').matches){ startCardReplay(card,p); return; }
     if(+card.dataset.pi!==state.cur[ri]) focusPiece(ri,pi);
   });
   // rest on the centre painting and it repaints itself
