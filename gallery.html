@@ -405,6 +405,7 @@ fetch('gallery/pieces.json').then(r=>r.json()).then(data=>{
   buildRail(rooms);
   requestAnimationFrame(()=>{ buildInkline(); wireScroll(); });
   injectSchema(rooms);
+  if(tour.pending){ tour.pending=false; startTour(); }
 });
 
 function buildVestibuleFrames(){
@@ -671,7 +672,7 @@ function wireScroll(){
 }
 
 /* ================= the guided tour ================= */
-const tour={on:false, paused:false, seq:[], i:0, waitT:null};
+const tour={on:false, paused:false, seq:[], i:0, waitT:null, grace:0, pending:false};
 const pill=document.getElementById('tourPill');
 const tourMsg=document.getElementById('tourMsg');
 const tourToggle=document.getElementById('tourToggle');
@@ -690,7 +691,14 @@ function buildSeq(){
   return seq;
 }
 function startTour(){
+  if(!state.rooms.length){
+    // the museum is still being hung - begin the moment it is ready
+    tour.pending=true;
+    pill.classList.add('show'); tourMsg.textContent='Opening the museum...';
+    return;
+  }
   tour.on=true; tour.paused=false; tour.i=0; tour.seq=buildSeq();
+  tour.grace=Date.now()+1600;   // ignore wheel inertia from the starting click
   pill.classList.add('show'); tourToggle.textContent='Pause';
   tourMsg.textContent='Guided tour';
   step();
@@ -708,6 +716,7 @@ function pauseTour(label){
 function resumeTour(){
   if(!tour.on) return;
   tour.paused=false; tourToggle.textContent='Pause';
+  tour.grace=Date.now()+1600;
   tourMsg.textContent='Guided tour'; step();
 }
 async function step(){
@@ -749,10 +758,12 @@ function autoScrollTo(el2){
   clearTimeout(autoT);
   autoT=setTimeout(()=>{ autoScrolling=false; }, 1100);
 }
-/* any real gesture hands control back to the visitor */
+/* any real gesture hands control back to the visitor - but not the
+   wheel inertia or stray input that trails the starting click itself */
 for(const ev of ['wheel','touchstart','keydown','pointerdown']){
   addEventListener(ev,e=>{
     if(!tour.on||tour.paused) return;
+    if(Date.now()<tour.grace) return;
     if(e.target.closest&&e.target.closest('#tourPill')) return;
     pauseTour('user');
   },{passive:true});
