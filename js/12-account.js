@@ -218,6 +218,10 @@ function renderAcct(){
   const planBox=document.createElement('div'); planBox.className='acct-note';
   body.appendChild(planBox);
   acctApi('/api/billing/info').then(b=>{
+    // the panel re-renders on sign-in refresh; a response for a torn-down
+    // render must not append duplicate upgrade rows to the live panel
+    if(!planBox.isConnected) return;
+    const stale=body.querySelector('.upgrade-row'); if(stale) stale.remove();
     const e2=b.ent||{};
     planBox.textContent=(e2.label||'Free')+' plan: '+e2.works+' cloud paintings, '
       +e2.versions+' versions each, '+e2.ultraDay+' ultra traces a day.';
@@ -247,7 +251,7 @@ function renderAcct(){
       if(b.inAvailable) rails.push(inBtn());
     }else if(b.inAvailable) rails.push(inBtn());
     if(rails.length){
-      const row=document.createElement('div'); row.className='drow';
+      const row=document.createElement('div'); row.className='drow upgrade-row';
       row.style.marginTop='7px';
       for(const r of rails) row.appendChild(r);
       body.appendChild(row);
