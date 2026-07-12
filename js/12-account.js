@@ -139,7 +139,8 @@ function acctRow(...kids){
   return d;
 }
 function acctBtnEl(txt, fn, primary){
-  const b=document.createElement('button'); b.textContent=txt;
+  const b=document.createElement('button');
+  if(txt.startsWith('<svg')) b.innerHTML=txt; else b.textContent=txt;
   if(primary) b.className='primary';
   b.addEventListener('click', fn); return b;
 }
@@ -171,7 +172,7 @@ function renderAcct(){
   nameB.textContent=acct.handle||'artist';
   who.append('Signed in as ', nameB,
     acct.provider?' via '+(PROVIDER_NAME[acct.provider]||acct.provider):'');
-  const rename=acctBtnEl('✎', async ()=>{
+  const rename=acctBtnEl(plIco('pencil'), async ()=>{
     const n=prompt('Your artist name (shown on library contributions):', acct.handle||'');
     if(n===null) return;
     try{
@@ -213,7 +214,7 @@ function renderAcct(){
 
   const label=mkInput('version label (optional, e.g. "before sky rework")');
   body.appendChild(acctRow(label));
-  body.appendChild(acctRow(acctBtnEl('☁ Save this painting', async ()=>{
+  body.appendChild(acctRow(acctBtnEl(plIco('cloud')+' Save this painting', async ()=>{
     const d=docs[activeDoc]; if(!d) return;
     d.code=ta.value;
     try{
@@ -225,28 +226,36 @@ function renderAcct(){
       apiStatus('saved - "'+d.name+'" is now version '+r.ver+' in your gallery', true);
     }catch(e){ apiStatus('save: '+e.message, false); }
   }, true)));
-  body.appendChild(acctRow(acctBtnEl('🗂 Open my gallery', ()=>{
+  body.appendChild(acctRow(acctBtnEl(plIco('folder')+' Open my gallery', ()=>{
     closeDrawer(); openMyGallery();
   })));
 }
 
 function renderSignedOut(body){
-  body.appendChild(noteEl('Sign in to keep a private cloud gallery of your paintings (with version history, from any device) and to contribute components to the global library.'));
-  const oauthRow=document.createElement('div');
-  body.appendChild(oauthRow);
+  body.appendChild(noteEl('Sign in to keep a private cloud gallery of your paintings (with version history, from any device) and to contribute to the global library.'));
+  const row=document.createElement('div'); row.className='brand-row';
+  body.appendChild(row);
+  const keyForm=document.createElement('div'); keyForm.hidden=true;
+  keyForm.style.cssText='display:flex;flex-direction:column;gap:7px;margin-top:7px';
+  const brand=(svg,label,fn)=>{
+    const b=document.createElement('button'); b.className='brand-btn';
+    b.innerHTML=svg+'<span>'+label+'</span>';
+    b.addEventListener('click',fn); return b;
+  };
+  const keyBtn=brand(plIco('key'),'Key', ()=>{ keyForm.hidden=!keyForm.hidden; });
+  keyBtn.title='A key account: no email at all - you pick a name, we issue a secret key';
+  row.appendChild(keyBtn);
   getProviders().then(p=>{
     if(acct.key) return;
-    const btns=[];
-    if(p.github) btns.push(acctBtnEl('Continue with GitHub', ()=>{
-      location.href=API_BASE+'/api/auth/github/start'; }, true));
-    if(p.google) btns.push(acctBtnEl('Continue with Google', ()=>{
-      location.href=API_BASE+'/api/auth/google/start'; }, true));
-    if(btns.length) oauthRow.appendChild(acctRow(...btns));
+    if(p.google) row.prepend(brand(plIco('google'),'Google', ()=>{
+      location.href=API_BASE+'/api/auth/google/start'; }));
+    if(p.github) row.prepend(brand(plIco('github'),'GitHub', ()=>{
+      location.href=API_BASE+'/api/auth/github/start'; }));
   });
-  body.appendChild(noteEl('Or use a key account - no email at all. You pick a name, we issue a secret key; whoever holds the key holds the account.'));
+  keyForm.appendChild(noteEl('You pick a name, we issue a secret key. Whoever holds the key holds the account - copy it somewhere safe.'));
   const name=mkInput('your artist name');
-  body.appendChild(acctRow(name));
-  body.appendChild(acctRow(acctBtnEl('Create key account', async ()=>{
+  keyForm.appendChild(acctRow(name));
+  keyForm.appendChild(acctRow(acctBtnEl('Create key account', async ()=>{
     const handle=name.value.trim();
     if(!handle){
       apiStatus('pick an artist name first - it is shown on your library contributions', false);
@@ -257,10 +266,10 @@ function renderSignedOut(body){
       setAcct(r.key, r.uid, r.handle, '');
       apiStatus('welcome, '+r.handle+' - now copy your account key (menu, "Copy key") and keep it safe', true);
     }catch(e){ apiStatus('account: '+e.message, false); }
-  })));
-  const keyIn=mkInput('paste your account key (plk_...)');
-  body.appendChild(acctRow(keyIn));
-  body.appendChild(acctRow(acctBtnEl('Sign in with key', async ()=>{
+  }, true)));
+  const keyIn=mkInput('or paste an existing key (plk_...)');
+  keyForm.appendChild(acctRow(keyIn));
+  keyForm.appendChild(acctRow(acctBtnEl('Sign in with key', async ()=>{
     const k=keyIn.value.trim();
     if(!/^plk_[0-9a-f]{48}$/i.test(k)){ apiStatus('that does not look like an account key', false); return; }
     try{
@@ -270,6 +279,7 @@ function renderSignedOut(body){
       apiStatus('signed in as '+(me.handle||'artist'), true);
     }catch(e){ acct.key=''; apiStatus('sign in: '+e.message, false); }
   })));
+  body.appendChild(keyForm);
 }
 
 /* returning from an OAuth redirect: the worker hands the session key back
@@ -298,14 +308,14 @@ function openMyGallery(){
   const modal=el('myModal'), list=el('myList');
   modal.hidden=false;
   if(!acct.key){
-    list.innerHTML='<p class="libintro">You are not signed in. Open the menu (☰) and sign in - then every painting you save lands here, with its version history.</p>';
+    list.innerHTML='<p class="libintro">You are not signed in. Open the menu and sign in - then every painting you save lands here, with its version history.</p>';
     return;
   }
   list.innerHTML='<p class="libintro">loading...</p>';
   acctApi('/api/me').then(me=>{
     list.innerHTML='';
     if(!me.works.length){
-      list.innerHTML='<p class="libintro">Nothing here yet. Open the menu and press "☁ Save this painting" - it will appear here with a version trail.</p>';
+      list.innerHTML='<p class="libintro">Nothing here yet. Open the menu and press "Save this painting" - it will appear here with a version trail.</p>';
       return;
     }
     for(const w of me.works) list.appendChild(workCard(w));
@@ -322,7 +332,7 @@ function workCard(w){
   const acts=document.createElement('div'); acts.className='wk-acts';
   const vlist=document.createElement('div'); vlist.className='vlist'; vlist.hidden=true;
   acts.appendChild(acctBtnEl('Open', ()=>{ el('myModal').hidden=true; openWork(w.id); }, true));
-  acts.appendChild(acctBtnEl('⏱ History', async ()=>{
+  acts.appendChild(acctBtnEl(plIco('history')+' History', async ()=>{
     if(!vlist.hidden){ vlist.hidden=true; return; }
     vlist.hidden=false; vlist.textContent='loading...';
     try{
@@ -338,7 +348,7 @@ function workCard(w){
       }
     }catch(e){ vlist.textContent='could not load history: '+e.message; }
   }));
-  acts.appendChild(acctBtnEl('🗑', async ()=>{
+  acts.appendChild(acctBtnEl(plIco('trash'), async ()=>{
     if(!confirm('Delete "'+w.name+'" and all its versions from your cloud gallery? Open tabs are not affected.')) return;
     try{ await acctApi('/api/work/delete',{method:'POST',body:{id:w.id}});
       apiStatus('deleted from your gallery', true); openMyGallery();
@@ -449,7 +459,7 @@ function layerBlocksOf(src){
           }catch(e){ apiStatus('insert: '+e.message, false); }
         }));
         if(it.mine){
-          const rm=acctBtnEl('🗑 Remove', async ()=>{
+          const rm=acctBtnEl(plIco('trash')+' Remove', async ()=>{
             if(!confirm('Remove your component "'+it.name+'" from the global library? People who already inserted it keep their copy.')) return;
             try{
               await acctApi('/api/library/remove',{method:'POST',body:{id:it.id}});
@@ -482,3 +492,6 @@ function layerBlocksOf(src){
     }
   });
 })();
+
+/* hydrate static markup icons: <span data-ico="name"> -> inline svg */
+document.querySelectorAll('[data-ico]').forEach(n=>{ n.innerHTML=plIco(n.dataset.ico); });

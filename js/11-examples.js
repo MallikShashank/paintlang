@@ -62,7 +62,7 @@ background('#f6f1e7')
 `};
 const exSel=document.getElementById('examples');
 for(const k of Object.keys(EXAMPLES)){
-  const o=document.createElement('option'); o.value=k; o.textContent='◈ '+k; exSel.appendChild(o);
+  const o=document.createElement('option'); o.value=k; o.textContent=k; exSel.appendChild(o);
 }
 exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); });
 

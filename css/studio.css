@@ -188,8 +188,23 @@
   #welcomeGo{background:#0e639c;border-color:#0e639c;color:#fff;font-weight:600;flex:none}
   #welcomeGo:hover{background:var(--accent-hi)}
 
+  /* ---- icons ---- */
+  svg.ico{width:14px;height:14px;flex:none;vertical-align:-2px}
+  [data-ico]{display:inline-flex;align-items:center;vertical-align:middle}
+  button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .drow>button,.drow>a button{justify-content:flex-start}
+  .lctl button svg.ico{width:13px;height:13px}
+
+  /* ---- sign-in brand buttons ---- */
+  .brand-row{display:flex;gap:7px}
+  .brand-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+    padding:8px 6px;font-size:12.5px;font-weight:600;background:var(--panel2);
+    border:1px solid var(--line2);border-radius:4px}
+  .brand-btn:hover{background:#3c3c3c;border-color:var(--focus)}
+  .brand-btn svg.ico{width:16px;height:16px}
+
   /* ---- menu drawer ---- */
-  #menuBtn{font-size:15px;padding:3px 11px;line-height:1.4}
+  #menuBtn{padding:5px 10px;line-height:1.4}
   #drawerWrap{position:fixed;inset:0;z-index:70}
   #drawerWrap[hidden]{display:none}
   #drawerShade{position:absolute;inset:0;background:rgba(0,0,0,.45);

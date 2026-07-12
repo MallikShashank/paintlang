@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1e1e1e">
 <link rel="canonical" href="https://paintlang.com/">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23007acc%22/><path d=%22M67 16l17 17c2 2 2 5 0 7L55 69 41 55l29-39c2-2 5-2 7 0z%22 fill=%22%23f6f1e7%22 transform=%22rotate(8 50 50)%22 opacity=%220%22/><path d=%22M64 15l14 14-27 27-14-14z%22 fill=%22%23f6f1e7%22/><path d=%22M35 44l14 14c-2 8-6 12-13 14-6 2-10 5-12 11-5-1-9-3-13-6 4-4 6-8 7-13 1-10 8-17 17-20z%22 fill=%22%23ffd98a%22/></svg>">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"SoftwareApplication",
  "name":"Paintlang","applicationCategory":"DesignApplication",
@@ -28,10 +28,10 @@
 <body>
 <div id="app">
   <header>
-    <button id="menuBtn" title="Menu - import, examples, gallery, account, sharing">☰</button>
+    <button id="menuBtn" title="Menu - import, examples, gallery, account, sharing"><span data-ico="menu"></span></button>
     <div class="logo"><b>Paintlang</b><span class="sub">live-coded painting studio</span></div>
     <div class="hgap"></div>
-    <button id="acctBtn" title="Your account - cloud saves and version history">👤 <span id="acctBtnLabel">Sign in</span></button>
+    <button id="acctBtn" title="Your account - cloud saves and version history"><span data-ico="person"></span> <span id="acctBtnLabel">Sign in</span></button>
     <button id="exportBtn" title="Download the canvas as PNG">Export PNG</button>
   </header>
 
@@ -42,7 +42,7 @@
       <div class="dsec">
         <div class="dlabel">Create</div>
         <div class="drow">
-          <button id="importBtn" title="Trace any image (PNG, JPG, SVG...) into an editable code layer - or drop a file on the canvas">Import image</button>
+          <button id="importBtn" title="Trace any image (PNG, JPG, SVG...) into an editable code layer - or drop a file on the canvas"><span data-ico="image"></span> Import image</button>
           <select id="importDetail" title="Trace fidelity: more detail = more colours and shapes, longer code">
             <option value="sketch">Sketch</option>
             <option value="balanced">Balanced</option>
@@ -55,15 +55,15 @@
       </div>
       <div class="dsec">
         <div class="dlabel">Galleries</div>
-        <div class="drow"><a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><button>🖼 The Coded Gallery</button></a></div>
-        <div class="drow"><button id="myGalleryBtn" title="Your private cloud gallery - every painting you saved, with its version history">🗂 My gallery <span class="dhint">private</span></button></div>
-        <div class="drow"><button id="libraryBtn" title="Shared components anyone can drop into a painting - official Paintlang ones plus community contributions">🌍 Global library <span class="dhint">public</span></button></div>
+        <div class="drow"><a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><button><span data-ico="frame"></span> The Coded Gallery</button></a></div>
+        <div class="drow"><button id="myGalleryBtn" title="Your private cloud gallery - every painting you saved, with its version history"><span data-ico="folder"></span> My gallery <span class="dhint">private</span></button></div>
+        <div class="drow"><button id="libraryBtn" title="Shared components anyone can drop into a painting - official Paintlang ones plus community contributions"><span data-ico="globe"></span> Global library <span class="dhint">public</span></button></div>
       </div>
       <div class="dsec">
         <div class="dlabel">This painting</div>
         <div class="drow">
-          <button id="replayBtn" title="Watch this painting paint itself, stroke by stroke">▶ Replay</button>
-          <button id="shareBtn" title="Copy a link that contains this painting - code and all, no account needed">Share link</button>
+          <button id="replayBtn" title="Watch this painting paint itself, stroke by stroke"><span data-ico="play"></span> Replay</button>
+          <button id="shareBtn" title="Copy a link that contains this painting - code and all, no account needed"><span data-ico="link"></span> Share link</button>
         </div>
       </div>
       <div class="dsec" id="acctSec">
@@ -72,7 +72,7 @@
       </div>
       <div class="dsec">
         <div class="dlabel">Help</div>
-        <div class="drow"><button id="helpBtn" title="Language reference">API reference</button></div>
+        <div class="drow"><button id="helpBtn" title="Language reference"><span data-ico="book"></span> API reference</button></div>
       </div>
     </nav>
   </div>
@@ -97,51 +97,51 @@
       <div id="canvasTabs" class="tabstrip"></div>
       <div id="toolbox">
         <div id="tbHead" title="Drag to move the toolbox">
-          <span class="tbgrip">⠿</span><span class="tbtitle">Tools</span>
+          <span class="tbgrip" data-ico="grip"></span><span class="tbtitle">Tools</span>
           <span class="hgap"></span>
-          <button id="tbMin" title="Collapse / expand the toolbox">▾</button>
+          <button id="tbMin" title="Collapse / expand the toolbox"><span data-ico="chevdown"></span></button>
         </div>
       <div id="toolbar">
-        <button class="tool active" data-tool="paint" title="Paint - pressure-sensitive brush strokes, written back as code (B)">🖌 Paint</button>
+        <button class="tool active" data-tool="paint" title="Paint - pressure-sensitive brush strokes, written back as code (B)"><span data-ico="brush"></span> Paint</button>
         <select id="pbrush" title="Brush library - keys 1...9, 0 switch brushes">
-          <option value="round" selected>● Round</option>
-          <option value="pencil">✏ Pencil</option>
-          <option value="ink">🖋 Ink pen</option>
-          <option value="calligraphy">✒ Calligraphy</option>
-          <option value="marker">🖍 Marker</option>
-          <option value="watercolor">💧 Watercolour</option>
-          <option value="oil">🎨 Oil</option>
-          <option value="charcoal">◾ Charcoal</option>
-          <option value="airbrush">💨 Airbrush</option>
-          <option value="glow">✨ Glow</option>
-          <option value="smudge">👉 Smudge</option>
-          <option value="eraser">◻ Eraser</option>
+          <option value="round" selected>Round</option>
+          <option value="pencil">Pencil</option>
+          <option value="ink">Ink pen</option>
+          <option value="calligraphy">Calligraphy</option>
+          <option value="marker">Marker</option>
+          <option value="watercolor">Watercolour</option>
+          <option value="oil">Oil</option>
+          <option value="charcoal">Charcoal</option>
+          <option value="airbrush">Airbrush</option>
+          <option value="glow">Glow</option>
+          <option value="smudge">Smudge</option>
+          <option value="eraser">Eraser</option>
         </select>
-        <button id="brushCfg" title="Tune this brush - tuned values are written into each stroke's code">⚙</button>
+        <button id="brushCfg" title="Tune this brush - tuned values are written into each stroke's code"><span data-ico="gear"></span></button>
         <span class="tsep"></span>
-        <button class="tool" data-tool="shape" title="Shape - drag on the canvas to place the selected shape (U)">△ Shape</button>
+        <button class="tool" data-tool="shape" title="Shape - drag on the canvas to place the selected shape (U)"><span data-ico="shapes"></span> Shape</button>
         <select id="pshape" title="Shape library - letters L R O C S A T H also jump here">
-          <option value="line">╱ Line</option>
-          <option value="arrow">➔ Arrow</option>
-          <option value="rect" selected>▭ Rectangle</option>
-          <option value="ellipse">⬭ Ellipse</option>
-          <option value="circle">◯ Circle</option>
-          <option value="ring">◎ Ring</option>
-          <option value="triangle">△ Triangle</option>
-          <option value="diamond">◇ Diamond</option>
-          <option value="pentagon">⬠ Pentagon</option>
-          <option value="hexagon">⬡ Hexagon</option>
-          <option value="star">✶ Star</option>
-          <option value="heart">♥ Heart</option>
-          <option value="crescent">☾ Crescent</option>
+          <option value="line">Line</option>
+          <option value="arrow">Arrow</option>
+          <option value="rect" selected>Rectangle</option>
+          <option value="ellipse">Ellipse</option>
+          <option value="circle">Circle</option>
+          <option value="ring">Ring</option>
+          <option value="triangle">Triangle</option>
+          <option value="diamond">Diamond</option>
+          <option value="pentagon">Pentagon</option>
+          <option value="hexagon">Hexagon</option>
+          <option value="star">Star</option>
+          <option value="heart">Heart</option>
+          <option value="crescent">Crescent</option>
         </select>
         <span class="tsep"></span>
-        <button class="tool" data-tool="select" title="Select - click an object; drag inside to move, drag a corner handle to resize; its code is rewritten (V). Delete hides it.">✥ Select</button>
-        <button class="tool" data-tool="eyedrop" title="Eyedropper - pick a colour off the canvas (I)">💧 Pick</button>
-        <button class="tool" data-tool="recolor" title="Recolour - click an object to give it the current colour; its code updates (G)">🎨 Recolour</button>
+        <button class="tool" data-tool="select" title="Select - click an object; drag inside to move, drag a corner handle to resize; its code is rewritten (V). Delete hides it."><span data-ico="cursor"></span> Select</button>
+        <button class="tool" data-tool="eyedrop" title="Eyedropper - pick a colour off the canvas (I)"><span data-ico="pipette"></span> Pick</button>
+        <button class="tool" data-tool="recolor" title="Recolour - click an object to give it the current colour; its code updates (G)"><span data-ico="palette"></span> Recolour</button>
         <span class="tsep"></span>
-        <button id="undoBtn" title="Undo (Ctrl+Z outside the editor)">↶ Undo</button>
-        <button id="redoBtn" title="Redo (Ctrl+Y)">↷ Redo</button>
+        <button id="undoBtn" title="Undo (Ctrl+Z outside the editor)"><span data-ico="undo"></span> Undo</button>
+        <button id="redoBtn" title="Redo (Ctrl+Y)"><span data-ico="redo"></span> Redo</button>
         <span class="tsep"></span>
         <input type="color" id="pcolor" value="#d95d39" title="Paint colour">
         <span class="rangewrap">size <input type="range" id="psize" min="1" max="60" value="8"><output id="psizeo">8</output></span>
@@ -153,7 +153,7 @@
           <div id="canvasWrap">
             <canvas id="paint" width="960" height="600"></canvas>
             <canvas id="overlay" width="960" height="600" class="draw"></canvas>
-            <button id="selAction" hidden title="Rewrite this mass's packed outline into an editable polygon point list (P)">⇱ Unpack outline</button>
+            <button id="selAction" hidden title="Rewrite this mass's packed outline into an editable polygon point list (P)"><span data-ico="unpack"></span> Unpack outline</button>
           </div>
         </div>
         <aside id="layersPane" hidden>
@@ -215,10 +215,10 @@
       <h2>Paintlang reference</h2>
       <p>Everything on the canvas is a function call. The code re-renders live as you type
         (<kbd>Ctrl</kbd>+<kbd>Enter</kbd> forces a run). Painting with any tool writes code back
-        into the editor. The <b>☰ menu</b> holds importing, examples, the Coded Gallery, the
-        component library, sharing and your account (cloud saves with version history). The
+        into the editor. The <b>menu</b> (top left) holds importing, examples, the Coded Gallery,
+        the global library, sharing and your account (cloud saves with version history). The
         <b>Tools box</b> floats over the canvas - drag its header to move it, its corner to
-        resize it, <b>▾</b> to collapse it. With <b>Select</b>: drag an object to move it, drag a corner handle to
+        resize it, the caret to collapse it. With <b>Select</b>: drag an object to move it, drag a corner handle to
         resize it, press <kbd>Delete</kbd> to hide it - each rewrites the actual numbers in the
         call that painted it, and selecting highlights that exact line in the editor.
         <b>Recolour</b> rewrites an object's <code>color:</code> literal; <b>Eyedropper</b> picks
@@ -284,7 +284,7 @@
         <tr><td>smudge</td><td>The blending finger: applies no colour of its own - it picks up whatever paint is under the path and drags it along. Tune its pull strength in the settings.</td></tr>
         <tr><td>eraser</td><td>Paints paper colour over anything.</td></tr>
       </table>
-      <p>The <b>⚙ settings panel</b> tunes any brush - spacing, flow, pressure response, taper,
+      <p>The <b>gear settings panel</b> tunes any brush - spacing, flow, pressure response, taper,
         scatter, bristles, blend mode - with a live sample stroke. Tuned values are written into
         each stroke's code as <code>tune: { ... }</code>, so a customised stroke re-renders
         identically anywhere, and re-tuning a brush later never changes strokes already painted.</p>
@@ -316,6 +316,7 @@
   </div>
 </div>
 
+<script src="js/00-icons.js"></script>
 <script src="js/01-core.js"></script>
 <script src="js/02-scene.js"></script>
 <script src="js/03-scenery.js"></script>

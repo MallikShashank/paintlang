@@ -64,13 +64,13 @@ function cancelReplay(){
   if(!replayActive) return;
   replayActive=false;
   const b=document.getElementById('replayBtn');
-  if(b) b.textContent='▶ Replay';
+  if(b) b.innerHTML=plIco('play')+' Replay';
 }
 function startReplay(){
   if(replayActive) return;
   if(!ops.length){ statusMsgEl.textContent='nothing to replay yet'; return; }
   replayActive=true;
-  document.getElementById('replayBtn').textContent='■ Stop';
+  document.getElementById('replayBtn').innerHTML=plIco('stop')+' Stop';
   statusMsgEl.textContent='replaying the painting...'; statusMsgEl.className='ok';
   // build the reveal plan: forms appear whole, stroke bundles in slices
   const plan=[];
@@ -226,7 +226,8 @@ function renderLayerChips(){
   if(!layersRun.length){ pane.hidden=true; return; }
   pane.hidden=false;
   const mkBtn=(txt,title,fn)=>{ const b=document.createElement('button');
-    b.textContent=txt; b.title=title; b.addEventListener('click',fn); return b; };
+    if(txt.startsWith('<svg')) b.innerHTML=txt; else b.textContent=txt;
+    b.title=title; b.addEventListener('click',fn); return b; };
   [...layersRun].reverse().forEach(L=>{
     const row=document.createElement('div');
     row.className='lrow'+(L.hidden?' off':'');
@@ -240,10 +241,10 @@ function renderLayerChips(){
     row.appendChild(nm);
     const ctl=document.createElement('div');
     ctl.className='lctl';
-    ctl.appendChild(mkBtn(L.hidden?'🙈':'👁','show / hide this layer',()=>toggleLayer(L.name)));
-    ctl.appendChild(mkBtn('▲','bring forward',()=>moveLayer(L.name,1)));
-    ctl.appendChild(mkBtn('▼','send back',()=>moveLayer(L.name,-1)));
-    ctl.appendChild(mkBtn('📋','copy this layer as a reusable component (paste into any tab)',()=>{
+    ctl.appendChild(mkBtn(plIco(L.hidden?'eyeoff':'eye'),'show / hide this layer',()=>toggleLayer(L.name)));
+    ctl.appendChild(mkBtn(plIco('up'),'bring forward',()=>moveLayer(L.name,1)));
+    ctl.appendChild(mkBtn(plIco('down'),'send back',()=>moveLayer(L.name,-1)));
+    ctl.appendChild(mkBtn(plIco('copy'),'copy this layer as a reusable component (paste into any tab)',()=>{
       const bs=layerBlocks(); const b=bs.find(x=>x.name===L.name);
       if(!b) return;
       const snippet=ta.value.slice(b.start,b.end);
@@ -252,7 +253,7 @@ function renderLayerChips(){
         statusMsgEl.className='ok';
       }).catch(()=>{ statusMsgEl.textContent='could not reach the clipboard'; statusMsgEl.className='ok'; });
     }));
-    ctl.appendChild(mkBtn('🗑','delete this layer',()=>deleteLayer(L.name)));
+    ctl.appendChild(mkBtn(plIco('trash'),'delete this layer',()=>deleteLayer(L.name)));
     const sc=document.createElement('input');
     sc.type='number'; sc.step='0.1'; sc.min='0.1'; sc.max='6'; sc.value=L.scale;
     sc.className='lscale';
