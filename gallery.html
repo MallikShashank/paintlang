@@ -1051,7 +1051,7 @@ soundBtn.addEventListener('click',()=>{
 });
 
 /* ================= the guided tour ================= */
-const tour={on:false, paused:false, seq:[], i:0, waitT:null, grace:0, pending:false};
+const tour={on:false, paused:false, seq:[], i:0, waitT:null, grace:0, pending:false, runId:0};
 const pill=document.getElementById('tourPill');
 const tourMsg=document.getElementById('tourMsg');
 const tourToggle=document.getElementById('tourToggle');
@@ -1072,19 +1072,21 @@ function buildSeq(){
   return seq;
 }
 function startTour(){
+  if(tour.on) return;            // a second press must not start a second walk
   if(!state.rooms.length){
     // the museum is still being hung - begin the moment it is ready
     tour.pending=true;
     pill.classList.add('show'); tourMsg.textContent='Opening the museum...';
     return;
   }
+  clearTimeout(tour.waitT);
   tour.on=true; tour.paused=false; tour.i=0; tour.seq=buildSeq();
   tour.grace=Date.now()+1600;   // ignore wheel inertia from the starting click
   pill.classList.add('show');
   tourToggle.innerHTML=ICO_PAUSE; tourToggle.title='Pause the tour';
   tourMsg.textContent='Guided tour';
   armAudio();
-  step();
+  step(++tour.runId);
 }
 function stopTour(){
   tour.on=false; clearTimeout(tour.waitT);
@@ -1101,17 +1103,18 @@ function resumeTour(){
   tour.paused=false;
   tourToggle.innerHTML=ICO_PAUSE; tourToggle.title='Pause the tour';
   tour.grace=Date.now()+1600;
-  tourMsg.textContent='Guided tour'; step();
+  tourMsg.textContent='Guided tour'; step(++tour.runId);
 }
-async function step(){
-  if(!tour.on||tour.paused) return;
+const sleep=ms=>new Promise(res=>setTimeout(res,ms));
+async function step(run){
+  if(!tour.on||tour.paused||run!==tour.runId) return;
   const s=tour.seq[tour.i];
   if(!s){ stopTour(); return; }
   if(s.kind==='room'){
     const sec=state.secs[s.ri];
     autoScrollTo(sec.querySelector('.wall-label'));
     tourMsg.textContent='Room '+(ROMAN[s.ri]||s.ri+1)+' · '+state.rooms[s.ri].artist;
-    tour.i++; tour.waitT=setTimeout(step, 4200);
+    tour.i++; tour.waitT=setTimeout(()=>step(run), 5200);
   }else if(s.kind==='piece'){
     const sec=state.secs[s.ri];
     if(state.cur[s.ri]!==s.pi) focusPiece(s.ri,s.pi);
@@ -1121,13 +1124,16 @@ async function step(){
     const card=sec._cards[s.pi];
     tour.i++;
     try{
+      // let the carousel finish swinging before the brush is picked up
+      await sleep(1000);
+      if(!tour.on||tour.paused||run!==tour.runId) return;
       const doc=await getDoc(p.slug);
-      if(!tour.on||tour.paused) return;
+      if(!tour.on||tour.paused||run!==tour.runId) return;
       ensureCanvas(card,doc);
-      await cardReplay(card,doc,6500);
+      await cardReplay(card,doc,9500);
     }catch(e){}
-    if(!tour.on||tour.paused) return;
-    tour.waitT=setTimeout(step, 1600);
+    if(!tour.on||tour.paused||run!==tour.runId) return;
+    tour.waitT=setTimeout(()=>step(run), 2800);
   }else{
     autoScrollTo(document.getElementById('exitwall'));
     tourMsg.textContent='End of the walk';
