@@ -83,13 +83,13 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
     docs=[{name:'sunset-lake', code:EXAMPLES['Sunset Lake'], undo:[], redo:[]}];
     activeDoc=0;
   }
-  if(location.hash.length>2){
+  let sharedArrival=false;
+  if(location.hash.length>2&&!/^#pl(key|name|err)=/.test(location.hash)){
     try{
       const src=await hashToCode(location.hash.slice(1));
       docs.push({name:uniqueDocName('shared'), code:src, undo:[], redo:[]});
       activeDoc=docs.length-1;
-      statusMsgEl.textContent='✓ painting loaded from the share link';
-      statusMsgEl.className='ok';
+      sharedArrival=true;
     }catch(e){}
   }
   const shortId=new URLSearchParams(location.search).get('s');
@@ -101,8 +101,7 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
         const src=await hashToCode(j.h);
         docs.push({name:uniqueDocName('shared'), code:src, undo:[], redo:[]});
         activeDoc=docs.length-1;
-        statusMsgEl.textContent='painting loaded from the share link';
-        statusMsgEl.className='ok';
+        sharedArrival=true;
       }else{
         statusMsgEl.textContent='share link not found - it may have been mistyped';
         statusMsgEl.className='err';
@@ -141,6 +140,7 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
     statusMsgEl.className='ok';
   }
   setTimeout(()=>{
+    if(sharedArrival) window.__plHoldRun=true;
     activateDoc(activeDoc);
     if(froze){
       statusMsgEl.textContent='the last visit froze while rendering a large painting - opened a fresh canvas; your other tabs are safe in the tab bar';

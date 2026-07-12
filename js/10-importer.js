@@ -92,8 +92,7 @@ async function traceToCode(img,fname){
     if(k) th.authorization='Bearer '+k;
     resp=await fetch(TRACE_API,{method:'POST', headers:th, body:payload});
   }catch(e){
-    throw new Error('trace service unreachable at '+TRACE_API
-      +' - deploy it (see server/README.md) or set localStorage paintlang-trace-api');
+    throw new Error('trace service unreachable - check your connection and try again in a moment');
   }
   const out=await resp.json();
   if(!resp.ok||out.error) throw new Error(out.error||('trace service error '+resp.status));

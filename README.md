@@ -51,8 +51,9 @@ talk to the hosted service; everything else is fully client-side.)
   motifs, even the traced masses of Hokusai's Great Wave) plus community contributions.
   Every component is a plain code snippet: insert it, then edit it like anything else.
   Contribute one layer of your own painting; remove your contributions any time.
-- **Share links with no backend** - the whole painting travels deflate-compressed in the
-  URL fragment.
+- **Share links** - small paintings travel deflate-compressed in the URL fragment
+  with no server involved; larger ones are stored by the hosted service behind a
+  six character short link.
 
 ## The Coded Gallery
 

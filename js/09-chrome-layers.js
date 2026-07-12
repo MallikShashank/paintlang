@@ -334,6 +334,7 @@ function persistDocs(){
         JSON.stringify({a:activeDoc,
           d:docs.map(d=>({n:d.name, c:d.code, w:d.cloudId||undefined}))}));
     }catch(e){ /* storage quota: keep working without persistence */ }
+    if(typeof wsQueue==='function') wsQueue();
   },800);
 }
 function uniqueDocName(base){
@@ -385,8 +386,14 @@ function renderTabs(){
         const x=document.createElement('span'); x.className='x'; x.textContent='×';
         x.setAttribute('role','button');
         x.setAttribute('aria-label','close '+d.name);
+        x.tabIndex=0;
         x.title='close this painting';
         x.addEventListener('click',ev=>{ ev.stopPropagation(); closeDoc(i); });
+        x.addEventListener('keydown',ev=>{
+          if(ev.key==='Enter'||ev.key===' '){
+            ev.preventDefault(); ev.stopPropagation(); closeDoc(i);
+          }
+        });
         t.appendChild(x);
       }
       t.title=d.name+' - double-click to rename';

@@ -23,6 +23,17 @@ function instrument(src){
   return { code: out, sites };
 }
 function runCode(){
+  /* paintings arriving from a share link are held unrendered until the
+     visitor has had a chance to glance at the code - a painting is a
+     program, and programs from strangers do not run themselves */
+  if(window.__plHoldRun){
+    window.__plHoldRun=false;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.fillStyle='#f6f1e7'; ctx.fillRect(0,0,W,H);
+    statusMsgEl.textContent='shared painting loaded - look over the code, then press Ctrl+Enter to render it';
+    statusMsgEl.className='ok';
+    return;
+  }
   if(typeof cancelReplay==="function") cancelReplay();
   const src = ta.value;
   const inst = instrument(src);

@@ -124,6 +124,113 @@ const el=id=>document.getElementById(id);
   window.addEventListener('resize', clamp);
 })();
 
+/* ------------------ workspace: whose studio is this? ------------------
+   The open tabs ARE the workspace. Signed out, they belong to this
+   browser's guest. Signing in swaps to the account's own workspace, synced
+   through the server so it follows you across devices; signing out saves
+   it up, removes it from this device, and restores the guest's studio.
+   Parallel devices: pushes carry the last-seen timestamp; if another
+   device wrote meanwhile, whichever side holds the most recent real edit
+   wins, and the other side is reloaded with a message. */
+const WS={t:0, lastEdit:0, timer:null, syncing:false};
+function docsSnapshot(){
+  if(docs[activeDoc]) docs[activeDoc].code=ta.value;
+  return JSON.stringify({a:activeDoc,
+    d:docs.map(d=>({n:d.name, c:d.code, w:d.cloudId||undefined}))});
+}
+function loadDocsState(stateStr, msg){
+  try{
+    const s=JSON.parse(stateStr);
+    if(!s||!Array.isArray(s.d)||!s.d.length) return false;
+    docs=s.d.map(x=>({name:String(x.n||'painting').slice(0,40),
+      code:String(x.c||''), cloudId:x.w||undefined, undo:[], redo:[]}));
+    activeDoc=Math.min(Math.max(0,s.a|0), docs.length-1);
+    activateDoc(activeDoc);
+    if(msg) apiStatus(msg, true);
+    return true;
+  }catch(e){ return false; }
+}
+function freshStudio(msg){
+  docs=[{name:'painting', code:BLANK_DOC, undo:[], redo:[]}];
+  activeDoc=0; activateDoc(0);
+  if(msg) apiStatus(msg, true);
+}
+function wsQueue(){
+  WS.lastEdit=Date.now();
+  if(!acct.key) return;
+  clearTimeout(WS.timer);
+  WS.timer=setTimeout(wsPush, 5000);
+}
+async function wsPush(){
+  if(!acct.key||WS.syncing) return;
+  WS.syncing=true;
+  try{
+    const r=await fetch(API_BASE+'/api/workspace',{method:'POST',
+      headers:{'content-type':'application/json', authorization:'Bearer '+acct.key},
+      body:JSON.stringify({state:docsSnapshot(), baseT:WS.t})});
+    const j=await r.json();
+    if(r.ok){ WS.t=j.t; }
+    else if(r.status===409){
+      // another device wrote since this one last looked
+      if(Date.now()-WS.lastEdit<60000){
+        WS.t=j.t;                        // this edit is fresher: take over
+        WS.syncing=false; return wsPush();
+      }
+      WS.t=j.t;
+      loadDocsState(j.state,'your studio was updated from another device');
+    }
+  }catch(e){}
+  WS.syncing=false;
+}
+async function wsPull(adoptIfEmpty){
+  if(!acct.key) return;
+  try{
+    const r=await acctApi('/api/workspace');
+    if(r.t&&r.t>WS.t){
+      if(r.state===docsSnapshot()){ WS.t=r.t; return; }   // already identical
+      if(Date.now()-WS.lastEdit>60000||WS.t===0){
+        WS.t=r.t;
+        loadDocsState(r.state,'your studio is back where you left it');
+      }
+    }else if(!r.t&&adoptIfEmpty){
+      // first sign-in anywhere: this session becomes the account's studio
+      WS.t=0; wsPush();
+    }
+  }catch(e){}
+}
+function onSignIn(){
+  // shelve the guest's studio, then take up the account's own
+  try{
+    const guest=localStorage.getItem('paintlang-docs-v1');
+    if(guest) localStorage.setItem('paintlang-docs-guest', guest);
+  }catch(e){}
+  WS.t=0; WS.lastEdit=0;
+  wsPull(true);
+}
+async function onSignOut(){
+  // save the account's studio up, then hand the desk back to the guest
+  clearTimeout(WS.timer);
+  try{ await wsPush(); }catch(e){}
+  WS.t=0; WS.lastEdit=0;
+  let guest=null;
+  try{
+    guest=localStorage.getItem('paintlang-docs-guest');
+    localStorage.removeItem('paintlang-docs-guest');
+  }catch(e){}
+  const back=guest&&loadDocsState(guest,'signed out - this device is back to its own studio');
+  if(!back) freshStudio('signed out - a fresh studio; sign in again to load your work');
+  if(typeof persistDocs==='function') persistDocs();
+}
+// keep devices honest: re-check on focus, and every 45 seconds while visible
+addEventListener('focus',()=>{ if(acct.key) wsPull(false); });
+setInterval(()=>{
+  if(!acct.key||document.hidden) return;
+  fetch(API_BASE+'/api/workspace?meta=1',
+    {headers:{authorization:'Bearer '+acct.key}})
+    .then(r=>r.json()).then(j=>{ if(j.t&&j.t>WS.t) wsPull(false); })
+    .catch(()=>{});
+}, 45000);
+
 /* ------------------------------ account ------------------------------ */
 function setAcct(key, uid, handle, provider){
   acct.key=key||''; acct.uid=uid||''; acct.handle=handle||''; acct.provider=provider||'';
@@ -201,15 +308,17 @@ function renderAcct(){
         catch(e){ shown=true; keyBox.hidden=false; keyBox.textContent=acct.key;
           apiStatus('copy failed - key shown in the menu, copy it by hand', false); }
       }),
-      acctBtnEl('Sign out', ()=>{
+      acctBtnEl('Sign out', async ()=>{
         if(!confirm('Sign out? Make sure your account key is copied somewhere - it is the only way back in.')) return;
+        await onSignOut();
         setAcct('','','','');
       })
     ));
     body.appendChild(keyBox);
   }else{
-    body.appendChild(acctRow(acctBtnEl('Sign out', ()=>{
+    body.appendChild(acctRow(acctBtnEl('Sign out', async ()=>{
       if(!confirm('Sign out?')) return;
+      await onSignOut();
       setAcct('','','','');
     })));
   }
@@ -334,6 +443,7 @@ function renderSignedOut(body){
     try{
       const r=await acctApi('/api/account/new',{method:'POST',body:{handle}});
       setAcct(r.key, r.uid, r.handle, '');
+      onSignIn();
       apiStatus('welcome, '+r.handle+' - now copy your account key (menu, "Copy key") and keep it safe', true);
     }catch(e){ apiStatus('account: '+e.message, false); }
   }, true)));
@@ -346,6 +456,7 @@ function renderSignedOut(body){
       acct.key=k;
       const me=await acctApi('/api/me');
       setAcct(k, me.uid, me.handle, me.provider||'');
+      onSignIn();
       apiStatus('signed in as '+(me.handle||'artist'), true);
     }catch(e){ acct.key=''; apiStatus('sign in: '+e.message, false); }
   })));
@@ -364,6 +475,7 @@ function renderSignedOut(body){
     setAcct(m[1], '', nm?decodeURIComponent(nm):'', '');
     acctApi('/api/me').then(me=>{
       setAcct(m[1], me.uid, me.handle, me.provider||'');
+      onSignIn();
       apiStatus('signed in as '+(me.handle||'artist'), true);
     }).catch(()=>{});
   }else if(err){
@@ -630,3 +742,7 @@ function layerBlocksOf(src){
 
 /* hydrate static markup icons: <span data-ico="name"> -> inline svg */
 document.querySelectorAll('[data-ico]').forEach(n=>{ n.innerHTML=plIco(n.dataset.ico); });
+
+/* already signed in on this device: fetch the account's studio if another
+   device has moved it forward since we were last here */
+if(acct.key) setTimeout(()=>wsPull(false), 1500);

@@ -37,8 +37,17 @@ contributions:</b> stored and public by design, credited to your artist name.
 <p>Key accounts store only a hash of your key plus your chosen name. Signing in with
 GitHub or Google gives us your name and provider user id (and email address from
 Google's basic profile); we use them only to identify your account. Paid plans are
-processed by Stripe, which handles your payment details under its own policy; we
-store only your plan status and Stripe customer id.</p>
+processed by Razorpay (India) or Dodo Payments (internationally), which handle your
+payment details under their own policies; we store only your plan status and a
+customer reference.</p>
+
+<h2>Share links and synced tabs</h2>
+<p>Share links for small paintings carry the whole painting inside the link itself
+and never touch our servers. Larger paintings are stored on our servers so a short
+link can serve them; anyone holding the link can view that painting, and the stored
+copy remains until you ask us to delete it. When you are signed in, your open studio
+tabs are synced to our servers so your workspace follows you across devices; this
+workspace is private to your account and is overwritten as you work.</p>
 
 <h2>Infrastructure</h2>
 <p>The site is served by GitHub Pages; the API runs on Cloudflare Workers with data
