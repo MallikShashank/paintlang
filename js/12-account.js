@@ -98,7 +98,9 @@ const el=id=>document.getElementById(id);
   });
   let drag=null;
   head.addEventListener('pointerdown', e=>{
-    if(e.target.id==='tbMin'||mobile()) return;
+    // the collapse button holds an svg icon - a raw id check misses clicks
+    // that land on the icon's paths and turns them into drags
+    if((e.target.closest&&e.target.closest('#tbMin'))||mobile()) return;
     const hb=host.getBoundingClientRect(), bb=box.getBoundingClientRect();
     drag={dx:e.clientX-bb.left, dy:e.clientY-bb.top, hb};
     head.setPointerCapture(e.pointerId);
