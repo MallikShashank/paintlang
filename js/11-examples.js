@@ -123,7 +123,33 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
       }
     }catch(e){}
   }
-  activateDoc(activeDoc);
-  if(new URLSearchParams(location.search).get('replay')==='1')
-    setTimeout(()=>{ if(typeof startReplay==='function') startReplay(); }, 800);
+  /* boot safety: rendering a huge traced painting can block a phone for tens
+     of seconds. Two guards: (1) the first paint happens BEFORE the heavy run,
+     so the app is visible while it renders; (2) a boot lock - if the last
+     visit never finished booting (froze or crashed mid-render), come up on a
+     fresh canvas instead of re-running the same painting. Tabs are kept. */
+  let froze=false;
+  try{ froze=localStorage.getItem('paintlang-boot-lock')==='1'; }catch(e){}
+  if(froze){
+    docs.push({name:uniqueDocName('recovered'), code:BLANK_DOC, undo:[], redo:[]});
+    activeDoc=docs.length-1;
+  }
+  try{ localStorage.setItem('paintlang-boot-lock','1'); }catch(e){}
+  const bigBoot=docs[activeDoc]&&docs[activeDoc].code.length>250000;
+  if(bigBoot){
+    statusMsgEl.textContent='rendering a large painting...';
+    statusMsgEl.className='ok';
+  }
+  setTimeout(()=>{
+    activateDoc(activeDoc);
+    if(froze){
+      statusMsgEl.textContent='the last visit froze while rendering a large painting - opened a fresh canvas; your other tabs are safe in the tab bar';
+      statusMsgEl.className='ok';
+    }
+    requestAnimationFrame(()=>setTimeout(()=>{
+      try{ localStorage.setItem('paintlang-boot-lock','0'); }catch(e){}
+    },300));
+    if(new URLSearchParams(location.search).get('replay')==='1')
+      setTimeout(()=>{ if(typeof startReplay==='function') startReplay(); }, 800);
+  }, 40);
 })();
