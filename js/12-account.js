@@ -212,19 +212,45 @@ function renderAcct(){
     })));
   }
 
-  // plan + upgrade (appears only when billing is configured server-side)
+  // plan + upgrade (rails appear only when configured server-side; the
+  // primary button follows the visitor's region - UPI for India, card MoR
+  // internationally - with the other rail one click away)
   const planBox=document.createElement('div'); planBox.className='acct-note';
   body.appendChild(planBox);
   acctApi('/api/billing/info').then(b=>{
     const e2=b.ent||{};
     planBox.textContent=(e2.label||'Free')+' plan: '+e2.works+' cloud paintings, '
       +e2.versions+' versions each, '+e2.ultraDay+' ultra traces a day.';
-    if(b.link&&e2.plan!=='pro'){
-      const up=document.createElement('a');
-      up.href=b.link; up.target='_blank'; up.rel='noopener';
-      up.textContent='Upgrade to Pro';
-      up.style.cssText='color:#75beff;margin-left:6px';
-      planBox.appendChild(up);
+    if(e2.plan==='pro') return;
+    const rails=[];
+    const inBtn=()=>acctBtnEl('Upgrade to Pro (India, UPI)', async ev=>{
+      const btn=ev.currentTarget; btn.disabled=true;
+      try{
+        const r=await acctApi('/api/billing/rzp/subscribe',{method:'POST',body:{}});
+        location.href=r.url;
+      }catch(e){ apiStatus('upgrade: '+e.message, false); btn.disabled=false; }
+    }, true);
+    const intlBtn=primary=>{
+      const a=document.createElement('a');
+      a.href=b.intlLink; a.target='_blank'; a.rel='noopener';
+      const btn=acctBtnEl('Upgrade to Pro'+(primary?'':' (international card)'),
+        ()=>{}, primary);
+      a.appendChild(btn); a.style.cssText='flex:1;text-decoration:none';
+      btn.style.width='100%';
+      return a;
+    };
+    if(b.region==='in'&&b.inAvailable){
+      rails.push(inBtn());
+      if(b.intlLink) rails.push(intlBtn(false));
+    }else if(b.intlLink){
+      rails.push(intlBtn(true));
+      if(b.inAvailable) rails.push(inBtn());
+    }else if(b.inAvailable) rails.push(inBtn());
+    if(rails.length){
+      const row=document.createElement('div'); row.className='drow';
+      row.style.marginTop='7px';
+      for(const r of rails) row.appendChild(r);
+      body.appendChild(row);
     }
   }).catch(()=>{ planBox.remove(); });
 
