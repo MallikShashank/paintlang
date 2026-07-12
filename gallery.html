@@ -3,191 +3,779 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Coded Gallery - masterpieces as living programs | Paintlang</title>
-<meta name="description" content="Walk through an exhibition of public-domain masterpieces traced into editable Paintlang code: Van Gogh, Monet, Hokusai, Seurat and more. Open any painting as a program, watch it paint itself, and remix it in your browser.">
-<meta property="og:title" content="The Coded Gallery - masterpieces as living programs">
-<meta property="og:description" content="Van Gogh, Monet, Hokusai and Seurat as programs you can open, replay and remix. An exhibition by Paintlang.">
+<title>The Coded Gallery - a living museum of masterpieces as programs | Paintlang</title>
+<meta name="description" content="Walk a living museum where Hokusai, Van Gogh, Monet, Seurat and more hang as running programs. Every painting repaints itself before your eyes, stroke by stroke, in chronological order from 1831 to 1900. Open any of them as editable code.">
+<meta property="og:title" content="The Coded Gallery - a living museum of masterpieces as programs">
+<meta property="og:description" content="Paintings that paint themselves. Van Gogh, Monet, Hokusai and Seurat as programs you can watch, open and remix - a walk through art history in code.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://paintlang.com/gallery.html">
 <meta property="og:image" content="https://paintlang.com/assets/og-gallery.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#f4f1ea">
+<meta name="theme-color" content="#14110d">
 <link rel="canonical" href="https://paintlang.com/gallery.html">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23007acc%22/><path d=%22M64 15l14 14-27 27-14-14z%22 fill=%22%23f6f1e7%22/><path d=%22M35 44l14 14c-2 8-6 12-13 14-6 2-10 5-12 11-5-1-9-3-13-6 4-4 6-8 7-13 1-10 8-17 17-20z%22 fill=%22%23ffd98a%22/></svg>">
 <style>
-*{box-sizing:border-box}
+*{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
-body{margin:0;background:#efece4;color:#2a2722;
+body{background:#171310;color:#2a2722;overflow-x:hidden;
   font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
 .sans{font-family:"Segoe UI",ui-sans-serif,system-ui,sans-serif}
+button{font-family:"Segoe UI",sans-serif;cursor:pointer}
 
-/* entrance */
-.hero{min-height:72vh;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;text-align:center;padding:60px 24px 40px;
-  background:linear-gradient(180deg,#e9e5da 0%,#efece4 100%)}
-.hero .kicker{font-family:"Segoe UI",sans-serif;font-size:11px;letter-spacing:.34em;
-  text-transform:uppercase;color:#8d8474;margin-bottom:22px}
-.hero h1{font-size:clamp(34px,6vw,64px);font-weight:500;margin:0 0 18px;
-  letter-spacing:.01em;text-wrap:balance;font-style:italic}
-.hero p{max-width:56ch;color:#5c554a;font-size:clamp(15px,1.6vw,18px);
-  line-height:1.75;margin:0 0 34px}
-.hero .doors{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.hero a{font-family:"Segoe UI",sans-serif;font-size:14px;text-decoration:none;
-  padding:11px 26px;border-radius:2px;transition:all .25s}
-.hero .enter{background:#2a2722;color:#efece4}
-.hero .enter:hover{background:#000}
-.hero .studio{color:#2a2722;border:1px solid #b9b2a4}
-.hero .studio:hover{border-color:#2a2722}
-.hero .scrollhint{margin-top:56px;color:#a39a88;font-size:22px;
-  animation:drift 2.4s ease-in-out infinite}
-@keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+/* ============ the ink line that walks you through the museum ============ */
+#inkline{position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:1}
+#inkline path{fill:none;stroke:rgba(58,45,30,.4);stroke-width:2.6;
+  stroke-linecap:round}
+#inkline circle{fill:#3a2d1e;opacity:.55}
 
-/* rooms */
-.room{padding:90px 0 30px;opacity:0;transform:translateY(26px);
-  transition:opacity .9s ease,transform .9s ease}
+/* ============ timeline rail ============ */
+#rail{position:fixed;left:26px;top:50%;transform:translateY(-50%);z-index:40;
+  display:flex;flex-direction:column;gap:18px;align-items:center}
+#rail .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);
+  background:transparent;cursor:pointer;transition:all .3s;padding:0}
+#rail .dot.lit{background:#e2c08d;border-color:#e2c08d;transform:scale(1.25)}
+#railYear{position:fixed;left:44px;top:50%;transform:translateY(-50%);z-index:40;
+  font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.55);
+  font-family:"Segoe UI",sans-serif;writing-mode:vertical-rl;display:none}
+
+/* ============ vestibule ============ */
+#vestibule{min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:40px 24px;position:relative;
+  background:radial-gradient(120% 90% at 50% 0%,#2b241c 0%,#171310 60%);
+  color:#efe8da;perspective:900px}
+#vestibule .kicker{font-family:"Segoe UI",sans-serif;font-size:11px;
+  letter-spacing:.4em;text-transform:uppercase;color:#9a8b70;margin-bottom:26px}
+#vestibule h1{font-size:clamp(38px,7vw,78px);font-weight:500;font-style:italic;
+  letter-spacing:.01em;text-wrap:balance;transform-style:preserve-3d}
+#vestibule .sub{max-width:58ch;color:#b6a98f;font-size:clamp(15px,1.7vw,18px);
+  line-height:1.8;margin:26px 0 40px}
+#vestibule .doors{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+#vestibule .doors button, #vestibule .doors a{font-size:14px;padding:13px 30px;
+  border-radius:2px;text-decoration:none;transition:all .25s;letter-spacing:.03em}
+#tourStart{background:#e2c08d;border:1px solid #e2c08d;color:#171310;font-weight:600}
+#tourStart:hover{background:#f0d3a5}
+.ghost{background:transparent;border:1px solid #6b5f4b;color:#d9cdb4}
+.ghost:hover{border-color:#d9cdb4}
+#vestibule .hint{margin-top:64px;color:#6b5f4b;font-size:12px;
+  font-family:"Segoe UI",sans-serif;letter-spacing:.12em}
+#vestibule .frames{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#vestibule .frames i{position:absolute;border:1px solid rgba(226,192,141,.14);
+  border-radius:2px;box-shadow:0 0 60px rgba(0,0,0,.5) inset}
+
+/* ============ rooms ============ */
+.room{position:relative;padding:16vh 0 10vh;overflow:hidden;
+  opacity:0;transform:translateY(40px) scale(.985);
+  transition:opacity 1.1s cubic-bezier(.2,.6,.2,1),transform 1.1s cubic-bezier(.2,.6,.2,1)}
 .room.seen{opacity:1;transform:none}
-.wall-label{max-width:640px;margin:0 auto 42px;padding:0 26px;text-align:center}
+.room .atmo{position:absolute;inset:-12% -6%;pointer-events:none;will-change:transform}
+.room .atmo.a2{opacity:.6}
+.room .grain{position:absolute;inset:0;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+.wall-label{position:relative;z-index:3;max-width:660px;margin:0 auto 5vh;
+  padding:0 28px;text-align:center}
 .wall-label .roomno{font-family:"Segoe UI",sans-serif;font-size:10.5px;
-  letter-spacing:.34em;text-transform:uppercase;color:#8d8474;margin-bottom:14px}
-.wall-label h2{font-size:clamp(26px,3.6vw,40px);font-weight:500;margin:0 0 14px;font-style:italic}
-.wall-label p{color:#5c554a;font-size:15px;line-height:1.75;margin:0}
+  letter-spacing:.4em;text-transform:uppercase;opacity:.6;margin-bottom:14px}
+.wall-label h2{font-size:clamp(30px,4.2vw,52px);font-weight:500;font-style:italic;
+  margin-bottom:6px}
+.wall-label .place{font-family:"Segoe UI",sans-serif;font-size:12px;
+  letter-spacing:.22em;text-transform:uppercase;opacity:.65;margin-bottom:16px}
+.wall-label .bio{font-size:15px;line-height:1.75;opacity:.86;max-width:56ch;margin:0 auto}
+.wall-label .stroke-under{width:90px;height:8px;margin:18px auto 0;opacity:.5}
 
-/* carousel rail */
-.railwrap{position:relative}
-.rail{display:flex;gap:5vw;overflow-x:auto;scroll-snap-type:x mandatory;
-  padding:30px calc(50vw - min(44vw,430px)) 56px;scrollbar-width:none}
-.rail::-webkit-scrollbar{display:none}
-.piece{flex:none;width:min(88vw,860px);scroll-snap-align:center}
-.frame{background:#fbf9f4;padding:clamp(10px,1.8vw,22px);
-  border:1px solid #d9d3c5;
-  box-shadow:0 30px 60px -30px rgba(40,32,18,.45),0 8px 22px rgba(40,32,18,.12);
-  transition:transform .5s ease}
-.piece:hover .frame{transform:translateY(-4px)}
-.frame img{display:block;width:100%;aspect-ratio:960/600;background:#f6f1e7;
-  border:1px solid #e4ded1}
-.plaque{max-width:620px;margin:26px auto 0;padding:0 10px;text-align:center}
-.plaque .t{font-size:20px;font-style:italic}
-.plaque .y{font-family:"Segoe UI",sans-serif;font-size:11.5px;color:#8d8474;
-  letter-spacing:.14em;text-transform:uppercase;margin:5px 0 12px}
-.plaque .story{color:#5c554a;font-size:14.5px;line-height:1.7;margin:0 0 8px}
-.plaque .interp{font-family:Consolas,monospace;font-size:11.5px;color:#988f7d;margin:10px 0 16px}
-.plaque .acts{display:flex;gap:10px;justify-content:center}
+/* ---- the coverflow stage ---- */
+.stage{position:relative;z-index:3;height:min(58vh,470px);margin:0 auto;
+  max-width:1500px;perspective:1300px}
+.piece{position:absolute;left:50%;top:0;width:min(62vw,640px);
+  aspect-ratio:960/640;margin-left:min(-31vw,-320px);
+  transform-style:preserve-3d;cursor:pointer;
+  transition:transform .75s cubic-bezier(.22,.8,.24,1),opacity .75s,filter .75s}
+.frame{position:absolute;inset:0;background:#f7f3ea;border-radius:2px;
+  padding:clamp(8px,1.4vw,18px);border:1px solid rgba(0,0,0,.25);
+  box-shadow:0 34px 70px -28px rgba(0,0,0,.75),0 6px 20px rgba(0,0,0,.3),
+    inset 0 0 0 1px rgba(255,255,255,.5);
+  transform-style:preserve-3d}
+.piece canvas,.piece img{width:100%;height:100%;display:block;object-fit:cover;
+  background:#f6f1e7;border:1px solid rgba(0,0,0,.15)}
+.piece .tag{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);
+  font-family:"Segoe UI",sans-serif;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;opacity:0;transition:opacity .4s;white-space:nowrap}
+.piece.center .tag{opacity:.55}
+.piece .replaying{position:absolute;top:6px;right:8px;font-family:"Segoe UI",sans-serif;
+  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#fff;
+  background:rgba(20,17,13,.55);padding:3px 9px;border-radius:2px;opacity:0;
+  transition:opacity .3s;pointer-events:none}
+.piece.playing .replaying{opacity:1}
+.stage .nav{position:absolute;top:50%;transform:translateY(-50%);z-index:6;
+  width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,0,0,.3);
+  background:rgba(247,243,234,.85);color:#2a2722;font-size:19px;
+  transition:all .2s;backdrop-filter:blur(4px)}
+.stage .nav:hover{background:#2a2722;color:#f7f3ea}
+.stage .nav.prev{left:max(12px,4vw)}
+.stage .nav.next{right:max(12px,4vw)}
+.stage .nav[disabled]{opacity:0;pointer-events:none}
+
+/* ---- plaque ---- */
+.plaque{position:relative;z-index:3;max-width:620px;margin:7vh auto 0;
+  padding:0 28px;text-align:center;transition:opacity .45s}
+.plaque.swap{opacity:0}
+.plaque .t{font-size:23px;font-style:italic}
+.plaque .y{font-family:"Segoe UI",sans-serif;font-size:12px;opacity:.6;
+  letter-spacing:.2em;text-transform:uppercase;margin:7px 0 14px}
+.plaque .story{font-size:15px;line-height:1.75;opacity:.88;margin-bottom:10px}
+.plaque .interp{font-family:Consolas,monospace;font-size:11.5px;opacity:.55;margin-bottom:20px}
+.plaque .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .plaque a{font-family:"Segoe UI",sans-serif;font-size:13px;text-decoration:none;
-  padding:9px 20px;border-radius:2px;transition:all .2s}
-.plaque .open{background:#2a2722;color:#efece4}
-.plaque .open:hover{background:#000}
-.plaque .replay{color:#2a2722;border:1px solid #b9b2a4}
-.plaque .replay:hover{border-color:#2a2722}
-.arrows{position:absolute;top:34%;width:100%;display:flex;
-  justify-content:space-between;pointer-events:none;padding:0 2vw}
-.arrows button{pointer-events:auto;width:46px;height:46px;border-radius:50%;
-  border:1px solid #c9c2b2;background:#fbf9f4dd;color:#2a2722;font-size:18px;
-  cursor:pointer;transition:all .2s;backdrop-filter:blur(3px)}
-.arrows button:hover{background:#2a2722;color:#efece4}
-.arrows button[disabled]{opacity:0;pointer-events:none}
-.divider{width:52px;height:1px;background:#c3bcab;margin:50px auto 0}
+  padding:10px 22px;border-radius:2px;transition:all .2s}
+.hoverhint{font-family:"Segoe UI",sans-serif;font-size:11px;opacity:.45;
+  margin-top:14px;letter-spacing:.06em}
 
-.exitwall{text-align:center;padding:110px 24px 130px}
-.exitwall h2{font-size:clamp(24px,3.4vw,38px);font-weight:500;font-style:italic;margin:0 0 16px}
-.exitwall p{color:#5c554a;max-width:52ch;margin:0 auto 30px;line-height:1.75;font-size:15.5px}
-.exitwall a{font-family:"Segoe UI",sans-serif;background:#2a2722;color:#efece4;
-  text-decoration:none;padding:12px 30px;border-radius:2px;font-size:14px}
-.exitwall a:hover{background:#000}
-.credits{text-align:center;color:#a39a88;font-size:12px;font-family:"Segoe UI",sans-serif;
-  padding:0 24px 46px;line-height:1.7}
-.credits a{color:#7d7360}
+/* ============ exit ============ */
+#exitwall{text-align:center;padding:18vh 24px;position:relative;overflow:hidden;
+  background:radial-gradient(100% 100% at 50% 100%,#2b241c 0%,#171310 70%);color:#efe8da}
+#exitwall h2{font-size:clamp(26px,3.6vw,44px);font-weight:500;font-style:italic;margin-bottom:16px}
+#exitwall p{color:#b6a98f;max-width:52ch;margin:0 auto 32px;line-height:1.8;font-size:15.5px}
+#exitwall a{font-family:"Segoe UI",sans-serif;background:#e2c08d;color:#171310;
+  font-weight:600;text-decoration:none;padding:13px 32px;border-radius:2px;font-size:14px}
+.credits{text-align:center;color:#6b5f4b;font-size:12px;font-family:"Segoe UI",sans-serif;
+  padding:0 24px 48px;line-height:1.8;background:#171310}
+.credits a{color:#9a8b70}
+
+/* ============ tour pill ============ */
+#tourPill{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:60;
+  display:flex;gap:8px;align-items:center;background:rgba(20,17,13,.88);
+  border:1px solid rgba(226,192,141,.35);border-radius:30px;padding:8px 10px 8px 18px;
+  color:#e9dfc9;font-family:"Segoe UI",sans-serif;font-size:12.5px;
+  box-shadow:0 12px 34px rgba(0,0,0,.5);backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;transition:opacity .35s}
+#tourPill.show{opacity:1;pointer-events:auto}
+#tourPill button{background:rgba(226,192,141,.15);border:1px solid rgba(226,192,141,.4);
+  color:#e2c08d;border-radius:16px;padding:5px 14px;font-size:12px}
+#tourPill button:hover{background:rgba(226,192,141,.3)}
+
+@media (max-width:880px){
+  #rail,#railYear,#inkline{display:none}
+  .stage{height:auto;perspective:none;max-width:none;overflow-x:auto;
+    display:flex;gap:6vw;scroll-snap-type:x mandatory;padding:10px 12vw 40px;
+    scrollbar-width:none}
+  .stage::-webkit-scrollbar{display:none}
+  .piece{position:static;width:76vw;margin-left:0;flex:none;scroll-snap-align:center;
+    transform:none !important;opacity:1 !important;filter:none !important}
+  .stage .nav{display:none}
+  .piece .tag{display:none}
+  .wall-label .bio{font-size:14px}
+}
 @media (prefers-reduced-motion: reduce){
   .room{transition:none;opacity:1;transform:none}
-  .hero .scrollhint{animation:none}
   html{scroll-behavior:auto}
 }
 </style>
 </head>
 <body>
 
-<section class="hero">
+<svg id="inkline" aria-hidden="true"></svg>
+<nav id="rail" aria-label="rooms timeline"></nav>
+<div id="railYear"></div>
+
+<section id="vestibule">
+  <div class="frames" aria-hidden="true"></div>
   <div class="kicker">Paintlang presents</div>
-  <h1>The Coded Gallery</h1>
-  <p>An exhibition where every masterpiece is a living program. Each painting below
-  was traced by Paintlang into thousands of lines of editable code - masses, light and
-  brushwork, organised into named layers. Walk the rooms. Open anything.
-  Watch it paint itself. Then remix it.</p>
+  <h1 id="vtitle">The Coded Gallery</h1>
+  <p class="sub">A museum where every painting is a living program. Walk the rooms in
+  the order history painted them, from Edo in 1831 to Paris at the turn of the century.
+  Rest your eyes on any canvas and it will paint itself for you, stroke by stroke.
+  Open any of them as code, and it is yours to remix.</p>
   <div class="doors">
-    <a class="enter" href="#room-0">Enter the exhibition</a>
-    <a class="studio" href="/">Open the studio</a>
+    <button id="tourStart">Begin the guided tour</button>
+    <a class="ghost" href="#room-0">Wander freely</a>
+    <a class="ghost" href="/">Open the studio</a>
   </div>
-  <div class="scrollhint">↓</div>
+  <div class="hint">SCROLL, OR LET THE TOUR CARRY YOU</div>
 </section>
 
 <div id="rooms"></div>
 
-<section class="exitwall room">
+<section id="exitwall" class="room">
   <h2>Your images belong here too</h2>
-  <p>Everything in this exhibition was made by the same Import button you get in the
-  studio: drop in any photo and receive a painting made of code - layered, replayable,
+  <p>Every painting in this museum was made by the same Import button waiting for you in
+  the studio: drop in any photo and receive a painting made of code, layered, replayable,
   and yours to edit.</p>
   <a href="/">Trace your own painting</a>
 </section>
 <p class="credits">
-  All artworks are in the public domain. Images courtesy of the
+  All artworks are in the public domain. Source images courtesy of the
   <a href="https://www.artic.edu/open-access/open-access-images">Art Institute of Chicago</a>
-  open access program (CC0). Traced and rendered by
+  open access program (CC0). Traced, rendered and replayed by
   <a href="/">Paintlang</a>, the live-coding painting studio.
 </p>
 
+<div id="tourPill">
+  <span id="tourMsg">Guided tour</span>
+  <button id="tourToggle">Pause</button>
+  <button id="tourExit">Exit</button>
+</div>
+
 <script>
-const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
-fetch('gallery/pieces.json').then(r=>r.json()).then(data=>{
-  const host=document.getElementById('rooms');
-  (data.rooms||[]).forEach((room,ri)=>{
-    const sec=document.createElement('section');
-    sec.className='room'; sec.id='room-'+ri;
-    let cards='';
-    for(const p of room.pieces){
-      cards+='<div class="piece">'
-        +'<div class="frame"><img loading="lazy" src="gallery/'+p.slug+'.svg" alt="'
-          +p.title+' - traced by Paintlang"></div>'
-        +'<div class="plaque">'
-        +'<div class="t">'+p.title+'</div>'
-        +'<div class="y">'+room.artist+' · '+p.year+'</div>'
-        +'<p class="story">'+p.story+'</p>'
-        +'<div class="interp">paintlang read this as '+p.shapes+' masses + '
-          +(p.strokes||0).toLocaleString()+' brush strokes, in named layers</div>'
-        +'<div class="acts">'
-        +'<a class="open" href="/?open=gallery/'+p.slug+'.paint">Open the code</a>'
-        +'<a class="replay" href="/?open=gallery/'+p.slug+'.paint&replay=1">▶ Watch it paint itself</a>'
-        +'</div></div></div>';
+'use strict';
+/* ================= era design: each room dressed as its world ================= */
+const ERA={
+'Katsushika Hokusai':{place:'Edo, Japan · ukiyo-e', wall:'#dbe4e8', ink:'#1c3a52',
+  a:'#c9d9e2', b:'#eef3f4', pattern:'waves'},
+'Claude Monet':{place:'Argenteuil and Giverny, France · impressionism', wall:'#dfe8d9',
+  ink:'#31502f', a:'#cfdfc6', b:'#f0f4e9', pattern:'lilies'},
+'Edgar Degas':{place:'Paris, France · the ballet studios', wall:'#e8ded2',
+  ink:'#6b4a2b', a:'#dcccb8', b:'#f4ece1', pattern:'boards'},
+'Gustave Caillebotte':{place:'Paris, France · the new boulevards', wall:'#dcdee2',
+  ink:'#3a4250', a:'#c8ccd4', b:'#eceef1', pattern:'rain'},
+'Pierre-Auguste Renoir':{place:'Chatou, France · the riverside terraces', wall:'#efe3d3',
+  ink:'#8a4a2b', a:'#e6d2ba', b:'#f8efe2', pattern:'dapple'},
+'Georges Seurat':{place:'Paris, France · pointillism', wall:'#e4e6da',
+  ink:'#42522f', a:'#d4d9c4', b:'#f1f2e8', pattern:'dots'},
+'Vincent van Gogh':{place:'Arles, France · post-impressionism', wall:'#e7e0c8',
+  ink:'#2b4a7a', a:'#dbd0ac', b:'#f3eedb', pattern:'swirl'},
+'Henri de Toulouse-Lautrec':{place:'Montmartre, Paris · the cabarets', wall:'#e3d3cd',
+  ink:'#7a2b35', a:'#d6bcb4', b:'#f1e5e0', pattern:'poster'},
+'Paul Cezanne':{place:'Aix-en-Provence, France · toward modernism', wall:'#eae1cf',
+  ink:'#7a5a2b', a:'#ddccab', b:'#f5eede', pattern:'facets'},
+'Mary Cassatt':{place:'Paris, France · quiet domestic light', wall:'#eadfda',
+  ink:'#7a4a5a', a:'#dfc9c2', b:'#f6ece8', pattern:'weave'}
+};
+const eraOf=a=>ERA[a.normalize('NFD').replace(/[̀-ͯ]/g,'')]||ERA[a]
+  ||{place:'', wall:'#e9e5da', ink:'#3a2d1e', a:'#ddd6c6', b:'#f2efe6', pattern:'dots'};
+function patternURI(kind,ink){
+  const k=encodeURIComponent(ink);
+  const svgs={
+  waves:`<svg xmlns='http://www.w3.org/2000/svg' width='220' height='90'><path d='M0 60q27-38 55 0t55 0 55 0 55 0' fill='none' stroke='${ink}' stroke-width='2.5' opacity='.13'/><path d='M-27 78q27-30 55 0t55 0 55 0 55 0 55 0' fill='none' stroke='${ink}' stroke-width='1.6' opacity='.09'/></svg>`,
+  lilies:`<svg xmlns='http://www.w3.org/2000/svg' width='260' height='160'><ellipse cx='60' cy='50' rx='34' ry='11' fill='${ink}' opacity='.08'/><ellipse cx='190' cy='110' rx='42' ry='13' fill='${ink}' opacity='.06'/><ellipse cx='150' cy='30' rx='22' ry='8' fill='${ink}' opacity='.07'/></svg>`,
+  dots:`<svg xmlns='http://www.w3.org/2000/svg' width='46' height='46'><circle cx='10' cy='12' r='2.2' fill='${ink}' opacity='.12'/><circle cx='32' cy='30' r='1.9' fill='${ink}' opacity='.1'/><circle cx='24' cy='6' r='1.4' fill='${ink}' opacity='.08'/></svg>`,
+  rain:`<svg xmlns='http://www.w3.org/2000/svg' width='70' height='90'><path d='M14 0l-8 34M42 10l-8 34M64 -4l-8 34M28 48l-8 34M56 56l-8 34' stroke='${ink}' stroke-width='1.6' opacity='.1' stroke-linecap='round'/></svg>`,
+  swirl:`<svg xmlns='http://www.w3.org/2000/svg' width='170' height='170'><path d='M85 30a55 55 0 11-55 55 41 41 0 1041-41 29 29 0 10-29 29' fill='none' stroke='${ink}' stroke-width='2.4' opacity='.1' stroke-linecap='round'/></svg>`,
+  poster:`<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><rect x='12' y='14' width='38' height='54' fill='none' stroke='${ink}' stroke-width='2.2' opacity='.11'/><rect x='68' y='50' width='34' height='48' fill='none' stroke='${ink}' stroke-width='2.2' opacity='.08'/></svg>`,
+  facets:`<svg xmlns='http://www.w3.org/2000/svg' width='150' height='130'><path d='M10 90l40-58 34 44 30-52 28 60' fill='none' stroke='${ink}' stroke-width='2' opacity='.1' stroke-linejoin='round'/></svg>`,
+  boards:`<svg xmlns='http://www.w3.org/2000/svg' width='160' height='60'><path d='M0 18h160M0 42h160' stroke='${ink}' stroke-width='1.4' opacity='.09'/></svg>`,
+  dapple:`<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><circle cx='34' cy='40' r='16' fill='${ink}' opacity='.05'/><circle cx='100' cy='86' r='22' fill='${ink}' opacity='.045'/><circle cx='76' cy='22' r='11' fill='${ink}' opacity='.06'/></svg>`,
+  weave:`<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><path d='M0 15h60M0 45h60M15 0v60M45 0v60' stroke='${ink}' stroke-width='1.1' opacity='.07'/></svg>`};
+  return "url(\"data:image/svg+xml,"+encodeURIComponent(svgs[kind]||svgs.dots)+"\")";
+}
+
+/* ================= the miniature paintlang renderer =================
+   Decodes the public .paint format (the same one the studio renders):
+   packed 12-bit outlines for forms, packed stroke bundles for brushwork.
+   Enough to repaint any gallery piece inside its own card. */
+const B64R={};
+'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+  .split('').forEach((c,i)=>B64R[c]=i);
+const CW=960,CH=600;
+function parsePaint(src){
+  const doc={wash:'#f6f1e7', items:[]};
+  for(const line of src.split('\n')){
+    let m=line.match(/^rect\(\s*[\d.\-]+,\s*[\d.\-]+,\s*[\d.\-]+,\s*[\d.\-]+,\s*\{\s*color:\s*'([^']+)'/);
+    if(m&&doc.items.length===0){ doc.wash=m[1]; continue; }
+    m=line.match(/^form\(\{\s*x:\s*([\d.\-]+),\s*y:\s*([\d.\-]+),\s*w:\s*([\d.\-]+),\s*h:\s*([\d.\-]+),\s*color:\s*'([^']+)'(?:,\s*shade:\s*\[\s*'([^']+)'\s*,\s*([\d.\-]+)\s*\])?[^]*?pts:\s*'([^']+)'/);
+    if(m){
+      const x=+m[1],y=+m[2],w=+m[3],h=+m[4];
+      const s=m[8], pts=[];
+      for(let i=0;i+3<s.length;i+=4){
+        const nx=(B64R[s[i]]<<6)|B64R[s[i+1]], ny=(B64R[s[i+2]]<<6)|B64R[s[i+3]];
+        if(isNaN(nx)||isNaN(ny)) break;
+        pts.push([x-w/2+nx/4095*w, y-h/2+ny/4095*h]);
+      }
+      if(pts.length>2) doc.items.push({f:1,x,y,w,h,color:m[5],
+        shade:m[6]?[m[6],+m[7]]:null,pts});
+      continue;
     }
-    sec.innerHTML='<div class="wall-label">'
-      +'<div class="roomno">Room '+(ROMAN[ri]||ri+1)+'</div>'
-      +'<h2>'+room.artist+'</h2><p>'+room.bio+'</p></div>'
-      +'<div class="railwrap"><div class="rail">'+cards+'</div>'
-      +(room.pieces.length>1
-        ?'<div class="arrows"><button class="prev" aria-label="previous">←</button>'
-         +'<button class="next" aria-label="next">→</button></div>'
-        :'')
-      +'</div><div class="divider"></div>';
-    host.appendChild(sec);
-    const rail=sec.querySelector('.rail');
-    const prev=sec.querySelector('.prev'), next=sec.querySelector('.next');
-    if(prev&&next){
-      const step=()=>rail.querySelector('.piece').getBoundingClientRect().width+rail.clientWidth*.05;
-      const update=()=>{
-        prev.disabled=rail.scrollLeft<40;
-        next.disabled=rail.scrollLeft>rail.scrollWidth-rail.clientWidth-40;
-      };
-      prev.addEventListener('click',()=>rail.scrollBy({left:-step(),behavior:'smooth'}));
-      next.addEventListener('click',()=>rail.scrollBy({left:step(),behavior:'smooth'}));
-      rail.addEventListener('scroll',update,{passive:true});
-      update();
+    m=line.match(/^strokes\('([^']+)'\s*,\s*\{[^}]*size:\s*([\d.]+)/);
+    if(m){
+      const blob=m[1], size=+m[2], list=[];
+      let i=0;
+      while(i<blob.length){
+        const n=B64R[blob[i]];
+        if(n===undefined||n<1) break;
+        if(i+5+n*4>blob.length) break;
+        const c=(B64R[blob[i+1]]<<18)|(B64R[blob[i+2]]<<12)|(B64R[blob[i+3]]<<6)|B64R[blob[i+4]];
+        i+=5;
+        const p=[];
+        for(let k=0;k<n;k++){
+          p.push([((B64R[blob[i]]<<6)|B64R[blob[i+1]])/4095*CW,
+                  ((B64R[blob[i+2]]<<6)|B64R[blob[i+3]])/4095*CH]);
+          i+=4;
+        }
+        list.push({c:'rgb('+((c>>16)&255)+','+((c>>8)&255)+','+(c&255)+')', p});
+      }
+      if(list.length) doc.items.push({s:1,size,list});
     }
+  }
+  return doc;
+}
+function drawForm(c,it,sc){
+  let fill=it.color;
+  if(it.shade){
+    const ang=it.shade[1]*Math.PI/180, ux=Math.cos(ang), uy=Math.sin(ang);
+    const ext=(Math.abs(ux)*it.w/2+Math.abs(uy)*it.h/2||1)*sc;
+    const g=c.createLinearGradient(it.x*sc-ux*ext,it.y*sc-uy*ext,it.x*sc+ux*ext,it.y*sc+uy*ext);
+    g.addColorStop(0,it.color); g.addColorStop(1,it.shade[0]); fill=g;
+  }
+  const P=it.pts;
+  c.fillStyle=fill; c.strokeStyle=it.color; c.lineWidth=1.1*sc;
+  c.beginPath();
+  c.moveTo((P[P.length-1][0]+P[0][0])/2*sc,(P[P.length-1][1]+P[0][1])/2*sc);
+  for(let i=0;i<P.length;i++){
+    const p=P[i], q=P[(i+1)%P.length];
+    c.quadraticCurveTo(p[0]*sc,p[1]*sc,(p[0]+q[0])/2*sc,(p[1]+q[1])/2*sc);
+  }
+  c.closePath(); c.fill(); c.stroke();
+}
+function drawStroke(c,st,size,sc){
+  c.strokeStyle=st.c; c.lineWidth=Math.max(.7,size*.92*sc);
+  c.lineCap='round'; c.lineJoin='round';
+  c.beginPath(); c.moveTo(st.p[0][0]*sc,st.p[0][1]*sc);
+  for(let i=1;i<st.p.length;i++) c.lineTo(st.p[i][0]*sc,st.p[i][1]*sc);
+  c.stroke();
+}
+function paintFull(c,doc,sc){
+  c.fillStyle=doc.wash; c.fillRect(0,0,CW*sc,CH*sc);
+  for(const it of doc.items){
+    if(it.f) drawForm(c,it,sc);
+    else for(const st of it.list) drawStroke(c,st,it.size,sc);
+  }
+}
+
+/* card replay: forms bloom in first, then the brushwork pours on */
+const paintCache=new Map();
+async function getDoc(slug){
+  if(paintCache.has(slug)) return paintCache.get(slug);
+  const p=fetch('gallery/'+slug+'.paint').then(r=>{
+    if(!r.ok) throw new Error('missing');
+    return r.text();
+  }).then(parsePaint);
+  paintCache.set(slug,p);
+  return p;
+}
+function cardReplay(card,doc,dur){
+  if(card._anim) card._anim.stop();
+  const cv=card.querySelector('canvas'), c=cv.getContext('2d');
+  const sc=cv.width/CW;
+  const forms=[], strokes=[];
+  for(const it of doc.items){
+    if(it.f) forms.push(it);
+    else for(const st of it.list) strokes.push({st,size:it.size});
+  }
+  const t0=performance.now();
+  const formT=Math.min(1600,dur*.22), strokeT=dur-formT;
+  let fIdx=0, sIdx=0, alive=true;
+  card.classList.add('playing');
+  const done=new Promise(res=>{
+    function tick(now){
+      if(!alive){ res(false); return; }
+      const t=now-t0;
+      if(t<=formT){
+        const target=Math.floor(forms.length*(t/formT));
+        if(fIdx===0){ c.fillStyle=doc.wash; c.fillRect(0,0,cv.width,cv.height); }
+        while(fIdx<target){ drawForm(c,forms[fIdx++],sc); }
+      }else{
+        while(fIdx<forms.length) drawForm(c,forms[fIdx++],sc);
+        const target=Math.floor(strokes.length*Math.min(1,(t-formT)/strokeT));
+        while(sIdx<target){ const s=strokes[sIdx++]; drawStroke(c,s.st,s.size,sc); }
+      }
+      if(fIdx>=forms.length&&sIdx>=strokes.length){
+        card.classList.remove('playing'); card._anim=null; res(true); return;
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   });
-  // gentle reveal as you walk
-  const io=new IntersectionObserver(es=>{
-    for(const e of es) if(e.isIntersecting){ e.target.classList.add('seen'); io.unobserve(e.target); }
-  },{threshold:.12});
-  document.querySelectorAll('.room').forEach(s=>io.observe(s));
+  card._anim={stop(){ alive=false; card.classList.remove('playing');
+    card._anim=null; paintFull(c,doc,sc); }};
+  return done;
+}
+
+/* ================= build the museum ================= */
+const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const yearNum=y=>{ const m=String(y).match(/\d{4}/); return m?+m[0]:9999; };
+const state={rooms:[],cur:[],tour:null};
+
+fetch('gallery/pieces.json').then(r=>r.json()).then(data=>{
+  // history's order, not the config's: rooms by earliest work, works by year
+  const rooms=(data.rooms||[]).map(r=>({...r,
+    pieces:[...r.pieces].sort((a,b)=>yearNum(a.year)-yearNum(b.year))}))
+    .sort((a,b)=>yearNum(a.pieces[0].year)-yearNum(b.pieces[0].year));
+  state.rooms=rooms;
+  buildVestibuleFrames();
+  const host=document.getElementById('rooms');
+  rooms.forEach((room,ri)=>host.appendChild(buildRoom(room,ri)));
+  buildRail(rooms);
+  requestAnimationFrame(()=>{ buildInkline(); wireScroll(); });
+  injectSchema(rooms);
 });
+
+function buildVestibuleFrames(){
+  const holder=document.querySelector('#vestibule .frames');
+  for(let i=0;i<7;i++){
+    const f=document.createElement('i');
+    const w=60+Math.random()*140, h=w*(.6+Math.random()*.5);
+    f.style.cssText='width:'+w+'px;height:'+h+'px;left:'+(Math.random()*94)+'%;top:'
+      +(Math.random()*90)+'%;transform:rotate('+(Math.random()*8-4)+'deg)';
+    holder.appendChild(f);
+  }
+}
+
+function buildRoom(room,ri){
+  const era=eraOf(room.artist);
+  const years=room.pieces.map(p=>yearNum(p.year));
+  const span=Math.min(...years)===Math.max(...years)
+    ?Math.min(...years):Math.min(...years)+' to '+Math.max(...years);
+  const sec=document.createElement('section');
+  sec.className='room'; sec.id='room-'+ri; sec.dataset.idx=ri;
+  sec.style.background='linear-gradient(180deg,'+era.b+' 0%,'+era.wall+' 55%,'+era.b+' 100%)';
+  sec.style.color=era.ink;
+  const atmo1=document.createElement('div'); atmo1.className='atmo a1';
+  atmo1.style.background=patternURI(era.pattern,era.ink);
+  const atmo2=document.createElement('div'); atmo2.className='atmo a2';
+  atmo2.style.background='radial-gradient(60% 50% at 22% 18%,'+era.a+' 0%,transparent 70%),'
+    +'radial-gradient(50% 45% at 82% 80%,'+era.a+' 0%,transparent 70%)';
+  const grain=document.createElement('div'); grain.className='grain';
+  sec.append(atmo2,atmo1,grain);
+
+  const label=document.createElement('div'); label.className='wall-label';
+  label.innerHTML='<div class="roomno">Room '+(ROMAN[ri]||ri+1)+' · '+span+'</div>'
+    +'<h2>'+room.artist+'</h2>'
+    +'<div class="place">'+era.place+'</div>'
+    +'<p class="bio">'+room.bio+'</p>'
+    +'<svg class="stroke-under" viewBox="0 0 90 8"><path d="M2 5c14-4 30 3 44-1s30-2 42 1" fill="none" stroke="'+era.ink+'" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  sec.appendChild(label);
+
+  const stage=document.createElement('div'); stage.className='stage';
+  const cards=room.pieces.map((p,pi)=>buildCard(room,p,ri,pi,era));
+  cards.forEach(c=>stage.appendChild(c));
+  if(room.pieces.length>1){
+    const prev=document.createElement('button'); prev.className='nav prev';
+    prev.textContent='←'; prev.setAttribute('aria-label','previous painting');
+    const next=document.createElement('button'); next.className='nav next';
+    next.textContent='→'; next.setAttribute('aria-label','next painting');
+    prev.addEventListener('click',()=>focusPiece(ri,state.cur[ri]-1));
+    next.addEventListener('click',()=>focusPiece(ri,state.cur[ri]+1));
+    stage.append(prev,next);
+  }
+  sec.appendChild(stage);
+
+  const plaque=document.createElement('div'); plaque.className='plaque';
+  sec.appendChild(plaque);
+  const hint=document.createElement('div'); hint.className='hoverhint';
+  hint.textContent='REST ON THE PAINTING AND IT PAINTS ITSELF';
+  plaque.after(hint); hint.style.textAlign='center'; hint.style.position='relative'; hint.style.zIndex='3';
+
+  state.cur[ri]=0;
+  sec._cards=cards; sec._room=room; sec._era=era;
+  layoutStage(ri,true);
+  renderPlaque(ri);
+  return sec;
+}
+
+function buildCard(room,p,ri,pi,era){
+  const card=document.createElement('div'); card.className='piece';
+  card.dataset.ri=ri; card.dataset.pi=pi;
+  const frame=document.createElement('div'); frame.className='frame';
+  const img=document.createElement('img');
+  img.loading='lazy'; img.src='gallery/'+p.slug+'.svg';
+  img.alt=p.title+' by '+room.artist+', repainted by Paintlang';
+  frame.appendChild(img);
+  const badge=document.createElement('span'); badge.className='replaying';
+  badge.textContent='repainting'; frame.appendChild(badge);
+  card.appendChild(frame);
+  const tag=document.createElement('span'); tag.className='tag';
+  tag.textContent=p.title+' · '+p.year; tag.style.color=era.ink;
+  card.appendChild(tag);
+
+  card.addEventListener('click',()=>{
+    if(+card.dataset.pi!==state.cur[ri]) focusPiece(ri,pi);
+  });
+  // rest on the centre painting and it repaints itself
+  let hoverT=null;
+  card.addEventListener('pointerenter',()=>{
+    if(+card.dataset.pi!==state.cur[ri]) return;
+    hoverT=setTimeout(()=>startCardReplay(card,p),250);
+  });
+  card.addEventListener('pointerleave',()=>{ clearTimeout(hoverT); });
+  // gentle 3d tilt on the centre card
+  card.addEventListener('pointermove',e=>{
+    if(matchMedia('(max-width:880px)').matches) return;
+    if(+card.dataset.pi!==state.cur[ri]) return;
+    const r=card.getBoundingClientRect();
+    const rx=((e.clientY-r.top)/r.height-.5)*-5;
+    const ry=((e.clientX-r.left)/r.width-.5)*7;
+    card.style.transform=baseTransform(0)+' rotateX('+rx+'deg) rotateY('+ry+'deg)';
+  });
+  card.addEventListener('pointerout',()=>{
+    if(+card.dataset.pi===state.cur[ri]) card.style.transform=baseTransform(0);
+  });
+  card._piece=p;
+  return card;
+}
+
+async function startCardReplay(card,p){
+  try{
+    const doc=await getDoc(p.slug);
+    ensureCanvas(card,doc);
+    if(card._anim) return;
+    await cardReplay(card,doc,6500);
+  }catch(e){}
+}
+function ensureCanvas(card,doc){
+  if(card.querySelector('canvas')) return;
+  const img=card.querySelector('img');
+  const cv=document.createElement('canvas');
+  const scW=Math.min(900,Math.round(card.getBoundingClientRect().width*1.4))||760;
+  cv.width=scW; cv.height=Math.round(scW*CH/CW);
+  paintFull(cv.getContext('2d'),doc,scW/CW);
+  img.replaceWith(cv);
+}
+
+function baseTransform(off){
+  if(off===0) return 'translateX(0) translateZ(60px) rotateY(0deg) scale(1)';
+  const s=Math.sign(off), a=Math.abs(off);
+  return 'translateX('+(s*(46+ (a-1)*26))+'%) translateZ('+(-150-a*110)+'px)'
+    +' rotateY('+(-s*32)+'deg) scale('+(1-a*.06)+')';
+}
+function layoutStage(ri,instant){
+  const sec=document.getElementById('room-'+ri);
+  const cards=sec._cards, cur=state.cur[ri];
+  cards.forEach((card,i)=>{
+    const off=i-cur;
+    if(instant) card.style.transition='none';
+    card.style.transform=baseTransform(off);
+    card.style.zIndex=String(50-Math.abs(off));
+    card.style.opacity=Math.abs(off)>2?'0':String(1-Math.abs(off)*.12);
+    card.style.filter=off===0?'none':'saturate(.8) brightness(.92)';
+    card.classList.toggle('center',off===0);
+    if(instant) requestAnimationFrame(()=>{ card.style.transition=''; });
+    if(off!==0&&card._anim) card._anim.stop();
+  });
+  const prev=sec.querySelector('.nav.prev'), next=sec.querySelector('.nav.next');
+  if(prev){ prev.disabled=cur===0; next.disabled=cur===cards.length-1; }
+}
+function focusPiece(ri,pi){
+  const sec=document.getElementById('room-'+ri);
+  pi=Math.max(0,Math.min(sec._cards.length-1,pi));
+  if(pi===state.cur[ri]) return;
+  state.cur[ri]=pi;
+  layoutStage(ri);
+  renderPlaque(ri,true);
+}
+function renderPlaque(ri,swap){
+  const sec=document.getElementById('room-'+ri);
+  const p=sec._room.pieces[state.cur[ri]], era=sec._era;
+  const el=sec.querySelector('.plaque');
+  const fill=()=>{
+    el.innerHTML='<div class="t">'+p.title+'</div>'
+      +'<div class="y">'+p.year+'</div>'
+      +'<p class="story">'+p.story+'</p>'
+      +'<div class="interp">paintlang read this as '+p.shapes+' masses + '
+        +(p.strokes||0).toLocaleString()+' brush strokes, in named layers</div>'
+      +'<div class="acts">'
+      +'<a style="background:'+era.ink+';color:'+era.b+'" href="/?open=gallery/'+p.slug+'.paint">Open the code</a>'
+      +'<a style="border:1px solid '+era.ink+';color:'+era.ink+'" href="/?open=gallery/'+p.slug+'.paint&replay=1">Replay in the studio</a>'
+      +'</div>';
+  };
+  if(swap){ el.classList.add('swap');
+    setTimeout(()=>{ fill(); el.classList.remove('swap'); },240);
+  }else fill();
+}
+
+/* ================= timeline rail ================= */
+function buildRail(rooms){
+  const rail=document.getElementById('rail');
+  rooms.forEach((r,i)=>{
+    const d=document.createElement('button'); d.className='dot';
+    d.title=r.artist+' · '+r.pieces[0].year;
+    d.addEventListener('click',()=>{
+      document.getElementById('room-'+i).scrollIntoView({behavior:'smooth'});
+    });
+    rail.appendChild(d);
+  });
+}
+
+/* ================= the ink line ================= */
+function buildInkline(){
+  const svg=document.getElementById('inkline');
+  const H=document.body.scrollHeight;
+  svg.setAttribute('width',innerWidth); svg.setAttribute('height',H);
+  svg.setAttribute('viewBox','0 0 '+innerWidth+' '+H);
+  svg.style.height=H+'px';
+  const pts=[[innerWidth/2, innerHeight*.86]];
+  document.querySelectorAll('#rooms .room').forEach((sec,i)=>{
+    const r=sec.getBoundingClientRect(), top=r.top+scrollY;
+    const side=i%2?innerWidth*.82:innerWidth*.18;
+    pts.push([side, top+r.height*.12]);
+    pts.push([innerWidth/2, top+r.height*.55]);
+  });
+  const ex=document.getElementById('exitwall');
+  pts.push([innerWidth/2, ex.getBoundingClientRect().top+scrollY+80]);
+  let d='M'+pts[0][0]+' '+pts[0][1];
+  for(let i=1;i<pts.length;i++){
+    const a=pts[i-1], b=pts[i], my=(a[1]+b[1])/2;
+    d+=' C'+a[0]+' '+my+' '+b[0]+' '+my+' '+b[0]+' '+b[1];
+  }
+  svg.innerHTML='<path d="'+d+'"/><circle r="5"/>';
+  const path=svg.querySelector('path');
+  const len=path.getTotalLength();
+  path.style.strokeDasharray=len;
+  svg._path=path; svg._len=len;
+}
+function wireScroll(){
+  const svg=document.getElementById('inkline');
+  const rail=[...document.querySelectorAll('#rail .dot')];
+  const yearEl=document.getElementById('railYear');
+  const rooms=[...document.querySelectorAll('#rooms .room')];
+  const io=new IntersectionObserver(es=>{
+    for(const e of es) if(e.isIntersecting) e.target.classList.add('seen');
+  },{threshold:.1});
+  rooms.forEach(s=>io.observe(s));
+  io.observe(document.getElementById('exitwall'));
+  let ticking=false;
+  addEventListener('scroll',()=>{
+    if(ticking) return; ticking=true;
+    requestAnimationFrame(()=>{
+      ticking=false;
+      // ink draws itself as you walk
+      if(svg._path){
+        const p=Math.min(1,(scrollY+innerHeight*.7)/document.body.scrollHeight);
+        const drawn=svg._len*p;
+        svg._path.style.strokeDashoffset=svg._len-drawn;
+        const pt=svg._path.getPointAtLength(drawn);
+        const dot=svg.querySelector('circle');
+        dot.setAttribute('cx',pt.x); dot.setAttribute('cy',pt.y);
+      }
+      // parallax atmospheres
+      rooms.forEach(sec=>{
+        const r=sec.getBoundingClientRect();
+        if(r.bottom<0||r.top>innerHeight) return;
+        const f=(r.top+r.height/2-innerHeight/2)/innerHeight;
+        const a1=sec.querySelector('.atmo.a1'), a2=sec.querySelector('.atmo.a2');
+        if(a1) a1.style.transform='translateY('+(f*46)+'px)';
+        if(a2) a2.style.transform='translateY('+(f*-30)+'px)';
+      });
+      // timeline rail state
+      let active=-1;
+      rooms.forEach((sec,i)=>{
+        const r=sec.getBoundingClientRect();
+        if(r.top<innerHeight*.5&&r.bottom>innerHeight*.35) active=i;
+      });
+      rail.forEach((d,i)=>d.classList.toggle('lit',i===active));
+      if(active>=0){
+        yearEl.style.display='block';
+        yearEl.textContent=state.rooms[active].artist.split(' ').pop().toUpperCase()
+          +' · '+yearNum(state.rooms[active].pieces[state.cur[active]].year);
+      }else yearEl.style.display='none';
+    });
+  },{passive:true});
+  addEventListener('resize',()=>{ buildInkline(); });
+}
+
+/* ================= the guided tour ================= */
+const tour={on:false, paused:false, seq:[], i:0, waitT:null};
+const pill=document.getElementById('tourPill');
+const tourMsg=document.getElementById('tourMsg');
+const tourToggle=document.getElementById('tourToggle');
+document.getElementById('tourStart').addEventListener('click',startTour);
+document.getElementById('tourExit').addEventListener('click',stopTour);
+tourToggle.addEventListener('click',()=>{
+  if(tour.paused) resumeTour(); else pauseTour('paused');
+});
+function buildSeq(){
+  const seq=[];
+  state.rooms.forEach((room,ri)=>{
+    seq.push({kind:'room',ri});
+    room.pieces.forEach((p,pi)=>seq.push({kind:'piece',ri,pi}));
+  });
+  seq.push({kind:'end'});
+  return seq;
+}
+function startTour(){
+  tour.on=true; tour.paused=false; tour.i=0; tour.seq=buildSeq();
+  pill.classList.add('show'); tourToggle.textContent='Pause';
+  tourMsg.textContent='Guided tour';
+  step();
+}
+function stopTour(){
+  tour.on=false; clearTimeout(tour.waitT);
+  pill.classList.remove('show');
+}
+function pauseTour(label){
+  if(!tour.on||tour.paused) return;
+  tour.paused=true; clearTimeout(tour.waitT);
+  tourToggle.textContent='Resume';
+  tourMsg.textContent=label==='paused'?'Tour paused':'Paused, wander freely';
+}
+function resumeTour(){
+  if(!tour.on) return;
+  tour.paused=false; tourToggle.textContent='Pause';
+  tourMsg.textContent='Guided tour'; step();
+}
+async function step(){
+  if(!tour.on||tour.paused) return;
+  const s=tour.seq[tour.i];
+  if(!s){ stopTour(); return; }
+  if(s.kind==='room'){
+    const sec=document.getElementById('room-'+s.ri);
+    autoScrollTo(sec.querySelector('.wall-label'));
+    tourMsg.textContent='Room '+(ROMAN[s.ri]||s.ri+1)+' · '+state.rooms[s.ri].artist;
+    tour.i++; tour.waitT=setTimeout(step, 4200);
+  }else if(s.kind==='piece'){
+    const sec=document.getElementById('room-'+s.ri);
+    if(state.cur[s.ri]!==s.pi) focusPiece(s.ri,s.pi);
+    autoScrollTo(sec.querySelector('.stage'));
+    const p=state.rooms[s.ri].pieces[s.pi];
+    tourMsg.textContent=p.title+' · '+p.year;
+    const card=sec._cards[s.pi];
+    tour.i++;
+    try{
+      const doc=await getDoc(p.slug);
+      if(!tour.on||tour.paused) return;
+      ensureCanvas(card,doc);
+      await cardReplay(card,doc,6500);
+    }catch(e){}
+    if(!tour.on||tour.paused) return;
+    tour.waitT=setTimeout(step, 1600);
+  }else{
+    autoScrollTo(document.getElementById('exitwall'));
+    tourMsg.textContent='End of the walk';
+    tour.waitT=setTimeout(stopTour, 5000);
+    tour.i++;
+  }
+}
+let autoScrolling=false, autoT=null;
+function autoScrollTo(el2){
+  autoScrolling=true;
+  el2.scrollIntoView({behavior:'smooth',block:'center'});
+  clearTimeout(autoT);
+  autoT=setTimeout(()=>{ autoScrolling=false; }, 1100);
+}
+/* any real gesture hands control back to the visitor */
+for(const ev of ['wheel','touchstart','keydown','pointerdown']){
+  addEventListener(ev,e=>{
+    if(!tour.on||tour.paused) return;
+    if(e.target.closest&&e.target.closest('#tourPill')) return;
+    pauseTour('user');
+  },{passive:true});
+}
+
+/* ================= SEO: the collection as structured data ================= */
+function injectSchema(rooms){
+  const items=[];
+  rooms.forEach(room=>room.pieces.forEach(p=>{
+    items.push({'@type':'VisualArtwork', name:p.title,
+      creator:{'@type':'Person', name:room.artist},
+      dateCreated:String(p.year),
+      image:'https://paintlang.com/gallery/'+p.slug+'.svg',
+      url:'https://paintlang.com/?open=gallery/'+p.slug+'.paint'});
+  }));
+  const s=document.createElement('script');
+  s.type='application/ld+json';
+  s.textContent=JSON.stringify({'@context':'https://schema.org','@type':'ItemList',
+    name:'The Coded Gallery',
+    description:'Public-domain masterpieces traced into living Paintlang programs.',
+    itemListElement:items.map((it,i)=>({'@type':'ListItem',position:i+1,item:it}))});
+  document.head.appendChild(s);
+}
 </script>
 </body>
 </html>
