@@ -226,19 +226,41 @@ function renderAcct(){
     planBox.textContent=(e2.label||'Free')+' plan: '+e2.works+' cloud paintings, '
       +e2.versions+' versions each, '+e2.ultraDay+' ultra traces a day.';
     if(e2.plan==='pro') return;
+    // checkout opens in a new tab; the studio stays put and watches for the
+    // payment webhook, flipping to Pro the moment it lands
+    let pollT=null;
+    const startProPoll=()=>{
+      clearInterval(pollT);
+      let tries=0;
+      pollT=setInterval(async ()=>{
+        if(++tries>120){ clearInterval(pollT); return; }
+        try{
+          const me=await acctApi('/api/me');
+          if(me.ent&&me.ent.plan==='pro'){
+            clearInterval(pollT);
+            renderAcct();
+            apiStatus('Pro is active - welcome! '+me.ent.works+' cloud paintings, '
+              +me.ent.ultraDay+' ultra traces a day are yours', true);
+          }
+        }catch(e){}
+      }, 6000);
+    };
     const rails=[];
     const inBtn=()=>acctBtnEl('Upgrade to Pro (India, UPI)', async ev=>{
       const btn=ev.currentTarget; btn.disabled=true;
       try{
         const r=await acctApi('/api/billing/rzp/subscribe',{method:'POST',body:{}});
-        location.href=r.url;
+        window.open(r.url,'_blank','noopener');
+        apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
+        startProPoll(); btn.disabled=false;
       }catch(e){ apiStatus('upgrade: '+e.message, false); btn.disabled=false; }
     }, true);
     const intlBtn=primary=>{
       const a=document.createElement('a');
       a.href=b.intlLink; a.target='_blank'; a.rel='noopener';
       const btn=acctBtnEl('Upgrade to Pro'+(primary?'':' (international card)'),
-        ()=>{}, primary);
+        ()=>{ apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
+          startProPoll(); }, primary);
       a.appendChild(btn); a.style.cssText='flex:1;text-decoration:none';
       btn.style.width='100%';
       return a;
