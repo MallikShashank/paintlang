@@ -19,7 +19,7 @@ function apiStatus(msg, ok){
     statusMsgEl.textContent=msg; statusMsgEl.className=ok?'ok':'err';
   }
 }
-async function api(path, opts={}){
+async function acctApi(path, opts={}){
   const h={'content-type':'application/json'};
   if(acct.key) h.authorization='Bearer '+acct.key;
   const r=await fetch(API_BASE+path, {method:opts.method||'GET', headers:h,
@@ -140,7 +140,7 @@ function acctRow(...kids){
   for(const k of kids) d.appendChild(k);
   return d;
 }
-function mkBtn(txt, fn, primary){
+function acctBtnEl(txt, fn, primary){
   const b=document.createElement('button'); b.textContent=txt;
   if(primary) b.className='primary';
   b.addEventListener('click', fn); return b;
@@ -158,9 +158,9 @@ function renderAcct(){
     body.appendChild(note);
     const name=mkInput('display name (optional)');
     body.appendChild(acctRow(name));
-    body.appendChild(acctRow(mkBtn('Create account', async ()=>{
+    body.appendChild(acctRow(acctBtnEl('Create account', async ()=>{
       try{
-        const r=await api('/api/account/new',{method:'POST',body:{handle:name.value.trim()}});
+        const r=await acctApi('/api/account/new',{method:'POST',body:{handle:name.value.trim()}});
         setAcct(r.key, r.uid, r.handle);
         apiStatus('account created - copy your account key from the menu and keep it safe', true);
         showKey(true);
@@ -168,12 +168,12 @@ function renderAcct(){
     }, true)));
     const keyIn=mkInput('paste your account key (plk_...)');
     body.appendChild(acctRow(keyIn));
-    body.appendChild(acctRow(mkBtn('Sign in with key', async ()=>{
+    body.appendChild(acctRow(acctBtnEl('Sign in with key', async ()=>{
       const k=keyIn.value.trim();
       if(!/^plk_[0-9a-f]{48}$/i.test(k)){ apiStatus('that does not look like an account key', false); return; }
       try{
         acct.key=k;
-        const me=await api('/api/me');
+        const me=await acctApi('/api/me');
         setAcct(k, me.uid, me.handle);
         apiStatus('signed in', true); refreshWorks();
       }catch(e){ acct.key=''; apiStatus('sign in: '+e.message, false); }
@@ -190,12 +190,12 @@ function renderAcct(){
     keyBox.hidden=!keyShown; keyBox.textContent=keyShown?acct.key:'';
   };
   body.appendChild(acctRow(
-    mkBtn('Show key', ()=>showKey()),
-    mkBtn('Copy key', async ()=>{
+    acctBtnEl('Show key', ()=>showKey()),
+    acctBtnEl('Copy key', async ()=>{
       try{ await navigator.clipboard.writeText(acct.key); apiStatus('account key copied - it is the only way back into this account', true); }
       catch(e){ showKey(true); apiStatus('copy failed - key shown below, copy it by hand', false); }
     }),
-    mkBtn('Sign out', ()=>{
+    acctBtnEl('Sign out', ()=>{
       if(!confirm('Sign out? Make sure your account key is copied somewhere - it is the only way back in.')) return;
       setAcct('','','');
     })
@@ -203,13 +203,13 @@ function renderAcct(){
   body.appendChild(keyBox);
   const label=mkInput('version label (optional)');
   body.appendChild(acctRow(label));
-  body.appendChild(acctRow(mkBtn('☁ Save this painting to cloud', async ()=>{
+  body.appendChild(acctRow(acctBtnEl('☁ Save this painting to cloud', async ()=>{
     const d=docs[activeDoc]; if(!d) return;
     d.code=ta.value;
     try{
       const bodyq={name:d.name, code:d.code, label:label.value.trim()};
       if(d.cloudId) bodyq.id=d.cloudId;
-      const r=await api('/api/work/save',{method:'POST',body:bodyq});
+      const r=await acctApi('/api/work/save',{method:'POST',body:bodyq});
       d.cloudId=r.id; label.value='';
       if(typeof persistDocs==='function') persistDocs();
       apiStatus('saved to cloud - "'+d.name+'" version '+r.ver, true);
@@ -223,7 +223,7 @@ function renderAcct(){
 async function refreshWorks(){
   if(!acct.key||!worksBox) return;
   try{
-    const me=await api('/api/me');
+    const me=await acctApi('/api/me');
     if(me.handle!==acct.handle){ acct.handle=me.handle;
       try{ localStorage.setItem('paintlang-handle',me.handle||''); }catch(e){}
       el('acctBtnLabel').textContent=me.handle||'Account';
@@ -244,12 +244,12 @@ function workRow(w){
   meta.textContent='v'+w.ver+' · '+timeAgo(w.updated);
   const acts=document.createElement('div'); acts.className='wk-acts';
   const vlist=document.createElement('div'); vlist.className='vlist'; vlist.hidden=true;
-  acts.appendChild(mkBtn('Open', ()=>openWork(w.id)));
-  acts.appendChild(mkBtn('⏱ Versions', async ()=>{
+  acts.appendChild(acctBtnEl('Open', ()=>openWork(w.id)));
+  acts.appendChild(acctBtnEl('⏱ Versions', async ()=>{
     if(!vlist.hidden){ vlist.hidden=true; return; }
     vlist.hidden=false; vlist.textContent='loading...';
     try{
-      const r=await api('/api/work/get?id='+w.id+'&meta=1');
+      const r=await acctApi('/api/work/get?id='+w.id+'&meta=1');
       vlist.textContent='';
       for(const v of r.versions){
         const vr=document.createElement('div'); vr.className='vrow';
@@ -257,14 +257,14 @@ function workRow(w){
         t.textContent='v'+v.v+(v.label?' · '+v.label:'')+' · '+timeAgo(v.created)+
           ' · '+(v.bytes>2048?Math.round(v.bytes/1024)+'KB':v.bytes+'B');
         vr.appendChild(t);
-        vr.appendChild(mkBtn('Open', ()=>openWork(w.id, v.v)));
+        vr.appendChild(acctBtnEl('Open', ()=>openWork(w.id, v.v)));
         vlist.appendChild(vr);
       }
     }catch(e){ vlist.textContent='could not load versions: '+e.message; }
   }));
-  acts.appendChild(mkBtn('🗑', async ()=>{
+  acts.appendChild(acctBtnEl('🗑', async ()=>{
     if(!confirm('Delete "'+w.name+'" and all its versions from the cloud? Open tabs are not affected.')) return;
-    try{ await api('/api/work/delete',{method:'POST',body:{id:w.id}});
+    try{ await acctApi('/api/work/delete',{method:'POST',body:{id:w.id}});
       apiStatus('deleted from cloud', true); refreshWorks();
     }catch(e){ apiStatus('delete: '+e.message, false); }
   }));
@@ -273,7 +273,7 @@ function workRow(w){
 }
 async function openWork(id, v){
   try{
-    const r=await api('/api/work/get?id='+id+(v?'&v='+v:''));
+    const r=await acctApi('/api/work/get?id='+id+(v?'&v='+v:''));
     newDoc(r.name+(v&&v!==r.latest?' (v'+v+')':''), r.code);
     if(!v||v===r.latest){ docs[activeDoc].cloudId=id;
       if(typeof persistDocs==='function') persistDocs(); }
@@ -295,7 +295,7 @@ setAcct(acct.key, acct.uid, acct.handle);
     }
     const name=mkInput('component name'), descr=mkInput('what is it / how to use it');
     contrib.appendChild(name); contrib.appendChild(descr);
-    contrib.appendChild(mkBtn('Contribute current tab', async ()=>{
+    contrib.appendChild(acctBtnEl('Contribute current tab', async ()=>{
       const code=ta.value;
       if(code.length>80*1024){
         apiStatus('components are capped at 80KB - copy one layer into a fresh tab (Layers pane 📋) and contribute that', false);
@@ -303,7 +303,7 @@ setAcct(acct.key, acct.uid, acct.handle);
       }
       if(!name.value.trim()){ apiStatus('give the component a name first', false); return; }
       try{
-        await api('/api/library/contribute',{method:'POST',
+        await acctApi('/api/library/contribute',{method:'POST',
           body:{name:name.value.trim(), descr:descr.value.trim(), code}});
         apiStatus('contributed - thank you! It is live in the library for everyone', true);
         loaded=false; loadList();
@@ -314,7 +314,7 @@ setAcct(acct.key, acct.uid, acct.handle);
     if(loaded) return; loaded=true;
     list.innerHTML='<p class="libintro">loading...</p>';
     try{
-      const r=await api('/api/library/list');
+      const r=await acctApi('/api/library/list');
       list.innerHTML='';
       for(const it of r.items){
         const card=document.createElement('div'); card.className='lib-item';
@@ -325,9 +325,9 @@ setAcct(acct.key, acct.uid, acct.handle);
           (it.size>2048?Math.round(it.size/1024)+'KB':it.size+'B')+
           (it.uses?' · used '+it.uses+'×':'');
         card.appendChild(b); card.appendChild(d); card.appendChild(m);
-        card.appendChild(mkBtn('+ Insert', async ()=>{
+        card.appendChild(acctBtnEl('+ Insert', async ()=>{
           try{
-            const full=await api('/api/library/get?id='+encodeURIComponent(it.id));
+            const full=await acctApi('/api/library/get?id='+encodeURIComponent(it.id));
             appendCode('\n'+full.code.trim());
             modal.hidden=true;
             apiStatus('"'+it.name+'" added to your painting - scroll the code to the bottom to edit it', true);
