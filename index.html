@@ -54,9 +54,10 @@
         <div class="drow"><select id="examples" title="Load an example painting"></select></div>
       </div>
       <div class="dsec">
-        <div class="dlabel">Explore</div>
+        <div class="dlabel">Galleries</div>
         <div class="drow"><a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><button>🖼 The Coded Gallery</button></a></div>
-        <div class="drow"><button id="libraryBtn" title="Ready-made scenery and motifs - every component is a code snippet you add to your painting">🧩 Component library</button></div>
+        <div class="drow"><button id="myGalleryBtn" title="Your private cloud gallery - every painting you saved, with its version history">🗂 My gallery <span class="dhint">private</span></button></div>
+        <div class="drow"><button id="libraryBtn" title="Shared components anyone can drop into a painting - official Paintlang ones plus community contributions">🌍 Global library <span class="dhint">public</span></button></div>
       </div>
       <div class="dsec">
         <div class="dlabel">This painting</div>
@@ -189,12 +190,22 @@
   <div id="libModal" hidden>
     <div id="libCard">
       <button id="libClose">Close</button>
-      <h2>Component library</h2>
-      <p class="libintro">Every component is a snippet of Paintlang code. <b>Insert</b> appends it
-        to the painting you have open - then edit its numbers and colours like anything else.
-        Sign in to contribute your own: name a layer of your work and share it with everyone.</p>
+      <h2>Global library</h2>
+      <p class="libintro">Every component is a snippet of Paintlang code, shared by everyone.
+        <b>+ Insert</b> appends one to the painting you have open - then edit its numbers and
+        colours like anything else. To contribute, pick one layer of your own painting below.</p>
       <div id="libContrib"></div>
       <div id="libList"><p class="libintro">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="myModal" hidden>
+    <div id="myCard">
+      <button id="myClose">Close</button>
+      <h2>My gallery</h2>
+      <p class="libintro">Your private cloud gallery. Every save adds a version, so you can step
+        any painting back to an earlier stage. Only you can see these.</p>
+      <div id="myList"><p class="libintro">loading...</p></div>
     </div>
   </div>
 
