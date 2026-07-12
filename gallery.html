@@ -58,9 +58,6 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
 .ghost:hover{border-color:#d9cdb4}
 #vestibule .hint{margin-top:64px;color:#6b5f4b;font-size:12px;
   font-family:"Segoe UI",sans-serif;letter-spacing:.12em}
-#vestibule .frames{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-#vestibule .frames i{position:absolute;border:1px solid rgba(226,192,141,.14);
-  border-radius:2px;box-shadow:0 0 60px rgba(0,0,0,.5) inset}
 
 /* ============ rooms ============ */
 .room{position:relative;padding:16vh 0 10vh;overflow:hidden;
@@ -177,7 +174,6 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
 <div id="railYear"></div>
 
 <section id="vestibule">
-  <div class="frames" aria-hidden="true"></div>
   <div class="kicker">Paintlang presents</div>
   <h1 id="vtitle">The Coded Gallery</h1>
   <p class="sub">A museum where every painting is a living program. Walk the rooms in
@@ -399,7 +395,6 @@ fetch('gallery/pieces.json').then(r=>r.json()).then(data=>{
     pieces:[...r.pieces].sort((a,b)=>yearNum(a.year)-yearNum(b.year))}))
     .sort((a,b)=>yearNum(a.pieces[0].year)-yearNum(b.pieces[0].year));
   state.rooms=rooms;
-  buildVestibuleFrames();
   const host=document.getElementById('rooms');
   rooms.forEach((room,ri)=>host.appendChild(buildRoom(room,ri)));
   buildRail(rooms);
@@ -407,17 +402,6 @@ fetch('gallery/pieces.json').then(r=>r.json()).then(data=>{
   injectSchema(rooms);
   if(tour.pending){ tour.pending=false; startTour(); }
 });
-
-function buildVestibuleFrames(){
-  const holder=document.querySelector('#vestibule .frames');
-  for(let i=0;i<7;i++){
-    const f=document.createElement('i');
-    const w=60+Math.random()*140, h=w*(.6+Math.random()*.5);
-    f.style.cssText='width:'+w+'px;height:'+h+'px;left:'+(Math.random()*94)+'%;top:'
-      +(Math.random()*90)+'%;transform:rotate('+(Math.random()*8-4)+'deg)';
-    holder.appendChild(f);
-  }
-}
 
 function buildRoom(room,ri){
   const era=eraOf(room.artist);
