@@ -769,6 +769,25 @@ function layerBlocksOf(src){
 /* hydrate static markup icons: <span data-ico="name"> -> inline svg */
 document.querySelectorAll('[data-ico]').forEach(n=>{ n.innerHTML=plIco(n.dataset.ico); });
 
+/* ------------------------------ theme ------------------------------
+   Dark is the studio at night; light is the same studio in daylight.
+   The head script applies the choice before first paint. */
+(function(){
+  const btn=el('themeBtn');
+  const paint=()=>{
+    const t=document.documentElement.dataset.theme||'dark';
+    btn.innerHTML=plIco(t==='dark'?'sun':'moon');
+    btn.title=t==='dark'?'Switch to the light studio':'Switch to the dark studio';
+  };
+  paint();
+  btn.addEventListener('click',()=>{
+    const next=(document.documentElement.dataset.theme||'dark')==='dark'?'light':'dark';
+    document.documentElement.dataset.theme=next;
+    try{ localStorage.setItem('paintlang-theme',next); }catch(e){}
+    paint();
+  });
+})();
+
 /* already signed in on this device: fetch the account's studio if another
    device has moved it forward since we were last here */
 if(acct.key) setTimeout(()=>wsPull(false), 1500);

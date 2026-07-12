@@ -23,6 +23,13 @@
  "description":"A live-coding painting studio where the code and the canvas are the same artwork, edited from either side. Paint by hand, write scenery as code, or import any image and get an editable painting program.",
  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
+<script>
+/* theme before first paint - no flash */
+try{
+  document.documentElement.dataset.theme=localStorage.getItem('paintlang-theme')
+    ||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+}catch(e){ document.documentElement.dataset.theme='dark'; }
+</script>
 <link rel="stylesheet" href="css/studio.css">
 </head>
 <body>
@@ -31,6 +38,7 @@
     <button id="menuBtn" title="Menu - import, examples, gallery, account, sharing"><span data-ico="menu"></span></button>
     <div class="logo"><b>Paintlang</b><span class="sub">live-coded painting studio</span></div>
     <div class="hgap"></div>
+    <button id="themeBtn" title="Switch between the dark and light studio"></button>
     <button id="acctBtn" title="Your account - cloud saves and version history"><span data-ico="person"></span> <span id="acctBtnLabel">Sign in</span></button>
     <button id="exportBtn" title="Download the canvas as PNG">Export PNG</button>
   </header>

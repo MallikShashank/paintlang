@@ -69,6 +69,10 @@ const PLICON=(function(){
   I.film=S+'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round">'
     +'<rect x="1.8" y="4" width="9.2" height="8" rx="1.2"/>'
     +'<path d="M11 7.6l3.2-2.4v5.6L11 8.4" fill="#75beff" stroke="#75beff"/></svg>';
+  I.sun=S+'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">'
+    +'<circle cx="8" cy="8" r="3.1"/><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"/></svg>';
+  I.moon=S+'fill="currentColor" stroke="none">'
+    +'<path d="M13.4 9.8A5.8 5.8 0 016.2 2.6a5.8 5.8 0 107.2 7.2z"/></svg>';
   return I;
 })();
 function plIco(name){ return PLICON[name]||''; }

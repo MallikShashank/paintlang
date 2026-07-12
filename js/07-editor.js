@@ -2,13 +2,7 @@
 /* ============================== editor =============================== */
 const tokenRe = /(\/\/[^\n]*)|('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|\b(const|let|var|function|return|if|else|for|while|of|in|new|true|false|null|undefined|Math)\b|([A-Za-z_$][\w$]*)/g;
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
-function renderHL(){
-  const src = ta.value;
-  const lines = src.split('\n').length;
-  let g=''; for(let i=1;i<=lines;i++) g += i + '\n';
-  gutterInner.textContent = g;
-  // very large documents (big imports): plain text keeps typing responsive
-  if(src.length>120000){ hl.textContent = src + '\n'; return; }
+function buildHL(src){
   let html='', last=0, m;
   tokenRe.lastIndex = 0;
   while((m = tokenRe.exec(src))){
@@ -20,8 +14,29 @@ function renderHL(){
     else html += apiSet.has(m[5]) ? '<span class="tk-a">'+m[5]+'</span>' : esc(m[5]);
     last = tokenRe.lastIndex;
   }
-  html += esc(src.slice(last));
-  hl.innerHTML = html + '\n';
+  return html + esc(src.slice(last));
+}
+let hlIdleT=null;
+function renderHL(){
+  const src = ta.value;
+  const lines = src.split('\n').length;
+  let g=''; for(let i=1;i<=lines;i++) g += i + '\n';
+  gutterInner.textContent = g;
+  // very large documents (big imports): plain text keeps every keystroke
+  // instant - the colours return quietly once the typing pauses
+  if(src.length>120000){
+    hl.textContent = src + '\n';
+    clearTimeout(hlIdleT);
+    if(src.length<=2500000)
+      hlIdleT=setTimeout(()=>{
+        if(ta.value!==src) return;          // the document moved on
+        hl.innerHTML = buildHL(src) + '\n';
+        hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
+      }, 500);
+    return;
+  }
+  clearTimeout(hlIdleT);
+  hl.innerHTML = buildHL(src) + '\n';
 }
 ta.addEventListener('scroll', ()=>{
   hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
