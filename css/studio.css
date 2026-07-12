@@ -236,6 +236,15 @@
   .dfoot a{color:var(--muted);text-decoration:none}
   .dfoot a:hover{color:var(--text)}
 
+  /* ---- upgrade button ---- */
+  .pro-btn{width:100%;padding:10px 14px;font-size:13px;font-weight:600;
+    color:#fff;border:none;border-radius:4px;letter-spacing:.02em;
+    background:linear-gradient(135deg,#0e639c 0%,#1a7fc4 55%,#3b9ae0 100%);
+    box-shadow:0 4px 14px rgba(14,99,156,.35);transition:filter .15s,transform .15s}
+  .pro-btn:hover{filter:brightness(1.12);transform:translateY(-1px);
+    background:linear-gradient(135deg,#0e639c 0%,#1a7fc4 55%,#3b9ae0 100%)}
+  .pro-btn:disabled{opacity:.6;transform:none}
+
   /* ---- account section ---- */
   #acctBody{display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--muted)}
   #acctBody input{background:var(--bg);border:1px solid var(--line2);border-radius:3px;

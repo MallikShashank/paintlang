@@ -245,37 +245,33 @@ function renderAcct(){
         }catch(e){}
       }, 6000);
     };
-    const rails=[];
-    const inBtn=()=>acctBtnEl('Upgrade to Pro (India, UPI)', async ev=>{
-      const btn=ev.currentTarget; btn.disabled=true;
-      try{
-        const r=await acctApi('/api/billing/rzp/subscribe',{method:'POST',body:{}});
-        window.open(r.url,'_blank','noopener');
-        apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
-        startProPoll(); btn.disabled=false;
-      }catch(e){ apiStatus('upgrade: '+e.message, false); btn.disabled=false; }
-    }, true);
-    const intlBtn=primary=>{
-      const a=document.createElement('a');
-      a.href=b.intlLink; a.target='_blank'; a.rel='noopener';
-      const btn=acctBtnEl('Upgrade to Pro'+(primary?'':' (international card)'),
-        ()=>{ apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
-          startProPoll(); }, primary);
-      a.appendChild(btn); a.style.cssText='flex:1;text-decoration:none';
-      btn.style.width='100%';
-      return a;
-    };
-    if(b.region==='in'&&b.inAvailable){
-      rails.push(inBtn());
-      if(b.intlLink) rails.push(intlBtn(false));
+    // one button, one price: the visitor's country picks the rail
+    const useIndia=b.region==='in'?b.inAvailable:!(b.intlLink);
+    let btn=null;
+    if(useIndia&&b.inAvailable){
+      btn=acctBtnEl('Upgrade to Pro', async ev=>{
+        const el2=ev.currentTarget; el2.disabled=true;
+        try{
+          const r=await acctApi('/api/billing/rzp/subscribe',{method:'POST',body:{}});
+          window.open(r.url,'_blank','noopener');
+          apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
+          startProPoll(); el2.disabled=false;
+        }catch(e){ apiStatus('upgrade: '+e.message, false); el2.disabled=false; }
+      });
+      btn.title='Paintlang Pro - Rs 399 per month via UPI. Cancel anytime.';
     }else if(b.intlLink){
-      rails.push(intlBtn(true));
-      if(b.inAvailable) rails.push(inBtn());
-    }else if(b.inAvailable) rails.push(inBtn());
-    if(rails.length){
+      btn=acctBtnEl('Upgrade to Pro', ()=>{
+        window.open(b.intlLink,'_blank','noopener');
+        apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
+        startProPoll();
+      });
+      btn.title='Paintlang Pro - $7.99 per month. Cancel anytime.';
+    }
+    if(btn){
+      btn.className='pro-btn';
       const row=document.createElement('div'); row.className='drow upgrade-row';
       row.style.marginTop='7px';
-      for(const r of rails) row.appendChild(r);
+      row.appendChild(btn);
       body.appendChild(row);
     }
   }).catch(()=>{ planBox.remove(); });
