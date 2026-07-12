@@ -438,7 +438,9 @@ function layerBlocksOf(src){
         m.textContent='by '+(it.author||'anonymous')+
           (it.uses?' · used '+it.uses+'×':'');
         card.appendChild(b); card.appendChild(d); card.appendChild(m);
-        card.appendChild(acctBtnEl('+ Insert', async ()=>{
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;gap:6px;align-items:center';
+        row.appendChild(acctBtnEl('+ Insert', async ()=>{
           try{
             const full=await acctApi('/api/library/get?id='+encodeURIComponent(it.id));
             appendCode('\n'+full.code.trim());
@@ -446,6 +448,19 @@ function layerBlocksOf(src){
             apiStatus('"'+it.name+'" added to your painting - scroll the code to the bottom to edit it', true);
           }catch(e){ apiStatus('insert: '+e.message, false); }
         }));
+        if(it.mine){
+          const rm=acctBtnEl('🗑 Remove', async ()=>{
+            if(!confirm('Remove your component "'+it.name+'" from the global library? People who already inserted it keep their copy.')) return;
+            try{
+              await acctApi('/api/library/remove',{method:'POST',body:{id:it.id}});
+              apiStatus('"'+it.name+'" removed from the global library', true);
+              loaded=false; loadList();
+            }catch(e){ apiStatus('remove: '+e.message, false); }
+          });
+          rm.style.cssText='background:none;border-color:var(--line2);color:var(--muted)';
+          row.appendChild(rm);
+        }
+        card.appendChild(row);
         list.appendChild(card);
       }
       if(!r.items.length) list.innerHTML='<p class="libintro">nothing here yet</p>';
