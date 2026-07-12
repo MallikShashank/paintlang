@@ -280,8 +280,9 @@ function renderAcct(){
 
   const label=mkInput('version label (optional, e.g. "before sky rework")');
   body.appendChild(acctRow(label));
-  body.appendChild(acctRow(acctBtnEl(plIco('cloud')+' Save this painting', async ()=>{
+  body.appendChild(acctRow(acctBtnEl(plIco('cloud')+' Save this painting', async ev=>{
     const d=docs[activeDoc]; if(!d) return;
+    const sb=ev.currentTarget;
     d.code=ta.value;
     try{
       const bodyq={name:d.name, code:d.code, label:label.value.trim()};
@@ -290,6 +291,9 @@ function renderAcct(){
       d.cloudId=r.id; label.value='';
       if(typeof persistDocs==='function') persistDocs();
       apiStatus('saved - "'+d.name+'" is now version '+r.ver+' in your gallery', true);
+      const old=sb.innerHTML;
+      sb.innerHTML=plIco('check')+' Saved'; sb.classList.add('saved-ok');
+      setTimeout(()=>{ sb.innerHTML=old; sb.classList.remove('saved-ok'); }, 2000);
     }catch(e){ apiStatus('save: '+e.message, false); }
   }, true)));
   body.appendChild(acctRow(acctBtnEl(plIco('folder')+' Open my gallery', ()=>{
@@ -556,6 +560,71 @@ function layerBlocksOf(src){
       if(!modal.hidden) modal.hidden=true;
       if(!el('myModal').hidden) el('myModal').hidden=true;
     }
+  });
+})();
+
+/* -------------------- replay video export (Pro) --------------------
+   Records the canvas through a replay run with MediaRecorder - fully
+   client-side, downloads a WebM. Speed and medium are per-recording. */
+(function(){
+  const modal=el('repModal');
+  let recording=false;
+  el('replayVidBtn').addEventListener('click', async ()=>{
+    if(!acct.key){
+      apiStatus('replay videos are a Pro feature - sign in from the Account section first', false);
+      return;
+    }
+    try{
+      const me=await acctApi('/api/me');
+      if(!me.ent||me.ent.plan!=='pro'){
+        apiStatus('downloading replay videos is a Pro feature - upgrade from the Account section', false);
+        return;
+      }
+    }catch(e){ apiStatus('could not check your plan: '+e.message, false); return; }
+    closeDrawer(); modal.hidden=false;
+  });
+  el('repClose').addEventListener('click', ()=>{ modal.hidden=true; });
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.hidden=true; });
+  el('repGo').addEventListener('click', async ()=>{
+    if(recording) return;
+    if(typeof ops==='undefined'||!ops.length){
+      apiStatus('nothing to record yet - paint something first', false); return;
+    }
+    if(typeof MediaRecorder==='undefined'){
+      apiStatus('this browser cannot record video (MediaRecorder missing)', false); return;
+    }
+    const speed=+el('repSpeed').value||1;
+    const medium=el('repMedium').value;
+    modal.hidden=true;
+    recording=true;
+    apiStatus('recording the replay... keep this tab visible', true);
+    try{
+      const stream=paintCanvas.captureStream(30);
+      const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']
+        .find(t=>MediaRecorder.isTypeSupported(t))||'';
+      const rec=new MediaRecorder(stream, mime
+        ?{mimeType:mime, videoBitsPerSecond:8_000_000}
+        :{videoBitsPerSecond:8_000_000});
+      const chunks=[];
+      rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+      const stopped=new Promise(res=>{ rec.onstop=res; });
+      rec.start(250);
+      const finished=await new Promise(res=>{
+        startReplay({speed, media:medium==='original'?null:medium, onEnd:res});
+      });
+      rec.stop(); await stopped;
+      if(!finished){ apiStatus('recording cancelled', false); return; }
+      const blob=new Blob(chunks,{type:rec.mimeType||'video/webm'});
+      const name=((typeof docs!=='undefined'&&docs[activeDoc])?docs[activeDoc].name:'painting')
+        .replace(/[^a-z0-9\-_]+/gi,'-');
+      const a=document.createElement('a');
+      a.download=name+'-replay.webm';
+      a.href=URL.createObjectURL(blob);
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
+      apiStatus('replay video downloaded ('+(blob.size/1048576).toFixed(1)+' MB, WebM)', true);
+    }catch(e){ apiStatus('recording failed: '+e.message, false); }
+    finally{ recording=false; }
   });
 })();
 

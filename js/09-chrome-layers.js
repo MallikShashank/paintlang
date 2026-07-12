@@ -74,21 +74,29 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   statusMsgEl.textContent='share '+kind+' copied - anyone who opens it gets this painting, code and all';
   statusMsgEl.className='ok';
 });
-/* ---- painting replay: reveal the ops in paint order, strokes gradually ---- */
-let replayActive=false;
+/* ---- painting replay: reveal the ops in paint order, strokes gradually ----
+   startReplay(opts) accepts {speed, media, onEnd}: speed scales the pace
+   (0.5 = half speed), media re-renders every stroke bundle in another medium
+   for the run, onEnd(finished) fires once - true after a full run, false on
+   cancel. The video exporter in 12-account.js records the canvas through it. */
+let replayActive=false, replayOpts=null;
 function cancelReplay(){
   if(!replayActive) return;
   replayActive=false;
+  const cb=replayOpts&&replayOpts.onEnd; replayOpts=null;
   const b=document.getElementById('replayBtn');
   if(b) b.innerHTML=plIco('play')+' Replay';
   if(statusMsgEl.textContent.indexOf('replaying')===0){
     statusMsgEl.textContent='ready'; statusMsgEl.className='ok';
   }
+  if(cb) cb(false);
 }
-function startReplay(){
+function startReplay(opts){
   if(replayActive) return;
   if(!ops.length){ statusMsgEl.textContent='nothing to replay yet'; return; }
-  replayActive=true;
+  replayActive=true; replayOpts=opts||null;
+  const speed=(opts&&opts.speed)||1;
+  const media=(opts&&opts.media)||null;
   document.getElementById('replayBtn').innerHTML=plIco('stop')+' Stop';
   statusMsgEl.textContent='replaying the painting...'; statusMsgEl.className='ok';
   // build the reveal plan: forms appear whole, stroke bundles in slices
@@ -101,7 +109,8 @@ function startReplay(){
       for(let i=0;i<n;i+=per) plan.push({op, s0:i, s1:Math.min(n,i+per)});
     } else plan.push({op});
   }
-  const totalFrames=Math.max(480,Math.min(1600,Math.round(plan.length*2.2)));
+  const totalFrames=Math.max(120,
+    Math.round(Math.max(480,Math.min(1600,plan.length*2.2))/speed));
   const perFrame=plan.length/totalFrames;
   let idx=0, acc=0;
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -117,14 +126,17 @@ function startReplay(){
       ctx.save(); applyOpTransform(ctx,it.op);
       try{
         if(it.op._strokes&&it.s0!==undefined)
-          drawStrokesRange(ctx,it.op._strokes,it.s0,it.s1);
+          drawStrokesRange(ctx, media?Object.assign({},it.op._strokes,{media}):it.op._strokes,
+            it.s0, it.s1);
         else it.op.draw(ctx);
       }catch(e){}
       ctx.restore();
     }
     if(idx>=plan.length){
+      const cb=replayOpts&&replayOpts.onEnd; replayOpts=null;
       cancelReplay();
-      renderOps();   // final proper render (reflections and all)
+      if(cb) cb(true);           // recorder stops on the finished artwork
+      renderOps();               // final proper render (reflections and all)
       statusMsgEl.textContent='replay finished'; statusMsgEl.className='ok';
       return;
     }

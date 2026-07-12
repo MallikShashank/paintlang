@@ -65,6 +65,9 @@
           <button id="replayBtn" title="Watch this painting paint itself, stroke by stroke"><span data-ico="play"></span> Replay</button>
           <button id="shareBtn" title="Copy a link that contains this painting - code and all, no account needed"><span data-ico="link"></span> Share link</button>
         </div>
+        <div class="drow">
+          <button id="replayVidBtn" title="Record the painting painting itself as a video file - pick the speed and the medium. A Pro feature."><span data-ico="film"></span> Download replay video <span class="dhint">pro</span></button>
+        </div>
       </div>
       <div class="dsec" id="acctSec">
         <div class="dlabel">Account</div>
@@ -197,6 +200,31 @@
         colours like anything else. To contribute, pick one layer of your own painting below.</p>
       <div id="libContrib"></div>
       <div id="libList"><p class="libintro">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="repModal" hidden>
+    <div id="repCard">
+      <button id="repClose">Close</button>
+      <h2>Download replay video</h2>
+      <p class="libintro">Records this painting painting itself, straight from your canvas,
+        and downloads it as a video (WebM). Keep this tab visible while it records.</p>
+      <div class="drow"><label class="replbl">Speed</label>
+        <select id="repSpeed">
+          <option value="0.5">Slow and contemplative</option>
+          <option value="1" selected>Normal</option>
+          <option value="2">Fast</option>
+          <option value="4">Timelapse</option>
+        </select></div>
+      <div class="drow"><label class="replbl">Medium</label>
+        <select id="repMedium">
+          <option value="original" selected>As painted</option>
+          <option value="oil">Oil</option>
+          <option value="watercolor">Watercolour</option>
+          <option value="chalk">Chalk</option>
+          <option value="flat">Flat colour</option>
+        </select></div>
+      <div class="drow"><button id="repGo" class="primary">Record and download</button></div>
     </div>
   </div>
 
