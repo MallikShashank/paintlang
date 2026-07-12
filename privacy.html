@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy | Paintlang</title>
+<meta name="robots" content="noindex">
+<style>
+body{margin:0;background:#1e1e1e;color:#ccc;font-family:"Segoe UI",sans-serif;line-height:1.7}
+main{max-width:680px;margin:0 auto;padding:48px 24px 80px;font-size:14.5px}
+h1{font-size:26px;color:#fff}h2{font-size:16px;color:#75beff;margin-top:30px}
+a{color:#75beff}.muted{color:#8a8a8a;font-size:12.5px}
+</style>
+</head>
+<body><main>
+<h1>Paintlang Privacy</h1>
+<p class="muted">Draft, last updated 2026-07-12. Questions: selfworkbox1@gmail.com</p>
+
+<p><b>The short version:</b> the studio runs in your browser and stores your open
+paintings in your browser. We only hold what you explicitly send us: traced images
+(processed, not kept), cloud saves, and library contributions. We do not sell data
+and we do not run third-party ad or analytics trackers.</p>
+
+<h2>What stays in your browser</h2>
+<p>Open tabs, undo history, tool settings, and your account key live in your
+browser's localStorage. Clearing site data removes them.</p>
+
+<h2>What reaches our servers</h2>
+<p><b>Tracing:</b> when you import an image, its pixels are sent to our tracing
+service, converted to code, and returned. Images are processed in memory and not
+stored. <b>Cloud saves:</b> saved paintings and their version history are stored so
+you can retrieve them; they are private to your account. <b>Library
+contributions:</b> stored and public by design, credited to your artist name.
+<b>Rate limiting:</b> request IPs are used transiently for abuse prevention.</p>
+
+<h2>Accounts</h2>
+<p>Key accounts store only a hash of your key plus your chosen name. Signing in with
+GitHub or Google gives us your name and provider user id (and email address from
+Google's basic profile); we use them only to identify your account. Paid plans are
+processed by Stripe, which handles your payment details under its own policy; we
+store only your plan status and Stripe customer id.</p>
+
+<h2>Infrastructure</h2>
+<p>The site is served by GitHub Pages; the API runs on Cloudflare Workers with data
+in Cloudflare D1 and KV. Those providers process traffic under their own terms.</p>
+
+<h2>Your choices</h2>
+<p>Delete any cloud painting or library contribution from the app at any time. To
+delete an entire account and its data, email us from the account in question.</p>
+
+<p class="muted">This is a working draft written for an independent product, not
+legal advice. It should be reviewed by a lawyer before relying on it commercially.</p>
+<p><a href="/">Back to the studio</a> · <a href="/terms.html">Terms</a></p>
+</main></body>
+</html>

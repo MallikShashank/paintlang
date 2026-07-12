@@ -86,8 +86,11 @@ async function traceToCode(img,fname){
   traceStatus('tracing '+fname+' ('+detail+' detail)...');
   let resp;
   try{
-    resp=await fetch(TRACE_API,{method:'POST',
-      headers:{'content-type':'application/json'}, body:payload});
+    // signed-in users get account-based ultra quotas instead of IP limits
+    const th={'content-type':'application/json'};
+    const k=localStorage.getItem('paintlang-key');
+    if(k) th.authorization='Bearer '+k;
+    resp=await fetch(TRACE_API,{method:'POST', headers:th, body:payload});
   }catch(e){
     throw new Error('trace service unreachable at '+TRACE_API
       +' - deploy it (see server/README.md) or set localStorage paintlang-trace-api');

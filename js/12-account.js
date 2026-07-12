@@ -212,6 +212,22 @@ function renderAcct(){
     })));
   }
 
+  // plan + upgrade (appears only when billing is configured server-side)
+  const planBox=document.createElement('div'); planBox.className='acct-note';
+  body.appendChild(planBox);
+  acctApi('/api/billing/info').then(b=>{
+    const e2=b.ent||{};
+    planBox.textContent=(e2.label||'Free')+' plan: '+e2.works+' cloud paintings, '
+      +e2.versions+' versions each, '+e2.ultraDay+' ultra traces a day.';
+    if(b.link&&e2.plan!=='pro'){
+      const up=document.createElement('a');
+      up.href=b.link; up.target='_blank'; up.rel='noopener';
+      up.textContent='Upgrade to Pro';
+      up.style.cssText='color:#75beff;margin-left:6px';
+      planBox.appendChild(up);
+    }
+  }).catch(()=>{ planBox.remove(); });
+
   const label=mkInput('version label (optional, e.g. "before sky rework")');
   body.appendChild(acctRow(label));
   body.appendChild(acctRow(acctBtnEl(plIco('cloud')+' Save this painting', async ()=>{

@@ -42,21 +42,37 @@ async function hashToCode(h){
 }
 document.getElementById('shareBtn').addEventListener('click', async ()=>{
   const h=await codeToHash(ta.value);
-  const url=location.origin+location.pathname+'#'+h;
-  let copied=false;
-  try{ await navigator.clipboard.writeText(url); copied=true; }catch(e){}
-  if(!copied){
-    const t=document.createElement('textarea');
-    t.value=url; document.body.appendChild(t); t.select();
-    try{ copied=document.execCommand('copy'); }catch(e){}
-    t.remove();
+  let url, kind;
+  if(h.length>1800){
+    // big paintings: clipboards and chat apps mangle huge fragments, so the
+    // compressed payload is stored server-side and the link is a 6-char id
+    try{
+      const r=await fetch(TRACE_API+'/api/share',{method:'POST',
+        headers:{'content-type':'application/json'}, body:JSON.stringify({h})});
+      const j=await r.json();
+      if(!r.ok||!j.id) throw new Error(j.error||'share service unavailable');
+      url=location.origin+location.pathname+'?s='+j.id; kind='short link';
+    }catch(e){
+      statusMsgEl.textContent='could not create the share link: '+e.message;
+      statusMsgEl.className='err'; return;
+    }
+  }else{
+    url=location.origin+location.pathname+'#'+h;
+    kind=(url.length/1024).toFixed(1)+' kb link';
   }
-  const kb=(url.length/1024).toFixed(1);
-  statusMsgEl.textContent=copied
-    ? '✓ share link copied ('+kb+' kb) - anyone who opens it gets this painting, code and all'
-    : 'could not reach the clipboard - link is in the browser address bar';
+  let copied=false;
+  try{
+    await navigator.clipboard.writeText(url);
+    // verify: large writes can "succeed" while the clipboard keeps old content
+    try{ copied=(await navigator.clipboard.readText())===url; }
+    catch(e){ copied=true; }   // no read permission: trust the write
+  }catch(e){}
+  if(!copied){
+    prompt('Copy this share link (Ctrl+C):', url);
+    copied=true;
+  }
+  statusMsgEl.textContent='share '+kind+' copied - anyone who opens it gets this painting, code and all';
   statusMsgEl.className='ok';
-  if(!copied) location.hash=h;
 });
 /* ---- painting replay: reveal the ops in paint order, strokes gradually ---- */
 let replayActive=false;
@@ -65,6 +81,9 @@ function cancelReplay(){
   replayActive=false;
   const b=document.getElementById('replayBtn');
   if(b) b.innerHTML=plIco('play')+' Replay';
+  if(statusMsgEl.textContent.indexOf('replaying')===0){
+    statusMsgEl.textContent='ready'; statusMsgEl.className='ok';
+  }
 }
 function startReplay(){
   if(replayActive) return;
@@ -341,13 +360,19 @@ function renderTabs(){
   for(const holder of [document.getElementById('codeTabs'),document.getElementById('canvasTabs')]){
     if(!holder) continue;
     holder.innerHTML='';
+    holder.setAttribute('role','tablist');
     docs.forEach((d,i)=>{
-      const t=document.createElement('span');
+      const t=document.createElement('button');
+      t.type='button';
       t.className='tab'+(i===activeDoc?' active':'');
+      t.setAttribute('role','tab');
+      t.setAttribute('aria-selected', i===activeDoc?'true':'false');
       const nm=document.createElement('span'); nm.textContent=d.name;
       t.appendChild(nm);
       if(docs.length>1){
         const x=document.createElement('span'); x.className='x'; x.textContent='×';
+        x.setAttribute('role','button');
+        x.setAttribute('aria-label','close '+d.name);
         x.title='close this painting';
         x.addEventListener('click',ev=>{ ev.stopPropagation(); closeDoc(i); });
         t.appendChild(x);
@@ -360,9 +385,10 @@ function renderTabs(){
       });
       holder.appendChild(t);
     });
-    const add=document.createElement('span');
+    const add=document.createElement('button');
+    add.type='button';
     add.className='tab tab-add'; add.textContent='+';
-    add.title='new blank painting';
+    add.title='new blank painting'; add.setAttribute('aria-label','new blank painting');
     add.addEventListener('click',()=>newDoc('painting'));
     holder.appendChild(add);
   }

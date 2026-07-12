@@ -92,6 +92,23 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
       statusMsgEl.className='ok';
     }catch(e){}
   }
+  const shortId=new URLSearchParams(location.search).get('s');
+  if(shortId&&/^[a-z0-9]{6}$/.test(shortId)){
+    try{
+      const r=await fetch(TRACE_API+'/api/share?id='+shortId);
+      const j=await r.json();
+      if(r.ok&&j.h){
+        const src=await hashToCode(j.h);
+        docs.push({name:uniqueDocName('shared'), code:src, undo:[], redo:[]});
+        activeDoc=docs.length-1;
+        statusMsgEl.textContent='painting loaded from the share link';
+        statusMsgEl.className='ok';
+      }else{
+        statusMsgEl.textContent='share link not found - it may have been mistyped';
+        statusMsgEl.className='err';
+      }
+    }catch(e){}
+  }
   const openQ=new URLSearchParams(location.search).get('open');
   if(openQ&&/^gallery\/[a-z0-9\-]+\.paint$/.test(openQ)){
     try{

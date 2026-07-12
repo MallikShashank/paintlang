@@ -119,7 +119,10 @@
   .tab{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;
     font-size:12px;color:var(--muted);background:#2d2d2d;
     border:1px solid var(--line);border-bottom:none;
-    border-radius:4px 4px 0 0;cursor:pointer;white-space:nowrap;max-width:190px;flex:none}
+    border-radius:4px 4px 0 0;cursor:pointer;white-space:nowrap;max-width:190px;flex:none;
+    font-family:var(--sans);line-height:1.4}
+  button.tab:hover{background:#2d2d2d}
+  button.tab.active:hover{background:var(--bg)}
   .tab.active{background:var(--bg);color:var(--text)}
   .tab span:first-child{overflow:hidden;text-overflow:ellipsis;max-width:150px}
   .tab .x{opacity:.5;padding:0 3px;border-radius:3px;font-size:13px;line-height:1}
@@ -229,6 +232,9 @@
   .drow>a{flex:1;text-decoration:none}
   .drow>a button{width:100%;text-align:left}
   .drow>select{text-align:inherit}
+  .dfoot{margin-top:10px;font-size:11px;color:var(--faint)}
+  .dfoot a{color:var(--muted);text-decoration:none}
+  .dfoot a:hover{color:var(--text)}
 
   /* ---- account section ---- */
   #acctBody{display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--muted)}
