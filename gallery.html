@@ -24,11 +24,10 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
 
 /* ============ the ink line that walks you through the museum ============ */
 #inkline{position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:1}
-#inkline path{fill:none;stroke-linecap:round}
-#inkline .body{stroke:rgba(43,32,25,.42);stroke-width:7}
-#inkline .dry1{stroke:rgba(43,32,25,.3);stroke-width:2.4;stroke-dasharray:26 7 41 5}
-#inkline .dry2{stroke:rgba(43,32,25,.26);stroke-width:1.3;stroke-dasharray:12 9 33 6}
-#inkline .tipblob{fill:rgba(43,32,25,.5)}
+#inkline .inkbody{fill:rgba(28,21,16,.82)}
+#inkline .inkhair{fill:none;stroke:rgba(28,21,16,.4);stroke-width:1.15;stroke-linecap:round}
+#inkline .tipblob{fill:rgba(28,21,16,.6)}
+#inkline .centerline{fill:none;stroke:none}
 
 /* ============ timeline rail ============ */
 #rail{position:fixed;left:26px;top:50%;transform:translateY(-50%);z-index:40;
@@ -161,15 +160,25 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
 #soundBtn svg{width:16px;height:16px;display:block}
 #soundBtn.on{background:rgba(226,192,141,.85);color:#171310}
 
-/* ============ the hanging scroll that starts the ink walk ============ */
-#kakemono{position:absolute;left:50%;bottom:-150px;transform:translateX(-50%);
-  width:60px;z-index:2;perspective:520px;pointer-events:none}
-#kakemono .paper{transform-origin:top center;background:linear-gradient(180deg,#efe6cf,#e6dabd);
+/* ============ the hanging scroll: unrolls the moment you arrive ============ */
+#kakemono{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);
+  width:60px;z-index:2;pointer-events:none}
+#kakemono .paper{background:linear-gradient(180deg,#efe6cf,#e6dabd);
   border-left:1px solid rgba(58,45,30,.25);border-right:1px solid rgba(58,45,30,.25);
-  height:150px;overflow:hidden;display:flex;justify-content:center}
+  height:150px;display:flex;justify-content:center;
+  clip-path:inset(0 0 100% 0);
+  animation:unpaper 1.9s .7s cubic-bezier(.62,.02,.22,1) forwards}
 #kakemono .roller{height:10px;border-radius:5px;margin:0 -8px;
-  background:linear-gradient(180deg,#4a3423,#241708);box-shadow:0 2px 6px rgba(0,0,0,.5)}
-#kakemono svg{height:100%;opacity:.75}
+  background:linear-gradient(180deg,#4a3423,#241708);box-shadow:0 3px 8px rgba(0,0,0,.55)}
+#kakemono .roller.bot{transform:translateY(-150px);
+  animation:unroller 1.9s .7s cubic-bezier(.62,.02,.22,1) forwards}
+#kakemono svg{height:100%;opacity:.8}
+@keyframes unpaper{to{clip-path:inset(0 0 0% 0)}}
+@keyframes unroller{88%{transform:translateY(3px)}100%{transform:translateY(0)}}
+@media (prefers-reduced-motion: reduce){
+  #kakemono .paper{animation:none;clip-path:none}
+  #kakemono .roller.bot{animation:none;transform:none}
+}
 
 @media (max-width:880px){
   #rail,#railYear,#inkline{display:none}
@@ -212,13 +221,14 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
     <div class="roller"></div>
     <div class="paper">
       <svg viewBox="0 0 60 150" preserveAspectRatio="none">
-        <path d="M30 0c6 22-9 30-3 52s12 26 2 48 4 34 1 50" fill="none"
-          stroke="rgba(43,32,25,.55)" stroke-width="6" stroke-linecap="round"/>
-        <path d="M31 4c4 20-8 28-3 50s11 25 2 46 3 32 1 46" fill="none"
-          stroke="rgba(43,32,25,.3)" stroke-width="2" stroke-dasharray="18 6 30 4"/>
+        <path d="M30 2c8 16-4 22 1 38 4 13 9 15 4 30-4 13-10 16-4 34 4 13 7 20 2 42
+          -3-16-9-22-4-40 4-15 10-17 5-32-4-13-8-14-4-30 2-9 1-16 0-42z"
+          fill="rgba(28,21,16,.66)"/>
+        <path d="M33 8c3 18-6 26-2 46s9 24 1 44 3 30 0 44" fill="none"
+          stroke="rgba(28,21,16,.35)" stroke-width="1.3" stroke-dasharray="14 5 24 4"/>
       </svg>
     </div>
-    <div class="roller"></div>
+    <div class="roller bot"></div>
   </div>
 </section>
 
@@ -626,7 +636,9 @@ function buildInkline(){
   svg.setAttribute('width',innerWidth); svg.setAttribute('height',H);
   svg.setAttribute('viewBox','0 0 '+innerWidth+' '+H);
   svg.style.height=H+'px';
-  const pts=[[innerWidth/2, innerHeight+8]];   // the stroke leaves the scroll
+  // the stroke leaves the bottom of the hanging scroll
+  const kk=document.getElementById('kakemono').getBoundingClientRect();
+  const pts=[[kk.left+kk.width/2, kk.bottom+scrollY-4]];
   document.querySelectorAll('#rooms .room').forEach((sec,i)=>{
     const r=sec.getBoundingClientRect(), top=r.top+scrollY;
     const side=i%2?innerWidth*.82:innerWidth*.18;
@@ -635,23 +647,61 @@ function buildInkline(){
   });
   const ex=document.getElementById('exitwall');
   pts.push([innerWidth/2, ex.getBoundingClientRect().top+scrollY+80]);
-  let d='M'+pts[0][0]+' '+pts[0][1];
+
+  /* calligraphy, not a stroked path: each leg of the walk is its own brush
+     gesture - a filled ribbon that enters thin, swells at the belly, and
+     leaves in a tapered flick, with dry hairs trailing alongside */
+  let s=911; const R=()=>((s=s*16807%2147483647)/2147483647);
+  const cub=(a,b,c2,d2,t)=>{ const u=1-t;
+    return u*u*u*a+3*u*u*t*b+3*u*t*t*c2+t*t*t*d2; };
+  let inner='', dCenter='M'+pts[0][0]+' '+pts[0][1];
   for(let i=1;i<pts.length;i++){
     const a=pts[i-1], b=pts[i], my=(a[1]+b[1])/2;
-    d+=' C'+a[0]+' '+my+' '+b[0]+' '+my+' '+b[0]+' '+b[1];
+    dCenter+=' C'+a[0]+' '+my+' '+b[0]+' '+my+' '+b[0]+' '+b[1];
+    const N=34, P=[], T=[];
+    for(let k=0;k<=N;k++){
+      const t=k/N;
+      P.push([cub(a[0],a[0],b[0],b[0],t), cub(a[1],my,my,b[1],t)]);
+    }
+    for(let k=0;k<=N;k++){
+      const q=P[Math.max(0,k-1)], r2=P[Math.min(N,k+1)];
+      const dx=r2[0]-q[0], dy=r2[1]-q[1], L=Math.hypot(dx,dy)||1;
+      T.push([-dy/L, dx/L]);
+    }
+    const phase=R()*7, belly=.42+R()*.25;
+    const wOf=t=>{
+      const arc=t<=belly ? t/belly*.5 : .5+(t-belly)/(1-belly)*.5;
+      let w=1.4+10.5*Math.pow(Math.sin(Math.PI*arc),.62);
+      w*=.78+.3*Math.sin(t*19+phase)+.08*Math.sin(t*47+phase*2);
+      if(t>.93) w*=Math.max(.08,1-(t-.93)/.07*.92);   // the flick
+      if(t<.05) w*=t/.05*.7+.3;
+      return Math.max(.7,w);
+    };
+    const Lft=[], Rgt=[];
+    for(let k=0;k<=N;k++){
+      const w=wOf(k/N)/2;
+      Lft.push((P[k][0]+T[k][0]*w).toFixed(1)+' '+(P[k][1]+T[k][1]*w).toFixed(1));
+      Rgt.push((P[k][0]-T[k][0]*w).toFixed(1)+' '+(P[k][1]-T[k][1]*w).toFixed(1));
+    }
+    inner+='<path class="inkbody" d="M'+Lft.join(' L')+' L'+Rgt.reverse().join(' L')+' Z"/>';
+    // two dry hairs, broken by gaps, riding the same gesture
+    for(const off of [.38,-.34]){
+      const hp=[];
+      for(let k=0;k<=N;k++){
+        const w=wOf(k/N)*off;
+        hp.push((P[k][0]+T[k][0]*w).toFixed(1)+' '+(P[k][1]+T[k][1]*w).toFixed(1));
+      }
+      inner+='<path class="inkhair" d="M'+hp.join(' L')
+        +'" stroke-dasharray="'+(8+R()*22).toFixed(0)+' '+(5+R()*10).toFixed(0)+'"/>';
+    }
   }
-  // one gesture, three hairs of the same brush: a full-bodied stroke plus
-  // two dry flyaways, revealed together as the visitor walks
   svg.innerHTML='<defs><clipPath id="inkclip"><rect x="0" y="0" width="'+innerWidth
     +'" height="0"/></clipPath></defs>'
-    +'<path class="body" d="'+d+'"/>'
-    +'<path class="dry1" clip-path="url(#inkclip)" d="'+d+'" transform="translate(2.5,1.5)"/>'
-    +'<path class="dry2" clip-path="url(#inkclip)" d="'+d+'" transform="translate(-2,2.5)"/>'
+    +'<g clip-path="url(#inkclip)">'+inner+'</g>'
+    +'<path class="centerline" d="'+dCenter+'"/>'
     +'<ellipse class="tipblob" rx="6.5" ry="3.6"/>';
-  const path=svg.querySelector('.body');
-  const len=path.getTotalLength();
-  path.style.strokeDasharray=len;
-  svg._path=path; svg._len=len;
+  const path=svg.querySelector('.centerline');
+  svg._path=path; svg._len=path.getTotalLength();
   svg._clip=svg.querySelector('#inkclip rect');
   svg._tip=svg.querySelector('.tipblob');
 }
@@ -661,8 +711,6 @@ function wireScroll(){
   const yearEl=document.getElementById('railYear');
   const rooms=[...document.querySelectorAll('#rooms .room')];
   const kak=document.getElementById('kakemono');
-  const kakPaper=kak&&kak.querySelector('.paper');
-  if(kakPaper) kakPaper.style.transform='rotateX(-78deg)';
   const io=new IntersectionObserver(es=>{
     for(const e of es) if(e.isIntersecting) e.target.classList.add('seen');
   },{threshold:.1});
@@ -677,21 +725,17 @@ function wireScroll(){
       if(svg._path){
         const p=Math.min(1,(scrollY+innerHeight*.7)/document.body.scrollHeight);
         const drawn=svg._len*p;
-        svg._path.style.strokeDashoffset=svg._len-drawn;
         const pt=svg._path.getPointAtLength(drawn);
         const back=svg._path.getPointAtLength(Math.max(0,drawn-9));
         const ang=Math.atan2(pt.y-back.y,pt.x-back.x)*180/Math.PI;
         svg._tip.setAttribute('transform',
           'translate('+pt.x+','+pt.y+') rotate('+ang+')');
-        svg._clip.setAttribute('height',Math.max(0,pt.y+50));
+        svg._clip.setAttribute('height',Math.max(0,pt.y+6));
       }
-      // the hanging scroll unrolls as you leave the vestibule
+      // the hanging scroll bows out once you are well past it
       if(kak){
-        const p=Math.min(1,scrollY/(innerHeight*.85));
-        const e2=p*p*(3-2*p);
-        kakPaper.style.transform='rotateX('+((1-e2)*-78)+'deg)';
-        kak.style.opacity=scrollY>innerHeight*1.6
-          ?String(Math.max(0,1-(scrollY-innerHeight*1.6)/400)):'1';
+        kak.style.opacity=scrollY>innerHeight*1.4
+          ?String(Math.max(0,1-(scrollY-innerHeight*1.4)/400)):'1';
       }
       // parallax atmospheres
       rooms.forEach(sec=>{
