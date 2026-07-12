@@ -387,7 +387,7 @@ function cardReplay(card,doc,dur){
 /* ================= build the museum ================= */
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 const yearNum=y=>{ const m=String(y).match(/\d{4}/); return m?+m[0]:9999; };
-const state={rooms:[],cur:[],tour:null};
+const state={rooms:[],secs:[],cur:[],tour:null};
 
 fetch('gallery/pieces.json').then(r=>r.json()).then(data=>{
   // history's order, not the config's: rooms by earliest work, works by year
@@ -401,6 +401,11 @@ fetch('gallery/pieces.json').then(r=>r.json()).then(data=>{
   requestAnimationFrame(()=>{ buildInkline(); wireScroll(); });
   injectSchema(rooms);
   if(tour.pending){ tour.pending=false; startTour(); }
+}).catch(e=>{
+  document.getElementById('rooms').innerHTML=
+    '<p style="text-align:center;color:#b6a98f;padding:80px 24px;font-size:15px">'
+    +'The museum doors are stuck: '+String(e&&e.message||e).replace(/[<>&]/g,'')
+    +'. Refresh to try again.</p>';
 });
 
 function buildRoom(room,ri){
@@ -450,7 +455,8 @@ function buildRoom(room,ri){
 
   state.cur[ri]=0;
   sec._cards=cards; sec._room=room; sec._era=era;
-  layoutStage(ri,true);
+  state.secs[ri]=sec;          // register BEFORE layout - the section is not
+  layoutStage(ri,true);        // in the document yet, so no DOM lookups here
   renderPlaque(ri);
   return sec;
 }
@@ -521,7 +527,7 @@ function baseTransform(off){
     +' rotateY('+(-s*32)+'deg) scale('+(1-a*.06)+')';
 }
 function layoutStage(ri,instant){
-  const sec=document.getElementById('room-'+ri);
+  const sec=state.secs[ri];
   const cards=sec._cards, cur=state.cur[ri];
   cards.forEach((card,i)=>{
     const off=i-cur;
@@ -538,7 +544,7 @@ function layoutStage(ri,instant){
   if(prev){ prev.disabled=cur===0; next.disabled=cur===cards.length-1; }
 }
 function focusPiece(ri,pi){
-  const sec=document.getElementById('room-'+ri);
+  const sec=state.secs[ri];
   pi=Math.max(0,Math.min(sec._cards.length-1,pi));
   if(pi===state.cur[ri]) return;
   state.cur[ri]=pi;
@@ -546,7 +552,7 @@ function focusPiece(ri,pi){
   renderPlaque(ri,true);
 }
 function renderPlaque(ri,swap){
-  const sec=document.getElementById('room-'+ri);
+  const sec=state.secs[ri];
   const p=sec._room.pieces[state.cur[ri]], era=sec._era;
   const el=sec.querySelector('.plaque');
   const fill=()=>{
@@ -708,12 +714,12 @@ async function step(){
   const s=tour.seq[tour.i];
   if(!s){ stopTour(); return; }
   if(s.kind==='room'){
-    const sec=document.getElementById('room-'+s.ri);
+    const sec=state.secs[s.ri];
     autoScrollTo(sec.querySelector('.wall-label'));
     tourMsg.textContent='Room '+(ROMAN[s.ri]||s.ri+1)+' · '+state.rooms[s.ri].artist;
     tour.i++; tour.waitT=setTimeout(step, 4200);
   }else if(s.kind==='piece'){
-    const sec=document.getElementById('room-'+s.ri);
+    const sec=state.secs[s.ri];
     if(state.cur[s.ri]!==s.pi) focusPiece(s.ri,s.pi);
     autoScrollTo(sec.querySelector('.stage'));
     const p=state.rooms[s.ri].pieces[s.pi];
