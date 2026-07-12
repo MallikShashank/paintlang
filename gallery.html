@@ -24,9 +24,9 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
 
 /* ============ the ink line that walks you through the museum ============ */
 #inkline{position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:1}
-#inkline .inkbody{fill:rgba(52,40,30,.14)}
-#inkline .inkhair{fill:none;stroke:rgba(52,40,30,.1);stroke-width:1.1;stroke-linecap:round}
-#inkline .tipblob{fill:rgba(52,40,30,.22)}
+#inkline .inkbody{fill:rgba(52,40,30,.075)}
+#inkline .inkhair{fill:none;stroke:rgba(52,40,30,.07);stroke-width:.9;stroke-linecap:butt}
+#inkline .tipblob{fill:rgba(52,40,30,.12)}
 #inkline .centerline{fill:none;stroke:none}
 
 /* ============ timeline rail ============ */
@@ -61,11 +61,15 @@ button{font-family:"Segoe UI",sans-serif;cursor:pointer}
   font-family:"Segoe UI",sans-serif;letter-spacing:.12em}
 
 /* ============ rooms ============ */
-/* reveal by light alone: a transform here would wrap the room in its own
-   stacking context and let the ink line paint over the art for its duration */
-.room{position:relative;padding:16vh 0 10vh;overflow:hidden;
-  opacity:0;transition:opacity 1.2s ease}
-.room.seen{opacity:1}
+/* reveal the CONTENTS, never the room: opacity or transform on the section
+   itself creates a stacking context for its duration, which drops the art
+   below the ink line for a flash. The walls stay; the art fades onto them. */
+.room{position:relative;padding:16vh 0 10vh;overflow:hidden}
+.room .wall-label,.room .stage,.room .plaque,.room .hoverhint{
+  opacity:0;transition:opacity 1.3s ease}
+.room.seen .wall-label,.room.seen .stage,.room.seen .plaque,.room.seen .hoverhint{
+  opacity:1}
+#exitwall{opacity:1 !important}
 .room .atmo{position:absolute;inset:-12% -6%;pointer-events:none;will-change:transform}
 .room .atmo.a2{opacity:.6}
 .room .grain{position:absolute;inset:0;pointer-events:none;opacity:.05;
@@ -715,28 +719,32 @@ function buildInkline(){
     const phase=R()*7, belly=.42+R()*.25;
     const wOf=t=>{
       const arc=t<=belly ? t/belly*.5 : .5+(t-belly)/(1-belly)*.5;
-      let w=1.4+10.5*Math.pow(Math.sin(Math.PI*arc),.62);
+      let w=1.6+11.5*Math.pow(Math.sin(Math.PI*arc),.62);
       w*=.78+.3*Math.sin(t*19+phase)+.08*Math.sin(t*47+phase*2);
       if(t>.93) w*=Math.max(.08,1-(t-.93)/.07*.92);   // the flick
       if(t<.05) w*=t/.05*.7+.3;
       return Math.max(.7,w);
     };
+    // a dry brush: a pale core with ragged edges, then split filaments -
+    // most of the mark is streaks, as in a fast stroke on rough paper
     const Lft=[], Rgt=[];
     for(let k=0;k<=N;k++){
-      const w=wOf(k/N)/2;
+      const rag=.72+.4*R();
+      const w=wOf(k/N)/2*rag;
       Lft.push((P[k][0]+T[k][0]*w).toFixed(1)+' '+(P[k][1]+T[k][1]*w).toFixed(1));
-      Rgt.push((P[k][0]-T[k][0]*w).toFixed(1)+' '+(P[k][1]-T[k][1]*w).toFixed(1));
+      Rgt.push((P[k][0]-T[k][0]*(w*(.7+.55*R()))).toFixed(1)+' '
+        +(P[k][1]-T[k][1]*(w*(.7+.55*R()))).toFixed(1));
     }
     inner+='<path class="inkbody" d="M'+Lft.join(' L')+' L'+Rgt.reverse().join(' L')+' Z"/>';
-    // two dry hairs, broken by gaps, riding the same gesture
-    for(const off of [.38,-.34]){
+    for(const off of [-.52,-.34,-.18,.16,.33,.48,.6]){
       const hp=[];
       for(let k=0;k<=N;k++){
-        const w=wOf(k/N)*off;
+        const w=wOf(k/N)*off*(.85+.3*R());
         hp.push((P[k][0]+T[k][0]*w).toFixed(1)+' '+(P[k][1]+T[k][1]*w).toFixed(1));
       }
       inner+='<path class="inkhair" d="M'+hp.join(' L')
-        +'" stroke-dasharray="'+(8+R()*22).toFixed(0)+' '+(5+R()*10).toFixed(0)+'"/>';
+        +'" stroke-dasharray="'+(10+R()*30).toFixed(0)+' '+(4+R()*14).toFixed(0)
+        +'" stroke-width="'+(0.6+R()*1.1).toFixed(2)+'"/>';
     }
   }
   svg.innerHTML='<defs><clipPath id="inkclip"><rect x="0" y="0" width="'+innerWidth
@@ -808,119 +816,64 @@ function wireScroll(){
    the boulevards, pointillist plucks for Seurat. One quiet pattern at a time,
    crossfaded between rooms. */
 const NOTE=m=>440*Math.pow(2,(m-69)/12);
-/* Each room is a small salon piece, not a random-note generator: a chord
-   progression in the era's harmony, a bass, and a melody that stays on
-   chord tones. Feels: waltz (bass, then two soft chord beats), swing
-   (walking bass under a lazy melody), arp (broken impressionist sevenths),
-   koto (pentatonic duet over a drone), flow (long chords, sparse bells). */
-const MUSIC={
-'Katsushika Hokusai':{feel:'koto',bpm:52,root:50,
-  prog:[[62,63,67,69,72],[57,60,62,65,69]],cut:2400,dec:2.2},
-'Claude Monet':{feel:'arp',bpm:58,
-  prog:[[48,55,59,64],[53,60,64,69],[45,52,57,64],[50,57,62,66]],cut:1900,dec:2.6},
-'Edgar Degas':{feel:'waltz',bpm:82,
-  prog:[[45,52,57,60],[41,48,53,57],[43,50,56,59],[45,52,57,60]],cut:2100,dec:1.6},
-'Gustave Caillebotte':{feel:'flow',bpm:48,rain:true,
-  prog:[[43,50,55,58],[41,48,53,57],[38,45,50,53],[43,50,55,58]],cut:1500,dec:3.4},
-'Pierre-Auguste Renoir':{feel:'waltz',bpm:96,
-  prog:[[48,55,60,64],[53,60,65,69],[43,55,59,65],[48,55,60,64]],cut:2300,dec:1.4},
-'Georges Seurat':{feel:'arp',bpm:74,
-  prog:[[48,55,60,64],[45,52,57,60],[41,48,53,57],[43,50,55,59]],cut:2600,dec:1.1},
-'Vincent van Gogh':{feel:'arp',bpm:66,
-  prog:[[45,52,57,60],[41,48,53,57],[40,47,52,56],[45,52,57,60]],cut:1700,dec:2.2},
-'Henri de Toulouse-Lautrec':{feel:'swing',bpm:92,
-  prog:[[43,50,55,58],[48,55,58,62],[41,48,53,56],[43,50,55,58]],cut:2000,dec:1.2},
-'Paul Cezanne':{feel:'flow',bpm:44,
-  prog:[[38,45,50,57],[36,43,50,55],[41,48,53,60],[38,45,50,57]],cut:1300,dec:4},
-'Mary Cassatt':{feel:'waltz',bpm:72,
-  prog:[[48,55,60,64],[43,50,55,62],[45,52,57,60],[41,48,53,60]],cut:2500,dec:1.9},
-'__lobby':{feel:'flow',bpm:46,
-  prog:[[43,50,55,62],[41,48,55,60],[38,45,52,57],[43,50,55,62]],cut:1400,dec:3.6}
-};
+/* One piece for the whole museum: an original slow waltz in A minor,
+   fully written out - left hand (bass, then two soft chord beats) and an
+   8 bar melody that rests every third round so the music breathes.
+   Played on a felt-soft synthesized voice at drawing room volume. */
 const Aura=(()=>{
-  let ctx,patGain,noiseBuf,cfg=null,timer=null,on=false;
-  let beat=0,nextT=0;
-  const hum=()=> (Math.random()-.5)*.014;   // human hands, not a sequencer
+  const BPM=92, BAR=3, LOOP=24;               // eight bars of 3/4
+  const BASS =[45,50,43,48,41,50,40,45];      // Am Dm G C F Dm E7 Am
+  const DYADS=[[64,69],[65,69],[62,67],[64,67],[65,69],[62,65],[64,68],[64,69]];
+  // the written melody: [beat, note, length in beats]
+  const TUNE=[[0,69,1],[1,71,1],[2,72,1],[3,74,2],[5,72,1],[6,71,2],[8,67,1],
+    [9,72,3],[12,69,1],[13,72,1],[14,76,1],[15,74,2],[17,71,1],
+    [18,68,1],[19,71,1],[20,64,1],[21,69,3]];
+  let ctx,patGain,timer=null,on=false,beat=0,nextT=0;
+  const hum=()=>(Math.random()-.5)*.012;
   function boot(){
     if(ctx) return;
     ctx=new (window.AudioContext||window.webkitAudioContext)();
-    const master=ctx.createGain(); master.gain.value=.34;
-    const dl=ctx.createDelay(1); dl.delayTime.value=.34;
-    const fb=ctx.createGain(); fb.gain.value=.28;
-    const wet=ctx.createGain(); wet.gain.value=.2;
+    const master=ctx.createGain(); master.gain.value=.3;
+    const dl=ctx.createDelay(1); dl.delayTime.value=.36;
+    const fb=ctx.createGain(); fb.gain.value=.26;
+    const wet=ctx.createGain(); wet.gain.value=.17;
     patGain=ctx.createGain(); patGain.gain.value=0;
     patGain.connect(master); patGain.connect(dl);
     dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(master);
     master.connect(ctx.destination);
-    noiseBuf=ctx.createBuffer(1,ctx.sampleRate*.09,ctx.sampleRate);
-    const d=noiseBuf.getChannelData(0);
-    for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   }
-  /* one soft felt-hammer voice: two barely detuned tones and a sub octave
-     through a lowpass, so nothing ever sounds like a raw oscillator */
+  /* felt-soft voice: two barely detuned triangles and a sub sine through a
+     lowpass - nothing in this room may sound like an oscillator */
   function voice(t,midi,peak,dec,cut){
     t+=hum();
     const g=ctx.createGain(), f=ctx.createBiquadFilter();
-    f.type='lowpass'; f.frequency.value=cut; f.Q.value=.35;
+    f.type='lowpass'; f.frequency.value=cut; f.Q.value=.3;
     f.connect(g); g.connect(patGain);
     g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(peak,t+.018);
-    g.gain.exponentialRampToValueAtTime(.0003,t+.018+dec);
-    for(const [type,det,mul,off] of [['triangle',-3.5,1,0],['triangle',3.5,.8,0],['sine',0,.45,-12]]){
+    g.gain.linearRampToValueAtTime(peak,t+.02);
+    g.gain.exponentialRampToValueAtTime(.0003,t+.02+dec);
+    for(const [type,det,off] of [['triangle',-3,0],['triangle',3,0],['sine',0,-12]]){
       const o=ctx.createOscillator();
       o.type=type; o.frequency.value=NOTE(midi+off); o.detune.value=det;
-      o.connect(f); o.start(t); o.stop(t+.02+dec+.1);
+      o.connect(f); o.start(t); o.stop(t+.03+dec);
     }
   }
-  function tick(t,c){
-    const barLen=c.feel==='waltz'?3:4;
-    const bar=Math.floor(beat/barLen), sub=beat%barLen;
-    const ch=c.prog[bar%c.prog.length];
-    const lead=()=>ch[1+Math.floor(Math.random()*(ch.length-1))]
-      +(Math.random()<.5?12:24);
-    if(c.feel==='waltz'){
-      if(sub===0) voice(t,ch[0]-12,.05,c.dec*1.4,c.cut*.6);           // bass
-      else{ voice(t,ch[1],.028,c.dec*.7,c.cut);                        // pah
-            voice(t+.004,ch[2],.028,c.dec*.7,c.cut); }
-      if(sub===1&&Math.random()<.5) voice(t+.02,lead(),.045,c.dec,c.cut);
-    }else if(c.feel==='swing'){
-      voice(t,ch[Math.floor(Math.random()*2)]-12,.045,.8,c.cut*.55);   // walk
-      if(Math.random()<.42) voice(t+ (60/c.bpm)*.66,lead(),.04,c.dec,c.cut);
-    }else if(c.feel==='arp'){
-      voice(t,ch[sub%ch.length]+(bar%2?12:0),.038,c.dec,c.cut);
-      if(sub===0) voice(t,ch[0]-12,.04,c.dec*1.6,c.cut*.55);
-      if(sub===2&&Math.random()<.3) voice(t+.02,lead(),.04,c.dec*.8,c.cut);
-    }else if(c.feel==='koto'){
-      if(sub===0&&bar%2===0) voice(t,c.root-12,.035,c.dec*2.4,900);    // drone
-      if(Math.random()<.55){
-        const n=ch[Math.floor(Math.random()*ch.length)];
-        voice(t,n,.05,c.dec*.8,c.cut);
-        if(Math.random()<.35) voice(t+.09,n+5,.03,c.dec*.5,c.cut);     // grace
-      }
-    }else{ // flow
-      if(sub===0){
-        ch.forEach((n,i)=>voice(t+i*.06,n,.026,c.dec,c.cut));
-        voice(t,ch[0]-12,.035,c.dec*1.4,c.cut*.6);
-      }
-      if(Math.random()<.22) voice(t+.05,lead(),.03,c.dec*.7,c.cut*1.2);
-      if(c.rain&&Math.random()<.5){
-        const s=ctx.createBufferSource(); s.buffer=noiseBuf;
-        const f=ctx.createBiquadFilter(); f.type='bandpass';
-        f.frequency.value=2400+Math.random()*1800; f.Q.value=2.5;
-        const g=ctx.createGain();
-        g.gain.setValueAtTime(.016,t+Math.random()*.5);
-        g.gain.exponentialRampToValueAtTime(.0003,t+.6);
-        s.connect(f); f.connect(g); g.connect(patGain); s.start(t);
-      }
+  function tick(t){
+    const pos=beat%LOOP, bar=Math.floor(pos/BAR), sub=pos%BAR;
+    const round=Math.floor(beat/LOOP);
+    if(sub===0) voice(t,BASS[bar],.05,1.9,1200);
+    else for(const n of DYADS[bar]) voice(t+(sub===2?.008:0),n,.02,1.1,1900);
+    if(round%3!==2){                        // the melody rests every third round
+      for(const [b,n,len] of TUNE)
+        if(b===pos) voice(t+.01,n,.052,.55+len*.5,2400);
     }
     beat++;
   }
   function loop(){
-    if(!on||!cfg||!ctx) return;
-    const spb=60/cfg.bpm;
-    const ahead=ctx.currentTime+.8;
+    if(!on||!ctx) return;
+    const spb=60/BPM, ahead=ctx.currentTime+.8;
     while(nextT<ahead){
-      if(nextT>ctx.currentTime-.05) tick(nextT,cfg);
+      if(nextT>ctx.currentTime-.05) tick(nextT);
       nextT+=spb;
     }
   }
@@ -928,27 +881,15 @@ const Aura=(()=>{
     enable(){
       boot();
       if(ctx.state==='suspended') ctx.resume();
-      on=true; nextT=ctx.currentTime+.15; beat=0;
+      on=true; nextT=ctx.currentTime+.2;
       if(!timer) timer=setInterval(loop,240);
-      if(cfg) patGain.gain.setTargetAtTime(1,ctx.currentTime,1.4);
+      patGain.gain.setTargetAtTime(1,ctx.currentTime,1.8);
     },
     disable(){ on=false; if(ctx) patGain.gain.setTargetAtTime(0,ctx.currentTime,.5); },
-    setRoom(artist){
-      const key=artist?artist.normalize('NFD').replace(/[̀-ͯ]/g,''):'__lobby';
-      const c=MUSIC[key]||MUSIC.__lobby;
-      if(c===cfg) return;
-      if(!ctx){ cfg=c; return; }
-      patGain.gain.setTargetAtTime(0,ctx.currentTime,.7);
-      setTimeout(()=>{
-        cfg=c; beat=0;
-        if(ctx){ nextT=ctx.currentTime+.2;
-          if(on) patGain.gain.setTargetAtTime(1,ctx.currentTime,1.4); }
-      },1400);
-    },
+    setRoom(){},                            // one piece carries the whole walk
     get on(){ return on; }
   };
 })();
-Aura.setRoom(null);   // the lobby piece is ready the moment sound starts
 const ICO_PAUSE='<svg viewBox="0 0 16 16"><path d="M4.5 2.5h2.6v11H4.5zM8.9 2.5h2.6v11H8.9z" fill="currentColor"/></svg>';
 const ICO_PLAY='<svg viewBox="0 0 16 16"><path d="M4.8 2.6l8.6 5.4-8.6 5.4z" fill="currentColor"/></svg>';
 const ICO_X='<svg viewBox="0 0 16 16"><path d="M3.6 3.6l8.8 8.8M12.4 3.6l-8.8 8.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
