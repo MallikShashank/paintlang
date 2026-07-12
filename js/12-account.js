@@ -198,27 +198,53 @@ async function wsPull(adoptIfEmpty){
     }
   }catch(e){}
 }
-function onSignIn(){
-  // shelve the guest's studio, then take up the account's own
-  try{
-    const guest=localStorage.getItem('paintlang-docs-v1');
-    if(guest) localStorage.setItem('paintlang-docs-guest', guest);
-  }catch(e){}
+/* untouched starter tabs (a blank canvas or an unedited example) are not
+   work worth carrying anywhere */
+function isTrivialDoc(d){
+  const c=(d.code||'').trim();
+  if(!c) return true;
+  if(c===BLANK_DOC.trim()) return true;
+  if(typeof EXAMPLES==='object')
+    for(const k in EXAMPLES) if(c===EXAMPLES[k].trim()) return true;
+  return false;
+}
+async function onSignIn(){
+  // real work painted before signing in belongs to the person signing in:
+  // it is carried INTO the account. Nothing is ever left waiting on the
+  // device for whoever sits down next.
+  if(docs[activeDoc]) docs[activeDoc].code=ta.value;
+  const carried=docs.filter(d=>!isTrivialDoc(d))
+    .map(d=>({name:d.name, code:d.code, cloudId:d.cloudId}));
   WS.t=0; WS.lastEdit=0;
-  wsPull(true);
+  try{
+    const r=await acctApi('/api/workspace');
+    if(r.t){
+      WS.t=r.t;
+      loadDocsState(r.state,'your studio is back where you left it');
+      if(carried.length){
+        for(const c of carried)
+          docs.push({name:uniqueDocName(c.name), code:c.code,
+            cloudId:c.cloudId, undo:[], redo:[]});
+        activateDoc(docs.length-1);
+        apiStatus('your studio is back, and '+carried.length
+          +(carried.length>1?' paintings':' painting')
+          +' from this session came along', true);
+        wsPush();
+      }
+    }else{
+      // first sign-in anywhere: this session becomes the account's studio
+      wsPush();
+    }
+  }catch(e){}
 }
 async function onSignOut(){
-  // save the account's studio up, then hand the desk back to the guest
+  // save the account's studio up, then leave a clean desk: on a shared
+  // machine, nothing of a signed-out person may remain
   clearTimeout(WS.timer);
   try{ await wsPush(); }catch(e){}
   WS.t=0; WS.lastEdit=0;
-  let guest=null;
-  try{
-    guest=localStorage.getItem('paintlang-docs-guest');
-    localStorage.removeItem('paintlang-docs-guest');
-  }catch(e){}
-  const back=guest&&loadDocsState(guest,'signed out - this device is back to its own studio');
-  if(!back) freshStudio('signed out - a fresh studio; sign in again to load your work');
+  try{ localStorage.removeItem('paintlang-docs-guest'); }catch(e){}
+  freshStudio('signed out - the studio is clean. Sign in to load your work.');
   if(typeof persistDocs==='function') persistDocs();
 }
 // keep devices honest: re-check on focus, and every 45 seconds while visible
