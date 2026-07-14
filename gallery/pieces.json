@@ -9,16 +9,16 @@
      "year": "1889",
      "story": "His own room at Arles, painted to feel like rest itself. The tilted perspective and flat, saturated colour were radical: a room painted the way it felt, not the way it looked.",
      "slug": "the-bedroom",
-     "shapes": 450,
-     "strokes": 48000
+     "shapes": 900,
+     "strokes": 61492
     },
     {
      "title": "Self-Portrait",
      "year": "1887",
      "story": "Painted in Paris while absorbing the pointillists. Too poor to hire models, Van Gogh turned the mirror on himself dozens of times - each self-portrait an experiment in colour theory.",
      "slug": "self-portrait",
-     "shapes": 450,
-     "strokes": 42604
+     "shapes": 900,
+     "strokes": 54771
     }
    ]
   },
@@ -31,32 +31,32 @@
      "year": "1906",
      "story": "From the pond he built at Giverny and painted for thirty years. There is no horizon - only water, reflection and bloom, dissolving painting into pure surface.",
      "slug": "water-lilies",
-     "shapes": 450,
-     "strokes": 45761
+     "shapes": 900,
+     "strokes": 56567
     },
     {
      "title": "Stacks of Wheat (End of Summer)",
      "year": "1890/91",
      "story": "One canvas from the series that made seriality itself the subject: the same haystacks, dawn to dusk, summer to frost, until time became visible.",
      "slug": "stacks-of-wheat-end-of-summer",
-     "shapes": 450,
-     "strokes": 13394
+     "shapes": 900,
+     "strokes": 15531
     },
     {
      "title": "Cliff Walk at Pourville",
      "year": "1882",
      "story": "Wind, grass and sea air on the Normandy coast. Look at the two figures: barely a few strokes each, yet unmistakably leaning into the breeze.",
      "slug": "cliff-walk-at-pourville",
-     "shapes": 450,
-     "strokes": 31472
+     "shapes": 900,
+     "strokes": 38070
     },
     {
      "title": "Arrival of the Normandy Train",
      "year": "1877",
      "story": "Impressionism walks into the machine age: steam, iron and glass treated with the same reverence as sunsets. Monet set up his easel inside the working station.",
      "slug": "arrival-of-the-normandy-train",
-     "shapes": 450,
-     "strokes": 36037
+     "shapes": 900,
+     "strokes": 41165
     }
    ]
   },
@@ -69,8 +69,8 @@
      "year": "1884-86",
      "story": "Two years and millions of dots to freeze one Parisian Sunday into geometry. Seurat painted with discrete points of colour - a picture computed by the eye, a century before pixels.",
      "slug": "a-sunday-on-la-grande-jatte",
-     "shapes": 450,
-     "strokes": 29324
+     "shapes": 900,
+     "strokes": 32849
     }
    ]
   },
@@ -83,8 +83,8 @@
      "year": "1877",
      "story": "The radical geometry of a modern city in the rain: a lamppost splits the canvas, umbrellas repeat into the distance, and strangers pass without meeting eyes.",
      "slug": "paris-street-rainy-day",
-     "shapes": 450,
-     "strokes": 43265
+     "shapes": 900,
+     "strokes": 54343
     }
    ]
   },
@@ -97,8 +97,8 @@
      "year": "1830/33",
      "story": "The most reproduced image in art history: a wave like a claw, boats like slivers, and tiny, immovable Fuji at the centre. Printed from carved woodblocks, thousands of times.",
      "slug": "the-great-wave-off-kanagawa",
-     "shapes": 450,
-     "strokes": 48000
+     "shapes": 900,
+     "strokes": 96000
     }
    ]
   },
@@ -111,8 +111,8 @@
      "year": "1881",
      "story": "A riverside terrace at Chatou. The little girl’s hat is almost pure pigment - Renoir letting paint be paint exactly where the eye wants sweetness.",
      "slug": "two-sisters-on-the-terrace",
-     "shapes": 450,
-     "strokes": 48000
+     "shapes": 900,
+     "strokes": 65970
     }
    ]
   },
@@ -125,8 +125,8 @@
      "year": "c. 1893",
      "story": "A still life that quietly breaks the rules of space: the table edges don’t line up, the bottle leans, each object is seen from its own angle. Cubism starts here.",
      "slug": "the-basket-of-apples",
-     "shapes": 450,
-     "strokes": 28091
+     "shapes": 900,
+     "strokes": 32447
     }
    ]
   },
@@ -139,8 +139,8 @@
      "year": "1893",
      "story": "Seen from above like a Japanese print: patterns colliding, and at the centre the quiet weight of care - a hand steadying a child’s foot.",
      "slug": "the-child-s-bath",
-     "shapes": 450,
-     "strokes": 28533
+     "shapes": 900,
+     "strokes": 33113
     }
    ]
   },
@@ -153,8 +153,8 @@
      "year": "1892/95",
      "story": "Gaslight green and theatre-box framing: a face glows acid at the edge, friends huddle at a table, and the artist paints himself passing in the background.",
      "slug": "at-the-moulin-rouge",
-     "shapes": 450,
-     "strokes": 16661
+     "shapes": 900,
+     "strokes": 18604
     }
    ]
   },
@@ -167,8 +167,8 @@
      "year": "1879/86",
      "story": "A hat maker absorbed in her work, crowded to the edge by her own creations. Degas cropped like a photographer decades before it was normal.",
      "slug": "the-millinery-shop",
-     "shapes": 450,
-     "strokes": 15357
+     "shapes": 764,
+     "strokes": 17489
     }
    ]
   }

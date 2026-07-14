@@ -64,40 +64,119 @@ function _slTaper(c,p,w){ const m=p.length;
     c.beginPath(); c.moveTo(p[i2][0],p[i2][1]);
     c.lineTo(p[i2+1][0],p[i2+1][1]); c.stroke();
   } }
+/* one fixed studio light for every painted ridge - real impasto catches one
+   sun, not a different sun per stroke (the old per-stroke rails read as
+   crawling embossed worms) */
+const _LX=-0.573, _LY=-0.819;   // light from the upper left
+function _offsetPath(c,p,nx,ny,w){
+  c.lineWidth=w;
+  c.beginPath(); c.moveTo(p[0][0]+nx,p[0][1]+ny);
+  for(let i2=1;i2<p.length;i2++) c.lineTo(p[i2][0]+nx,p[i2][1]+ny);
+  c.stroke();
+}
+function _mixWhite(col,f){ return shadeRGB(col,f); }
 function drawOneStroke(c,s,size,al,media,rng){
   const p=s.pts, m=p.length;
   if(m===1){
     c.globalAlpha=al; c.fillStyle=s.col; c.beginPath();
     c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); return;
   }
+  const dx=p[m-1][0]-p[0][0], dy=p[m-1][1]-p[0][1];
+  const L=Math.hypot(dx,dy)||1;
+  let nx=-dy/L, ny=dx/L;
+  // the stroke's lit side is whichever normal faces the studio light
+  if(nx*_LX+ny*_LY<0){ nx=-nx; ny=-ny; }
+
   if(media==='watercolor'){
-    c.strokeStyle=shadeRGB(s.col,-.3); c.globalAlpha=al*.10; _slPolyline(c,p,size*2.1);
-    c.strokeStyle=s.col; c.globalAlpha=al*.30; _slPolyline(c,p,size*1.7);
-    c.globalAlpha=al*.55; _slPolyline(c,p,size*.95);
+    // transparent pigment: a soft feather, a wet body, a second slightly
+    // shifted charge, and pigment pooling at the tail - no dark halo
+    const pig=_mixWhite(s.col,.16);
+    c.strokeStyle=pig; c.globalAlpha=al*.14; _slPolyline(c,p,size*2.0);
+    c.globalAlpha=al*.4; _slPolyline(c,p,size*1.15);
+    c.globalAlpha=al*.28;
+    _offsetPath(c,p,nx*size*.22,ny*size*.22,size*.8);
+    c.globalAlpha=al*.2; c.fillStyle=shadeRGB(s.col,-.18);
+    c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.42),0,7); c.fill();
   } else if(media==='oil'){
+    // a loaded brush: full body, one quiet lit ridge, one quiet shadow,
+    // and a dry bristle line riding the body
+    c.strokeStyle=s.col; c.globalAlpha=al*.96;
+    if(m===2||size<3) _slPolyline(c,p,size*.95); else _slTaper(c,p,size);
+    if(size>=2){
+      c.strokeStyle=shadeRGB(s.col,.2); c.globalAlpha=al*.2;
+      _offsetPath(c,p,nx*size*.26,ny*size*.26,Math.max(.5,size*.26));
+      c.strokeStyle=shadeRGB(s.col,-.22); c.globalAlpha=al*.16;
+      _offsetPath(c,p,-nx*size*.28,-ny*size*.28,Math.max(.5,size*.24));
+      c.strokeStyle=shadeRGB(s.col,(rng()-.4)*.2); c.globalAlpha=al*.12;
+      const b=(rng()-.5)*size*.3;
+      _offsetPath(c,p,nx*b,ny*b,Math.max(.4,size*.14));
+    }
+  } else if(media==='impasto'){
+    // oil with the paint laid on thick: wider body, brighter catch of
+    // light, and a deposit of paint where the stroke lifts off
     c.strokeStyle=s.col; c.globalAlpha=al;
-    if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size);
-    const dx=p[m-1][0]-p[0][0], dy=p[m-1][1]-p[0][1];
-    const L=Math.hypot(dx,dy)||1;
-    const nx=-dy/L*size*.3, ny=dx/L*size*.3;
-    c.globalAlpha=al*.75;
-    c.strokeStyle=shadeRGB(s.col,.16);
-    c.beginPath(); c.moveTo(p[0][0]+nx,p[0][1]+ny);
-    for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]+nx,p[i2][1]+ny);
-    c.lineWidth=Math.max(.5,size*.3); c.stroke();
-    c.strokeStyle=shadeRGB(s.col,-.16);
-    c.beginPath(); c.moveTo(p[0][0]-nx,p[0][1]-ny);
-    for(let i2=1;i2<m;i2++) c.lineTo(p[i2][0]-nx,p[i2][1]-ny);
-    c.stroke();
+    if(m===2||size<3) _slPolyline(c,p,size*1.2); else _slTaper(c,p,size*1.25);
+    if(size>=1.6){
+      c.strokeStyle=shadeRGB(s.col,.3); c.globalAlpha=al*.3;
+      _offsetPath(c,p,nx*size*.3,ny*size*.3,Math.max(.5,size*.3));
+      c.strokeStyle=shadeRGB(s.col,-.3); c.globalAlpha=al*.2;
+      _offsetPath(c,p,-nx*size*.33,-ny*size*.33,Math.max(.5,size*.26));
+      c.globalAlpha=al*.24; c.fillStyle=shadeRGB(s.col,.34);
+      c.beginPath();
+      c.arc(p[m-1][0]+nx*size*.15,p[m-1][1]+ny*size*.15,Math.max(.5,size*.3),0,7);
+      c.fill();
+    }
+  } else if(media==='gouache'){
+    // opaque and matte: a soft same-hue edge under a flat body, no shine
+    c.strokeStyle=shadeRGB(s.col,-.1); c.globalAlpha=al*.25;
+    _slPolyline(c,p,size*1.18);
+    c.strokeStyle=s.col; c.globalAlpha=al*.97;
+    if(m===2||size<3) _slPolyline(c,p,size*.95); else _slTaper(c,p,size);
+  } else if(media==='acrylic'){
+    // crisp plastic body with a thin satin catch of light
+    c.strokeStyle=s.col; c.globalAlpha=al;
+    if(m===2||size<3) _slPolyline(c,p,size*.95); else _slTaper(c,p,size);
+    if(size>=2.4){
+      c.strokeStyle=shadeRGB(s.col,.24); c.globalAlpha=al*.12;
+      _offsetPath(c,p,nx*size*.2,ny*size*.2,Math.max(.4,size*.16));
+    }
+  } else if(media==='pastel'){
+    // soft dust: a broad tender body with grain drifting off both edges
+    c.strokeStyle=s.col; c.globalAlpha=al*.5; _slPolyline(c,p,size*1.3);
+    c.globalAlpha=al*.3;
+    for(let k=0;k<2;k++){
+      const b=(rng()-.5)*size*.9;
+      c.lineWidth=Math.max(.5,size*.3);
+      c.setLineDash([size*(1+rng()*2), size*(.6+rng())]);
+      _offsetPath(c,p,nx*b,ny*b,Math.max(.5,size*.3));
+      c.setLineDash([]);
+    }
   } else if(media==='chalk'){
     c.strokeStyle=s.col;
     for(let i2=0;i2<m-1;i2++){
       const jx=(rng()-.5)*size*.4, jy=(rng()-.5)*size*.4;
-      c.globalAlpha=al*(.35+rng()*.55);
+      c.globalAlpha=al*(.3+rng()*.45);
       c.lineWidth=Math.max(.5,size*(.5+rng()*.5));
       c.beginPath(); c.moveTo(p[i2][0]+jx,p[i2][1]+jy);
       c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
     }
+  } else if(media==='pencil'){
+    // coloured pencil: two fine jittered passes that never quite align
+    c.strokeStyle=s.col; c.globalAlpha=al*.55;
+    _offsetPath(c,p,(rng()-.5)*size*.2,(rng()-.5)*size*.2,Math.max(.5,size*.3));
+    c.strokeStyle=shadeRGB(s.col,-.12); c.globalAlpha=al*.35;
+    c.setLineDash([size*2.5, size*.7]);
+    _offsetPath(c,p,(rng()-.5)*size*.35,(rng()-.5)*size*.35,Math.max(.4,size*.22));
+    c.setLineDash([]);
+  } else if(media==='ink'){
+    // sumi wash: the colour becomes ink density - darks carry the drawing,
+    // lights become breath-thin washes
+    const mm=s.col.match(/\d+/g)||[0,0,0];
+    const den=1-(.3*mm[0]+.59*mm[1]+.11*mm[2])/255;
+    c.strokeStyle='rgb(32,27,22)';
+    c.globalAlpha=al*(.06+den*.14); _slPolyline(c,p,size*1.9);
+    c.globalAlpha=al*(.12+den*.55);
+    if(m===2||size<3) _slPolyline(c,p,size*.8); else _slTaper(c,p,size*.85);
   } else {
     c.strokeStyle=s.col; c.globalAlpha=al;
     if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size);
