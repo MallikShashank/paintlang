@@ -107,22 +107,29 @@ function drawOneStroke(c,s,size,al,media,rng){
       _slPolyline(c,p,size*1.6);
       return;
     }
-    c.strokeStyle=_mixWhite(pig,.22); c.globalAlpha=al*.13;
-    _slPolyline(c,p,size*2.1);
-    c.strokeStyle=shadeRGB(pig,-.22); c.globalAlpha=al*.12;
-    c.setLineDash([size*1.8, size*1.3]);
-    _slPolyline(c,p,size*1.3); c.setLineDash([]);
-    c.strokeStyle=pig; c.globalAlpha=al*.5; _slPolyline(c,p,size*1.05);
-    c.globalAlpha=al*.32;
-    _offsetPath(c,p,nx*size*.2,ny*size*.2,size*.8);
-    c.strokeStyle=_mixWhite(pig,.34); c.globalAlpha=al*.14;
-    _slPolyline(c,p,size*.4);
-    c.globalAlpha=al*.3; c.fillStyle=shadeRGB(pig,-.28);
-    c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.45),0,7); c.fill();
+    // washes must FUSE: concentric soft passes with no hard core, so
+    // neighbouring strokes melt together instead of reading as pipes
+    c.strokeStyle=_mixWhite(pig,.3); c.globalAlpha=al*.1;
+    _slPolyline(c,p,size*2.2);
+    c.strokeStyle=_mixWhite(pig,.12); c.globalAlpha=al*.2;
+    _slPolyline(c,p,size*1.5);
+    c.strokeStyle=pig; c.globalAlpha=al*.3; _slPolyline(c,p,size*1.0);
+    c.globalAlpha=al*.24;
+    _offsetPath(c,p,nx*size*.18,ny*size*.18,size*.6);
+    // dried edges and pooling happen here and there, not on every stroke
     if(rng()<.3){
-      c.globalAlpha=al*.15; c.fillStyle=shadeRGB(pig,-.22);
+      c.strokeStyle=shadeRGB(pig,-.2); c.globalAlpha=al*.1;
+      c.setLineDash([size*1.8, size*1.4]);
+      _slPolyline(c,p,size*1.25); c.setLineDash([]);
+    }
+    if(rng()<.22){
+      c.globalAlpha=al*.24; c.fillStyle=shadeRGB(pig,-.26);
+      c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.4),0,7); c.fill();
+    }
+    if(rng()<.25){
+      c.globalAlpha=al*.13; c.fillStyle=shadeRGB(pig,-.2);
       const gp=p[Math.floor(rng()*m)];
-      c.beginPath(); c.arc(gp[0]+(rng()-.5)*size,gp[1]+(rng()-.5)*size,size*.16,0,7);
+      c.beginPath(); c.arc(gp[0]+(rng()-.5)*size,gp[1]+(rng()-.5)*size,size*.15,0,7);
       c.fill();
     }
   } else if(media==='oil'){
@@ -269,13 +276,16 @@ function drawOneStroke(c,s,size,al,media,rng){
       c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
     }
   } else if(media==='neon'){
-    // light itself: additive glow around a white-hot core
+    // a few glowing tubes in a dark room - not every stroke becomes light,
+    // or the whole canvas sums to white
+    if(rng()>.3) return;
     const comp=c.globalCompositeOperation;
     c.globalCompositeOperation='lighter';
-    c.strokeStyle=s.col; c.globalAlpha=al*.09; _slPolyline(c,p,size*2.6);
-    c.globalAlpha=al*.2; _slPolyline(c,p,size*1.3);
-    c.strokeStyle=_mixWhite(s.col,.55); c.globalAlpha=al*.5;
-    _slPolyline(c,p,Math.max(.6,size*.4));
+    const tube=_vivid(s.col,.5);
+    c.strokeStyle=tube; c.globalAlpha=al*.05; _slPolyline(c,p,size*2.8);
+    c.globalAlpha=al*.11; _slPolyline(c,p,size*1.3);
+    c.strokeStyle=_mixWhite(tube,.45); c.globalAlpha=al*.32;
+    _slPolyline(c,p,Math.max(.55,size*.34));
     c.globalCompositeOperation=comp;
   } else {
     c.strokeStyle=s.col; c.globalAlpha=al;
@@ -284,6 +294,16 @@ function drawOneStroke(c,s,size,al,media,rng){
 }
 /* draw a slice of a bundle - the replay engine reveals bundles gradually */
 function drawStrokesRange(c,st,from,to){
+  /* neon is light in darkness and sumi is ink on paper: before the first
+     bundle of those media touches the canvas, the underpainting is veiled -
+     dimmed to night for neon, calmed to paper for ink */
+  if(st.first&&from===0&&(st.media==='neon'||st.media==='ink')){
+    c.save(); c.setTransform(DPR,0,0,DPR,0,0);
+    c.globalAlpha=1;
+    c.fillStyle=st.media==='neon'?'rgba(9,8,15,0.86)':'rgba(246,241,231,0.85)';
+    c.fillRect(0,0,W,H);
+    c.restore();
+  }
   const rng=mulberry32((((st.seed||9)+from)>>>0)||9);
   c.lineCap='round'; c.lineJoin='round';
   const end=Math.min(to,st.list.length);
@@ -299,7 +319,9 @@ function strokes(blob,o={}){
   for(const s of list) for(const p of s.pts){
     if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0];
     if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
-  const st={list, size, al, media, seed:Math.floor(rand(0,1e9))};
+  window.__plStrokeOps=(window.__plStrokeOps||0)+1;
+  const st={list, size, al, media, seed:Math.floor(rand(0,1e9)),
+    first:window.__plStrokeOps===1};
   // not click-selectable: bundles belong to their layer (hide/move/scale in
   // the Layers pane) and their code line - clicks always reach the forms
   const idx=addOp('strokes',[x0-size*2,y0-size*2,x1-x0+size*4,y1-y0+size*4],
