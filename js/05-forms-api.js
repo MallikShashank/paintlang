@@ -82,7 +82,8 @@ function _vivid(col,f){
   const v=ch=>Math.max(0,Math.min(255,Math.round(L+(ch-L)*(1+f))));
   return 'rgb('+v(+m[0])+','+v(+m[1])+','+v(+m[2])+')';
 }
-function drawOneStroke(c,s,size,al,media,rng){
+function drawOneStroke(c,s,size,al,media,rng,df){
+  df=df||1;
   const p=s.pts, m=p.length;
   if(m===1){
     c.globalAlpha=al; c.fillStyle=s.col; c.beginPath();
@@ -94,104 +95,93 @@ function drawOneStroke(c,s,size,al,media,rng){
   // the stroke's lit side is whichever normal faces the studio light
   if(nx*_LX+ny*_LY<0){ nx=-nx; ny=-ny; }
 
+  /* THE LAW OF THE MASTER'S HAND: a stroke is value-true (its colour IS the
+     subject's colour - never white-washed, never rimmed with a darker line)
+     and its edges are soft (feather passes of the SAME colour melt it into
+     its neighbours). Medium character lives in edge quality, transparency
+     and rare accents - not in parallel rails, which read as pipes. df is
+     the bundle's coverage normalizer: dense traced layers dial their
+     transparency down so ten thousand glazes still land at the same tone
+     as thirty. */
   if(media==='watercolor'){
-    // a masterpiece wash is SATURATED: chroma turned up, the lightest
-    // passages reserved as paper, broken dried edges, a glow through the
-    // middle and pigment pooling at the tail
+    // transparent glazes that FUSE: soft concentric passes of one pigment,
+    // paper reserved in the lights, accents only where light shows them
     const mm=s.col.match(/\d+/g)||[128,128,128];
     const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
-    const pig=_vivid(s.col,.4);
-    if(lum>228&&rng()<.55){
-      // the whites belong to the paper - barely breathe on them
-      c.strokeStyle=_mixWhite(pig,.3); c.globalAlpha=al*.1;
-      _slPolyline(c,p,size*1.6);
-      return;
-    }
-    // washes must FUSE: concentric soft passes with no hard core. And the
-    // same law as oil: character marks die in the dark - dried edges,
-    // pooling and granulation exist only where there is light to show them
+    if(lum>235&&rng()<.7) return;      // the whites belong to the paper
+    const pig=_mixWhite(_vivid(s.col,.18),.1), a2=al*df;
+    c.strokeStyle=pig;
+    c.globalAlpha=a2*.09; _slPolyline(c,p,size*2.1);
+    c.globalAlpha=a2*.19; _slPolyline(c,p,size*1.4);
+    c.globalAlpha=a2*.34; _slPolyline(c,p,size*.9);
     const lit2=Math.min(1,lum/150);
-    c.strokeStyle=_mixWhite(pig,.3); c.globalAlpha=al*.09;
-    _slPolyline(c,p,size*2.2);
-    c.strokeStyle=_mixWhite(pig,.12); c.globalAlpha=al*.18;
-    _slPolyline(c,p,size*1.5);
-    c.strokeStyle=pig; c.globalAlpha=al*.3; _slPolyline(c,p,size*1.0);
-    c.globalAlpha=al*.22;
-    _offsetPath(c,p,nx*size*.18,ny*size*.18,size*.6);
-    if(lit2>.55){
-      if(rng()<.25){
-        c.strokeStyle=shadeRGB(pig,-.16); c.globalAlpha=al*.08;
-        c.setLineDash([size*1.8, size*1.4]);
-        _slPolyline(c,p,size*1.2); c.setLineDash([]);
-      }
-      if(rng()<.18){
-        c.globalAlpha=al*.18; c.fillStyle=shadeRGB(pig,-.2);
-        c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.38),0,7); c.fill();
-      }
-      if(rng()<.2){
-        c.globalAlpha=al*.1; c.fillStyle=shadeRGB(pig,-.16);
-        const gp=p[Math.floor(rng()*m)];
-        c.beginPath(); c.arc(gp[0]+(rng()-.5)*size,gp[1]+(rng()-.5)*size,size*.14,0,7);
-        c.fill();
-      }
+    if(lit2>.6&&rng()<.12){
+      c.strokeStyle=shadeRGB(pig,-.14); c.globalAlpha=a2*.07;
+      c.setLineDash([size*1.8, size*1.4]);
+      _slPolyline(c,p,size*1.15); c.setLineDash([]);
     }
   } else if(media==='oil'){
-    // paint with a body: a soft dark underlay, the loaded pass, bristle
-    // striations pulled through the wet paint, and one studio light.
-    // Relief follows the light: dark passages keep their ridges QUIET -
-    // otherwise big coarse strokes in shadow read as criss-crossed sticks
+    // blended paint with a body: the colour lands exactly as sampled, its
+    // edges feathered into the wet neighbours; one quiet catch of light on
+    // large lit strokes only - never rails, never rims
     const mm=s.col.match(/\d+/g)||[128,128,128];
     const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
     const lit=Math.min(1,lum/150);
-    const big=size>9?.5:1;
-    const bodyCol=shadeRGB(s.col,(rng()-.5)*.08*big*(.4+.6*lit));
-    c.strokeStyle=shadeRGB(bodyCol,-.1); c.globalAlpha=al*.45;
-    if(m===2||size<3) _slPolyline(c,p,size*1.15); else _slTaper(c,p,size*1.15);
-    c.strokeStyle=bodyCol; c.globalAlpha=al*.92;
-    if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size*.95);
-    const rel=(.3+.7*lit)*big;
-    if(size>=2&&rel>.15){
-      c.strokeStyle=shadeRGB(bodyCol,.24); c.globalAlpha=al*.22*rel;
-      _offsetPath(c,p,nx*size*.26,ny*size*.26,Math.max(.5,size*.22));
-      c.strokeStyle=shadeRGB(bodyCol,-.24); c.globalAlpha=al*.16*rel;
-      _offsetPath(c,p,-nx*size*.3,-ny*size*.3,Math.max(.5,size*.2));
-      for(const b of [-.22,.16]){
-        c.strokeStyle=shadeRGB(bodyCol,b<0?-.12:.1); c.globalAlpha=al*.14*rel;
-        _offsetPath(c,p,nx*size*b,ny*size*b,Math.max(.4,size*.11));
-      }
+    const bodyCol=shadeRGB(s.col,(rng()-.5)*.05*lit);
+    c.strokeStyle=bodyCol;
+    c.globalAlpha=al*.2;  _slPolyline(c,p,size*1.5);
+    c.globalAlpha=al*.45; _slPolyline(c,p,size*1.12);
+    c.globalAlpha=al*.92;
+    if(m===2||size<3) _slPolyline(c,p,size*.85); else _slTaper(c,p,size*.9);
+    if(size>=4&&lit>.5&&rng()<.4){
+      c.strokeStyle=shadeRGB(bodyCol,.12); c.globalAlpha=al*.14;
+      _offsetPath(c,p,nx*size*.22,ny*size*.22,Math.max(.5,size*.16));
     }
   } else if(media==='impasto'){
-    // oil with the paint laid on thick: wider body, brighter catch of
-    // light, and a deposit of paint where the stroke lifts off
-    c.strokeStyle=s.col; c.globalAlpha=al;
-    if(m===2||size<3) _slPolyline(c,p,size*1.2); else _slTaper(c,p,size*1.25);
-    if(size>=1.6){
-      c.strokeStyle=shadeRGB(s.col,.3); c.globalAlpha=al*.3;
-      _offsetPath(c,p,nx*size*.3,ny*size*.3,Math.max(.5,size*.3));
-      c.strokeStyle=shadeRGB(s.col,-.3); c.globalAlpha=al*.2;
-      _offsetPath(c,p,-nx*size*.33,-ny*size*.33,Math.max(.5,size*.26));
-      c.globalAlpha=al*.24; c.fillStyle=shadeRGB(s.col,.34);
-      c.beginPath();
-      c.arc(p[m-1][0]+nx*size*.15,p[m-1][1]+ny*size*.15,Math.max(.5,size*.3),0,7);
-      c.fill();
+    // paint laid on thick: same blended body as oil but heavier, with a
+    // brighter catch of light and a deposit where the stroke lifts off -
+    // and the relief still obeys the light (quiet in shadow)
+    const mm=s.col.match(/\d+/g)||[128,128,128];
+    const lit=Math.min(1,(.3*mm[0]+.59*mm[1]+.11*mm[2])/150);
+    c.strokeStyle=s.col;
+    c.globalAlpha=al*.25; _slPolyline(c,p,size*1.55);
+    c.globalAlpha=al;
+    if(m===2||size<3) _slPolyline(c,p,size*1.1); else _slTaper(c,p,size*1.15);
+    if(size>=3&&lit>.35){
+      c.strokeStyle=shadeRGB(s.col,.18); c.globalAlpha=al*.2*lit;
+      _offsetPath(c,p,nx*size*.26,ny*size*.26,Math.max(.5,size*.2));
+      if(rng()<.3){
+        c.globalAlpha=al*.18*lit; c.fillStyle=shadeRGB(s.col,.22);
+        c.beginPath();
+        c.arc(p[m-1][0]+nx*size*.15,p[m-1][1]+ny*size*.15,Math.max(.5,size*.28),0,7);
+        c.fill();
+      }
     }
   } else if(media==='gouache'){
-    // opaque and matte: a soft same-hue edge under a flat body, no shine
-    c.strokeStyle=shadeRGB(s.col,-.1); c.globalAlpha=al*.25;
-    _slPolyline(c,p,size*1.18);
-    c.strokeStyle=s.col; c.globalAlpha=al*.97;
-    if(m===2||size<3) _slPolyline(c,p,size*.95); else _slTaper(c,p,size);
+    // opaque and matte: a feathered edge of its own colour, then a flat
+    // velvet body - no shine, no rims
+    c.strokeStyle=s.col;
+    c.globalAlpha=al*.22; _slPolyline(c,p,size*1.4);
+    c.globalAlpha=al*.95;
+    if(m===2||size<3) _slPolyline(c,p,size*.92); else _slTaper(c,p,size*.97);
   } else if(media==='acrylic'){
-    // crisp plastic body with a thin satin catch of light
-    c.strokeStyle=s.col; c.globalAlpha=al;
-    if(m===2||size<3) _slPolyline(c,p,size*.95); else _slTaper(c,p,size);
-    if(size>=2.4){
-      c.strokeStyle=shadeRGB(s.col,.24); c.globalAlpha=al*.12;
-      _offsetPath(c,p,nx*size*.2,ny*size*.2,Math.max(.4,size*.16));
+    // crisp but not cut out: a slim feather, a clean body, and a satin
+    // catch of light only where there is light
+    const mm=s.col.match(/\d+/g)||[128,128,128];
+    const lit=Math.min(1,(.3*mm[0]+.59*mm[1]+.11*mm[2])/150);
+    c.strokeStyle=s.col;
+    c.globalAlpha=al*.25; _slPolyline(c,p,size*1.25);
+    c.globalAlpha=al;
+    if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size*.95);
+    if(size>=3&&lit>.45){
+      c.strokeStyle=shadeRGB(s.col,.16); c.globalAlpha=al*.1;
+      _offsetPath(c,p,nx*size*.2,ny*size*.2,Math.max(.4,size*.14));
     }
   } else if(media==='pastel'){
     // soft dust: a broad tender body with grain drifting off both edges
-    c.strokeStyle=s.col; c.globalAlpha=al*.5; _slPolyline(c,p,size*1.3);
+    c.strokeStyle=s.col;
+    c.globalAlpha=al*.16; _slPolyline(c,p,size*1.7);
+    c.globalAlpha=al*.5; _slPolyline(c,p,size*1.2);
     c.globalAlpha=al*.3;
     for(let k=0;k<2;k++){
       const b=(rng()-.5)*size*.9;
@@ -218,18 +208,18 @@ function drawOneStroke(c,s,size,al,media,rng){
     _offsetPath(c,p,(rng()-.5)*size*.35,(rng()-.5)*size*.35,Math.max(.4,size*.22));
     c.setLineDash([]);
   } else if(media==='ink'){
-    // sumi lives on reserved paper: light and mid tones are mostly LEFT
-    // OUT, and what remains is a thin wash - only true darks carry the
-    // drawing. Painting every stroke dark is how you get a black slab.
+    // sumi on reserved paper: tone is carried by HOW MANY strokes are
+    // allowed to exist, and each surviving stroke is a wash whose weight
+    // scales with the bundle's density - so a portrait's shadow is a deep
+    // layered grey, never a saturated black slab
     const mm=s.col.match(/\d+/g)||[0,0,0];
     let den=1-(.3*mm[0]+.59*mm[1]+.11*mm[2])/255;
     den=Math.pow(den,2.2);
-    if(den<.22&&rng()>den*3.2) return;      // the paper keeps the lights
-    if(den<.5&&rng()>.72) return;           // and breathes in the midtones
-    c.strokeStyle='rgb(34,29,24)';
-    c.globalAlpha=al*(.04+den*.09); _slPolyline(c,p,size*1.8);
-    c.globalAlpha=al*(.07+den*.4);
-    if(m===2||size<3) _slPolyline(c,p,size*.78); else _slTaper(c,p,size*.82);
+    if(rng()>den*1.2+.05) return;           // the paper keeps the lights
+    c.strokeStyle='rgb(38,33,27)';
+    c.globalAlpha=al*df*(.04+.08*den); _slPolyline(c,p,size*1.7);
+    c.globalAlpha=al*df*(.07+.32*den*den);
+    if(m===2||size<3) _slPolyline(c,p,size*.75); else _slTaper(c,p,size*.8);
   } else if(media==='pointillism'){
     // Seurat's arithmetic: the stroke dissolves into touched dots of
     // slightly wandering hue
@@ -251,9 +241,9 @@ function drawOneStroke(c,s,size,al,media,rng){
   } else if(media==='marker'){
     // alcohol marker: flat translucent bands that darken where they overlap
     const cap=c.lineCap; c.lineCap='butt';
-    c.strokeStyle=s.col; c.globalAlpha=al*.38; _slPolyline(c,p,size*1.35);
-    c.globalAlpha=al*.34; _slPolyline(c,p,size*.8);
-    c.strokeStyle=shadeRGB(s.col,-.1); c.globalAlpha=al*.18;
+    c.strokeStyle=s.col; c.globalAlpha=al*df*.38; _slPolyline(c,p,size*1.35);
+    c.globalAlpha=al*df*.34; _slPolyline(c,p,size*.8);
+    c.strokeStyle=shadeRGB(s.col,-.1); c.globalAlpha=al*df*.18;
     _offsetPath(c,p,nx*size*.5,ny*size*.5,Math.max(.5,size*.22));
     c.lineCap=cap;
   } else if(media==='spray'){
@@ -274,7 +264,7 @@ function drawOneStroke(c,s,size,al,media,rng){
     // burnt willow: colour surrenders to warm grey, pressure varies,
     // and the side of the stick smudges alongside
     const mm=s.col.match(/\d+/g)||[0,0,0];
-    const g=Math.round((.3*mm[0]+.59*mm[1]+.11*mm[2])*.55);
+    const g=Math.round(24+(.3*mm[0]+.59*mm[1]+.11*mm[2])*.74);
     const cc='rgb('+(g+14)+','+(g+9)+','+(g+5)+')';
     c.strokeStyle=cc; c.globalAlpha=al*.12;
     _offsetPath(c,p,nx*size*.45,ny*size*.45,size*1.5);
@@ -286,15 +276,19 @@ function drawOneStroke(c,s,size,al,media,rng){
       c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
     }
   } else if(media==='neon'){
-    // a few glowing tubes in a dark room - not every stroke becomes light,
-    // or the whole canvas sums to white
-    if(rng()>.3) return;
+    // a few glowing tubes in a dark room: how many strokes become light
+    // scales with the bundle's density, so a dense trace and a sparse
+    // sketch both stay a night scene instead of summing to white
+    if(rng()>.4*df) return;
     const comp=c.globalCompositeOperation;
     c.globalCompositeOperation='lighter';
-    const tube=_vivid(s.col,.5);
-    c.strokeStyle=tube; c.globalAlpha=al*.05; _slPolyline(c,p,size*2.8);
-    c.globalAlpha=al*.11; _slPolyline(c,p,size*1.3);
-    c.strokeStyle=_mixWhite(tube,.45); c.globalAlpha=al*.32;
+    const tube=_vivid(s.col,.5), g=.55+.45*df;
+    const mm=s.col.match(/\d+/g)||[128,128,128];
+    const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
+    c.strokeStyle=tube; c.globalAlpha=al*.04*g; _slPolyline(c,p,size*2.8);
+    c.globalAlpha=al*.09*g; _slPolyline(c,p,size*1.3);
+    // bright passages keep their hue: only the dimmer tubes flash white-hot
+    c.strokeStyle=lum>190?tube:_mixWhite(tube,.35); c.globalAlpha=al*.22*g;
     _slPolyline(c,p,Math.max(.55,size*.34));
     c.globalCompositeOperation=comp;
   } else {
@@ -302,22 +296,55 @@ function drawOneStroke(c,s,size,al,media,rng){
     if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size);
   }
 }
+/* the medium's finish: some media are defined less by any one stroke than by
+   what the whole sheet looks like when it dries. Applied as a post pass over
+   the finished canvas - sumi dries to warm monochrome, neon's blown lights
+   recover their colour, watercolor gains the paper's luminosity. */
+let _toneTmp=null;
+function _toneFinish(c,media){
+  c.save();
+  if(typeof c.filter==='string'){
+    if(!_toneTmp){ _toneTmp=document.createElement('canvas');
+      _toneTmp.width=W*DPR; _toneTmp.height=H*DPR; }
+    const g=_toneTmp.getContext('2d');
+    g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,W*DPR,H*DPR);
+    g.drawImage(paintCanvas,0,0);
+    c.setTransform(1,0,0,1,0,0); c.globalAlpha=1;
+    c.filter=media==='ink'?'saturate(0.12) sepia(0.26) brightness(1.05)'
+      :media==='charcoal'?'saturate(0.16) brightness(1.03)'
+      :media==='neon'?'saturate(1.4) brightness(0.88) contrast(1.05)'
+      :'saturate(1.12) brightness(1.08)';
+    c.drawImage(_toneTmp,0,0); c.filter='none';
+  } else if(media==='ink'||media==='charcoal'){
+    // no canvas filters (Safari): blend modes still dry the sheet to
+    // warm monochrome
+    c.setTransform(DPR,0,0,DPR,0,0); c.globalAlpha=1;
+    c.globalCompositeOperation='saturation';
+    c.fillStyle='rgb(128,128,128)'; c.fillRect(0,0,W,H);
+    c.globalCompositeOperation='color';
+    c.globalAlpha=.3; c.fillStyle='rgb(122,106,84)'; c.fillRect(0,0,W,H);
+  }
+  c.restore();
+}
 /* draw a slice of a bundle - the replay engine reveals bundles gradually */
 function drawStrokesRange(c,st,from,to){
   /* neon is light in darkness and sumi is ink on paper: before the first
      bundle of those media touches the canvas, the underpainting is veiled -
      dimmed to night for neon, calmed to paper for ink */
-  if(st.first&&from===0&&(st.media==='neon'||st.media==='ink')){
+  if(st.first&&from===0&&
+     (st.media==='neon'||st.media==='ink'||st.media==='charcoal')){
     c.save(); c.setTransform(DPR,0,0,DPR,0,0);
     c.globalAlpha=1;
-    c.fillStyle=st.media==='neon'?'rgba(9,8,15,0.86)':'rgba(246,241,231,0.85)';
+    c.fillStyle=st.media==='neon'?'rgba(9,8,15,0.9)'
+      :st.media==='ink'?'rgba(246,241,231,0.93)':'rgba(246,241,231,0.88)';
     c.fillRect(0,0,W,H);
     c.restore();
   }
   const rng=mulberry32((((st.seed||9)+from)>>>0)||9);
   c.lineCap='round'; c.lineJoin='round';
   const end=Math.min(to,st.list.length);
-  for(let i=from;i<end;i++) drawOneStroke(c,st.list[i],st.size,st.al,st.media,rng);
+  for(let i=from;i<end;i++)
+    drawOneStroke(c,st.list[i],st.size,st.al,st.media,rng,st.df);
   c.globalAlpha=1;
 }
 function strokes(blob,o={}){
@@ -325,18 +352,35 @@ function strokes(blob,o={}){
   if(!list) return;
   const size=o.size===undefined?6:o.size, al=o.opacity===undefined?1:o.opacity;
   const media=o.media||'flat';
-  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-  for(const s of list) for(const p of s.pts){
-    if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0];
-    if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9, foot=0;
+  for(const s of list){
+    const q=s.pts; let len=0;
+    for(let i=0;i<q.length;i++){
+      const p=q[i];
+      if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0];
+      if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1];
+      if(i) len+=Math.hypot(p[0]-q[i-1][0],p[1]-q[i-1][1]);
+    }
+    foot+=(len+size)*Math.max(size,.8);
+  }
+  // coverage: expected paint layers per pixel inside the bundle's box.
+  // Dense traced layers get df<1 so their glazes accumulate to the same
+  // tone a hand would reach with thirty strokes (translucent media use it)
+  const cov=foot/Math.max(1,(x1-x0)*(y1-y0));
+  const df=cov>1?1/Math.sqrt(cov):1;
   window.__plStrokeOps=(window.__plStrokeOps||0)+1;
-  const st={list, size, al, media, seed:Math.floor(rand(0,1e9)),
+  const st={list, size, al, media, df, seed:Math.floor(rand(0,1e9)),
     first:window.__plStrokeOps===1};
   // not click-selectable: bundles belong to their layer (hide/move/scale in
   // the Layers pane) and their code line - clicks always reach the forms
   const idx=addOp('strokes',[x0-size*2,y0-size*2,x1-x0+size*4,y1-y0+size*4],
     c=>drawStrokesRange(c,st,0,st.list.length), false);
   ops[idx]._strokes=st;
+  if(!window.__plTonePost&&
+     (media==='ink'||media==='neon'||media==='watercolor'||media==='charcoal')){
+    window.__plTonePost=1;
+    ops[idx].post=c=>_toneFinish(c,media);
+  }
 }
 function form(x,y,w,h,o={}){
   if(x&&typeof x==='object'){ o=x;

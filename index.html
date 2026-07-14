@@ -340,7 +340,7 @@ try{
         <tr><td>line(x1, y1, x2, y2, {color, size})</td><td>Straight stroke.</td></tr>
         <tr><td>polygon(points, {color, smooth, seal})</td><td>Closed filled polygon from [[x,y], ...]. <code>smooth: true</code> draws it as a flowing curve through the points instead of straight edges; <code>seal: true</code> outlines it in its own colour to close hairline gaps between traced shapes; <code>shade: ['#tone', angle°]</code> adds the same lighting gradient as form().</td></tr>
         <tr><td>form({x, y, w, h, color, shade, pts})</td><td>A traced painting mass with readable placement: <b>x, y is its centre, w, h its size</b> - edit those numbers (or click one for a slider) to move and stretch it. <code>color</code> is its dark tone; <code>shade: ['#tone', angle°]</code> grades it toward a lit tone in that direction, sampled from the imported photo. <code>pts</code> holds the packed outline (leave it be; delete it and the form becomes a plain rectangle). What the image tracer writes; positional <code>form(x, y, w, h, {...})</code> also works. Select a form and press <kbd>P</kbd> to unpack its outline into an editable <code>polygon()</code> point list.</td></tr>
-        <tr><td>strokes(blob, {size, media, opacity})</td><td>A packed bundle of painterly detail strokes - the trace service's coarse-to-fine paint passes. <code>media</code> renders the same strokes in fifteen media: <code>'oil'</code> (bristle striations under one studio light), <code>'impasto'</code>, <code>'acrylic'</code>, <code>'gouache'</code>, <code>'watercolor'</code> (luminous washes, broken dried edges, pooling), <code>'pastel'</code>, <code>'chalk'</code>, <code>'charcoal'</code>, <code>'pencil'</code>, <code>'pointillism'</code> (the stroke dissolves into dots), <code>'marker'</code>, <code>'spray'</code>, <code>'ink'</code> (a sumi wash - colour becomes ink density), <code>'neon'</code> (additive light) or <code>'flat'</code>. Traced paintings declare <code>const MEDIUM</code> at the top - change that one word and the whole painting re-renders in a different medium.</td></tr>
+        <tr><td>strokes(blob, {size, media, opacity})</td><td>A packed bundle of painterly detail strokes - the trace service's coarse-to-fine paint passes. <code>media</code> renders the same strokes in any of the fifteen media listed below. Traced paintings declare <code>const MEDIUM</code> at the top - change that one word and the whole painting re-renders in a different medium.</td></tr>
         <tr><td>triangle(x1,y1, x2,y2, x3,y3, {color})</td><td>Filled triangle.</td></tr>
         <tr><td>star(x, y, spikes, outer, inner, {color})</td><td>Star polygon.</td></tr>
         <tr><td>ngon(x, y, sides, r, {color, rotate})</td><td>Regular polygon - diamond (4), pentagon (5), hexagon (6)...</td></tr>
@@ -350,6 +350,28 @@ try{
         <tr><td>stroke(points, {brush, color, size, opacity})</td><td>A painted stroke - what the Paint tool writes. Points are <code>[x, y]</code> or <code>[x, y, pressure]</code> (0-1, from your pen or synthesized from mouse speed). <code>brush</code> picks from the library below; without it you get a clean plain line. Legacy <code>nib: 'chisel'</code> still works.</td></tr>
         <tr><td>spray(points, {color, size, density, opacity})</td><td>Airbrush dots along a path (also available as the Airbrush brush).</td></tr>
         <tr><td>text(x, y, str, {size, color, font, align})</td><td>Painted lettering.</td></tr>
+      </table>
+
+      <h3>The fifteen media</h3>
+      <p>Every value below works as <code>media</code> in <code>strokes()</code> and as the
+        <code>const MEDIUM</code> word at the top of a traced painting. The strokes stay the
+        same; the physics of the paint changes.</p>
+      <table class="api">
+        <tr><td>'oil'</td><td>Blended paint with a body: colour lands exactly as sampled, edges feather into their neighbours, and large lit strokes catch one studio light. The traced default.</td></tr>
+        <tr><td>'impasto'</td><td>Oil laid on thick - heavier body, brighter catch of light, a deposit of paint where each stroke lifts off. Relief stays quiet in shadow.</td></tr>
+        <tr><td>'acrylic'</td><td>Crisp, clean body with a thin satin sheen in the lit passages.</td></tr>
+        <tr><td>'gouache'</td><td>Opaque and matte - a flat velvet body with softly feathered edges, no shine at all.</td></tr>
+        <tr><td>'watercolor'</td><td>Transparent glazes that fuse into washes; the lightest passages are reserved as untouched paper, and dried edges appear only where light shows them.</td></tr>
+        <tr><td>'pastel'</td><td>Soft dust - a broad tender body with grain drifting off both edges.</td></tr>
+        <tr><td>'chalk'</td><td>Dry broken pressure - each segment lands with its own weight and wobble.</td></tr>
+        <tr><td>'charcoal'</td><td>Burnt willow: colour surrenders to warm grey, and the side of the stick smudges alongside the line.</td></tr>
+        <tr><td>'pencil'</td><td>Coloured pencil - two fine jittered passes that never quite align.</td></tr>
+        <tr><td>'pointillism'</td><td>Seurat's arithmetic: every stroke dissolves into touched dots of slightly wandering hue.</td></tr>
+        <tr><td>'marker'</td><td>Alcohol marker - flat translucent bands that darken where they overlap.</td></tr>
+        <tr><td>'spray'</td><td>Airbrush - a drifting cloud of fine droplets around each path.</td></tr>
+        <tr><td>'ink'</td><td>Sumi wash on reserved paper: colour becomes ink density, the lights stay paper, only the true darks carry the drawing.</td></tr>
+        <tr><td>'neon'</td><td>The painting becomes a night scene: the underpainting dims and a measured share of strokes become additive glowing tubes.</td></tr>
+        <tr><td>'flat'</td><td>Plain flat strokes - the raw traced data, no medium physics.</td></tr>
       </table>
 
       <h3>Brush library</h3>

@@ -39,7 +39,7 @@ function runCode(){
   const inst = instrument(src);
   lastRunSrc = src; runSites = inst.sites;
   ops = []; siteStack.length = 0; currentLayer = null; layersRun = [];
-  window.__plStrokeOps = 0;
+  window.__plStrokeOps = 0; window.__plTonePost = 0;
   seed(7); lastErr = null;
   const t0 = performance.now();
   try{
