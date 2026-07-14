@@ -151,11 +151,15 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
       if(mi>=0){
         const vs=mi+16, ve=src2.indexOf("'", vs);
         const line=src2.slice(0,mi).split('\n').length-1;
-        ta.scrollTop=Math.max(0, line*20.15-70);
-        hl.scrollTop=ta.scrollTop;
+        const top=Math.max(0, line*20.15-70);
+        // select before focusing, and focus without scrolling: a bare
+        // focus() jumps to the caret, which sits at the END of the document
         if(!matchMedia('(max-width: 820px)').matches){
-          ta.focus(); ta.setSelectionRange(vs, ve);
+          ta.setSelectionRange(vs, ve);
+          ta.focus({preventScroll:true});
         }
+        ta.scrollTop=top; hl.scrollTop=top;
+        requestAnimationFrame(()=>{ ta.scrollTop=top; hl.scrollTop=top; });
         statusMsgEl.textContent="try it: change '"+src2.slice(vs,ve)
           +"' to 'watercolor' and the whole painting repaints in a new medium";
         statusMsgEl.className='ok';
