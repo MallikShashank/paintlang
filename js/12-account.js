@@ -388,6 +388,7 @@ function renderAcct(){
     if(useIndia&&b.inAvailable){
       btn=acctBtnEl('Upgrade to Pro', async ev=>{
         const el2=ev.currentTarget; el2.disabled=true;
+        plMetric('upgrade-click');
         try{
           const r=await acctApi('/api/billing/rzp/subscribe',{method:'POST',body:{}});
           window.open(r.url,'_blank','noopener');
@@ -398,6 +399,7 @@ function renderAcct(){
       btn.title='Paintlang Pro - Rs 399 per month via UPI. Cancel anytime.';
     }else if(b.intlLink){
       btn=acctBtnEl('Upgrade to Pro', ()=>{
+        plMetric('upgrade-click');
         window.open(b.intlLink,'_blank','noopener');
         apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
         startProPoll();
@@ -425,6 +427,7 @@ function renderAcct(){
       const r=await acctApi('/api/work/save',{method:'POST',body:bodyq});
       d.cloudId=r.id; label.value='';
       if(typeof persistDocs==='function') persistDocs();
+      plMetric('save');
       apiStatus('saved - "'+d.name+'" is now version '+r.ver+' in your gallery', true);
       const old=sb.innerHTML;
       sb.innerHTML=plIco('check')+' Saved'; sb.classList.add('saved-ok');
@@ -791,3 +794,54 @@ document.querySelectorAll('[data-ico]').forEach(n=>{ n.innerHTML=plIco(n.dataset
 /* already signed in on this device: fetch the account's studio if another
    device has moved it forward since we were last here */
 if(acct.key) setTimeout(()=>wsPull(false), 1500);
+
+/* -------------------- the thirty second first run --------------------
+   Text tells; interaction teaches. Two live actions and the visitor has
+   understood the whole product: gestures become code, code repaints. */
+(function(){
+  let coached=false, welcomed=false;
+  try{
+    coached=!!localStorage.getItem('paintlang-coached');
+    welcomed=!!localStorage.getItem('paintlang-welcomed');
+  }catch(e){}
+  if(coached) return;
+  // arrivals into shared or gallery paintings get a different first moment
+  if(location.search.indexOf('open=')>=0||location.search.indexOf('s=')>=0
+    ||location.hash.length>2) return;
+  const box=document.createElement('div'); box.id='coach';
+  box.innerHTML='<span class="cdot"></span><span id="coachTxt"></span>'
+    +'<button id="coachSkip" title="dismiss the guide" aria-label="dismiss">×</button>';
+  document.body.appendChild(box);
+  const txt=box.querySelector('#coachTxt');
+  const STEPS=[
+    'paint one stroke anywhere on the canvas',
+    'now press Select and drag the sun somewhere else',
+    'that is Paintlang: your gestures became code, and the code repaints. Click any number in the code for a slider.'
+  ];
+  let step=-1;
+  function show(i){
+    step=i; txt.textContent=STEPS[i]; box.classList.add('show');
+    if(i===2) setTimeout(done, 9000);
+  }
+  function done(){
+    if(!box.isConnected) return;
+    box.classList.add('bye'); setTimeout(()=>box.remove(), 500);
+    try{ localStorage.setItem('paintlang-coached','1'); }catch(e){}
+    if(step===2) plMetric('coach-done');
+  }
+  box.querySelector('#coachSkip').addEventListener('click', done);
+  addEventListener('pl-edit',e=>{
+    plMetric('first-canvas-edit', true);
+    if(step===0&&e.detail.kind==='stroke') show(1);
+    else if(step===1&&e.detail.kind==='move') show(2);
+  });
+  if(welcomed) setTimeout(()=>show(0), 1500);
+  else{
+    // begin once the welcome card is answered, either way
+    for(const id of ['welcomeGo','welcomeRef']){
+      const b=document.getElementById(id);
+      if(b) b.addEventListener('click', ()=>setTimeout(()=>show(0), 600));
+    }
+    setTimeout(()=>{ if(step<0) show(0); }, 12000);   // card ignored: begin anyway
+  }
+})();

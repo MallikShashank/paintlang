@@ -18,6 +18,23 @@ const gutterInner = document.getElementById('gutterInner');
 const statusMsgEl = document.getElementById('statusMsg');
 const statusPosEl = document.getElementById('statusPos');
 
+/* anonymous product counters - a key and a +1, nothing else. 'once' keys
+   count each browser a single time (first-code-edit, first-canvas-edit) */
+function plMetric(k, once){
+  try{
+    if(once){
+      const kk='paintlang-m-'+k;
+      if(localStorage.getItem(kk)) return;
+      localStorage.setItem(kk,'1');
+    }
+    const api=localStorage.getItem('paintlang-trace-api')
+      ||'https://paintlang-trace.paintlang.workers.dev';
+    const body=JSON.stringify({k});
+    if(navigator.sendBeacon) navigator.sendBeacon(api+'/api/m', body);
+    else fetch(api+'/api/m',{method:'POST',body,keepalive:true}).catch(()=>{});
+  }catch(e){}
+}
+
 /* ---- seeded randomness ---- */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}

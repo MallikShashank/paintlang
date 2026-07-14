@@ -253,6 +253,22 @@
   .dfoot a{color:var(--muted);text-decoration:none}
   .dfoot a:hover{color:var(--text)}
 
+  /* ---- first-run coach ---- */
+  #coach{position:fixed;bottom:38px;left:50%;transform:translate(-50%,16px);z-index:45;
+    display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;
+    background:var(--panel);border:1px solid var(--focus);border-radius:24px;
+    font-size:13px;color:var(--text);box-shadow:0 12px 34px rgba(0,0,0,.45);
+    opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;max-width:92vw}
+  #coach.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  #coach.bye{opacity:0;transform:translate(-50%,10px)}
+  #coach .cdot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:none;
+    animation:coachPulse 1.6s ease-in-out infinite}
+  @keyframes coachPulse{0%,100%{box-shadow:0 0 0 0 var(--accent-soft)}
+    50%{box-shadow:0 0 0 7px var(--accent-soft)}}
+  #coach button{background:none;border:none;color:var(--muted);font-size:15px;
+    padding:0 4px;line-height:1}
+  #coach button:hover{color:var(--text)}
+
   /* ---- upgrade button ---- */
   .pro-btn{width:100%;padding:10px 14px;font-size:13px;font-weight:600;
     color:#fff;border:none;border-radius:4px;letter-spacing:.02em;

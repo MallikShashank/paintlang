@@ -550,6 +550,7 @@ overlay.addEventListener('pointerup', e=>{
         sel=keep; if(sel<ops.length) drawSel();
         statusMsgEl.textContent=`moved ${nm} #${keep} - its coordinates were rewritten in the code`;
         statusMsgEl.className='ok';
+        window.dispatchEvent(new CustomEvent('pl-edit',{detail:{kind:'move',name:nm}}));
       } else if(ops[sel]&&ops[sel].bake){
         appendCode('hide('+sel+')  // baked into its own call below\n'+ops[sel].bake(dx,dy));
         sel=-1; octx.clearRect(0,0,W,H);
@@ -582,6 +583,7 @@ overlay.addEventListener('pointerup', e=>{
       tuneStr=', tune: { '+parts.join(', ')+' }'; }
     appendCode(`stroke(${JSON.stringify(sp)}, { brush: '${brush}'${colStr}, size: ${size}${opStr}${tuneStr} })`
       +(brush==='eraser'?'  // eraser':(brush==='smudge'?'  // smudge':'')));
+    window.dispatchEvent(new CustomEvent('pl-edit',{detail:{kind:'stroke',name:brush}}));
   } else if(tool==='shape'){
     const kind=pshapeSel.value;
     const r=Math.round(Math.hypot(rx-sx,ry-sy));

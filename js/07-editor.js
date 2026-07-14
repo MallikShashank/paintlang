@@ -46,6 +46,7 @@ ta.addEventListener('scroll', ()=>{
 let debounceT = null;
 ta.addEventListener('input', ()=>{
   renderHL(); sel = -1; linebarLine=-1; positionLinebar(); if(typeof hideSelAction==="function") hideSelAction();
+  plMetric('first-code-edit', true);
   clearTimeout(debounceT); debounceT = setTimeout(runCode, 380);
 });
 

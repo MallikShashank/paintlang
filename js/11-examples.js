@@ -108,6 +108,7 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
       }
     }catch(e){}
   }
+  let openedGallery=false;
   const openQ=new URLSearchParams(location.search).get('open');
   if(openQ&&/^gallery\/[a-z0-9\-]+\.paint$/.test(openQ)){
     try{
@@ -117,8 +118,8 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
         docs.push({name:uniqueDocName(openQ.split('/')[1].replace('.paint','').slice(0,24)),
           code:src, undo:[], redo:[]});
         activeDoc=docs.length-1;
-        statusMsgEl.textContent='✓ gallery piece opened - replay it, remix it, or copy its layers';
-        statusMsgEl.className='ok';
+        openedGallery=true;
+        plMetric('gallery-open');
       }
     }catch(e){}
   }
@@ -139,9 +140,27 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
     statusMsgEl.textContent='rendering a large painting...';
     statusMsgEl.className='ok';
   }
+  plMetric('visit');
   setTimeout(()=>{
     if(sharedArrival) window.__plHoldRun=true;
     activateDoc(activeDoc);
+    if(openedGallery){
+      // the wall of traced code needs one safe, dramatic first edit:
+      // point straight at the word that repaints the whole painting
+      const src2=ta.value, mi=src2.indexOf("const MEDIUM = '");
+      if(mi>=0){
+        const vs=mi+16, ve=src2.indexOf("'", vs);
+        const line=src2.slice(0,mi).split('\n').length-1;
+        ta.scrollTop=Math.max(0, line*20.15-70);
+        hl.scrollTop=ta.scrollTop;
+        if(!matchMedia('(max-width: 820px)').matches){
+          ta.focus(); ta.setSelectionRange(vs, ve);
+        }
+        statusMsgEl.textContent="try it: change '"+src2.slice(vs,ve)
+          +"' to 'watercolor' and the whole painting repaints in a new medium";
+        statusMsgEl.className='ok';
+      }
+    }
     if(froze){
       statusMsgEl.textContent='the last visit froze while rendering a large painting - opened a fresh canvas; your other tabs are safe in the tab bar';
       statusMsgEl.className='ok';

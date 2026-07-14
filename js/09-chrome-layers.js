@@ -14,6 +14,7 @@ divider.addEventListener('pointerdown', e=>{
 document.getElementById('exportBtn').addEventListener('click', ()=>{
   const a=document.createElement('a'); a.download='paintlang.png';
   a.href=paintCanvas.toDataURL('image/png'); a.click();
+  plMetric('export');
 });
 
 /* ---- share links: the whole painting travels compressed in the URL hash,
@@ -73,6 +74,7 @@ document.getElementById('shareBtn').addEventListener('click', async ()=>{
   }
   statusMsgEl.textContent='share '+kind+' copied - anyone who opens it gets this painting, code and all';
   statusMsgEl.className='ok';
+  plMetric('share');
 });
 /* ---- painting replay: reveal the ops in paint order, strokes gradually ----
    startReplay(opts) accepts {speed, media, onEnd}: speed scales the pace

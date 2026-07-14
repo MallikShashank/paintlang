@@ -1,5 +1,37 @@
 # Paintlang launch and growth plan
 
+## Addendum 2026-07-14 - adjustments adopted from external reviews
+
+Reviewed a Copilot PLG plan and a ChatGPT critique of it. Decisions:
+- Lead with the MECHANISM, not the category: "paint on the canvas and get
+  code; edit the code and the painting repaints". The gallery gets its own
+  launch story: "Masterpieces that paint themselves - open the code and
+  make them yours".
+- NO watermarks on free exports (art-community goodwill beats the generic
+  viral loop). Attribution rides on things artists want to share: replay
+  links, remix links, per-piece share pages.
+- Three 12-20 second clips (drag rewrites code / stroke becomes code /
+  MEDIUM flip on the Great Wave) matter more than the one 90s demo.
+- HN first; Product Hunt only after the first feedback cycle.
+- Beta: 10-15 targeted creative coders/artists/educators, not 50 generic.
+  Get five creations not made by the founder before PH.
+- North star TODAY: activated creators (did a visual edit AND a code edit,
+  then saved/shared/exported). Weekly published/remixed creations becomes
+  the metric once remixing exists.
+- Community features (profiles, comments, feeds) only when manual
+  showcasing stops scaling. Weekly challenge runs manually first.
+- Public remix feed and embeds: build AFTER launch traction. Embeds ride
+  the sandboxed-runtime security work (one build, two wins).
+
+SHIPPED to support this (2026-07-14): guided 30s first-run coach (paint a
+stroke -> drag the sun), gallery-to-studio MEDIUM spotlight, per-piece
+share pages at /gallery/p/<slug>.html with per-piece og cards in
+/assets/og/, Share button on museum plaques, and anonymous metrics
+counters (visit, gallery-visit, gallery-open, first-code-edit,
+first-canvas-edit, coach-done, save, share, export, signup, upgrade-click).
+Read metrics: npx wrangler d1 execute paintlang-db --remote -y --command
+"SELECT day,k,n FROM metrics ORDER BY day DESC,n DESC LIMIT 40"
+
 Written 2026-07-12, the day both payment rails went live. Work top to bottom;
 each phase gates the next. Copy for HN/Reddit and the demo video script live
 in launch.md - reuse them, updated for what shipped since (gallery, accounts,

@@ -525,6 +525,10 @@ function cardReplay(card,doc,dur){
 /* ================= build the museum ================= */
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 const yearNum=y=>{ const m=String(y).match(/\d{4}/); return m?+m[0]:9999; };
+try{
+  navigator.sendBeacon('https://paintlang-trace.paintlang.workers.dev/api/m',
+    JSON.stringify({k:'gallery-visit'}));
+}catch(e){}
 
 /* ============ the gate: arrive inside a closed scroll ============
    The unroll is driven by hand, not by a CSS curve: an eased pull with a
@@ -792,7 +796,17 @@ function renderPlaque(ri,swap){
       +'<div class="acts">'
       +'<a style="background:'+era.ink+';color:'+era.b+'" href="/?open=gallery/'+p.slug+'.paint">Open the code</a>'
       +'<a style="border:1px solid '+era.ink+';color:'+era.ink+'" href="/?open=gallery/'+p.slug+'.paint&replay=1">Replay in the studio</a>'
+      +'<a class="shareP" style="border:1px solid '+era.ink+';color:'+era.ink
+        +'" href="/gallery/p/'+p.slug+'.html">Share</a>'
       +'</div>';
+    const sp=el.querySelector('.shareP');
+    sp.addEventListener('click',ev=>{
+      ev.preventDefault();
+      const url='https://paintlang.com/gallery/p/'+p.slug+'.html';
+      navigator.clipboard.writeText(url).then(()=>{
+        sp.textContent='Link copied'; setTimeout(()=>{ sp.textContent='Share'; },1800);
+      }).catch(()=>{ location.href=url; });
+    });
   };
   if(swap){ el.classList.add('swap');
     setTimeout(()=>{ fill(); el.classList.remove('swap'); },240);
@@ -1166,8 +1180,8 @@ function injectSchema(rooms){
     items.push({'@type':'VisualArtwork', name:p.title,
       creator:{'@type':'Person', name:room.artist},
       dateCreated:String(p.year),
-      image:'https://paintlang.com/gallery/'+p.slug+'.svg',
-      url:'https://paintlang.com/?open=gallery/'+p.slug+'.paint'});
+      image:'https://paintlang.com/assets/og/'+p.slug+'.jpg',
+      url:'https://paintlang.com/gallery/p/'+p.slug+'.html'});
   }));
   const s=document.createElement('script');
   s.type='application/ld+json';
