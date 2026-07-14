@@ -136,14 +136,16 @@ const WS={t:0, lastEdit:0, timer:null, syncing:false};
 function docsSnapshot(){
   if(docs[activeDoc]) docs[activeDoc].code=ta.value;
   return JSON.stringify({a:activeDoc,
-    d:docs.map(d=>({n:d.name, c:d.code, w:d.cloudId||undefined}))});
+    d:docs.map(d=>({n:d.name, c:d.code, w:d.cloudId||undefined,
+      r:d.remixOf||undefined, p:d.pubId||undefined}))});
 }
 function loadDocsState(stateStr, msg){
   try{
     const s=JSON.parse(stateStr);
     if(!s||!Array.isArray(s.d)||!s.d.length) return false;
     docs=s.d.map(x=>({name:String(x.n||'painting').slice(0,40),
-      code:String(x.c||''), cloudId:x.w||undefined, undo:[], redo:[]}));
+      code:String(x.c||''), cloudId:x.w||undefined,
+      remixOf:x.r||undefined, pubId:x.p||undefined, undo:[], redo:[]}));
     activeDoc=Math.min(Math.max(0,s.a|0), docs.length-1);
     activateDoc(activeDoc);
     if(msg) apiStatus(msg, true);
@@ -766,6 +768,166 @@ function layerBlocksOf(src){
       apiStatus('replay video downloaded ('+(blob.size/1048576).toFixed(1)+' MB, WebM)', true);
     }catch(e){ apiStatus('recording failed: '+e.message, false); }
     finally{ recording=false; }
+  });
+})();
+
+/* ------------------------- the community -------------------------
+   Publish a painting: public, remixable, credited. Browse everyone's:
+   real thumbnails, hearts, remix lineage - and every opened piece arrives
+   HELD, because a painting is a program and strangers' programs do not
+   run themselves. */
+(function(){
+  const modal=el('pubModal'), list=el('pubList');
+  const share=el('pubShare');
+  let sort='new', feedT=0;
+
+  function thumbDataURL(){
+    try{
+      const c2=document.createElement('canvas');
+      c2.width=480; c2.height=300;
+      c2.getContext('2d').drawImage(paintCanvas,0,0,480,300);
+      return c2.toDataURL('image/jpeg',.72);
+    }catch(e){ return ''; }
+  }
+  el('publishBtn').addEventListener('click', async ()=>{
+    if(!acct.key){
+      apiStatus('sign in (menu, Account) to publish to the community', false);
+      return;
+    }
+    closeDrawer();
+    const d=docs[activeDoc]; if(!d) return;
+    el('pubTitle').value=d.name||'';
+    el('pubDescr').value='';
+    const note=el('pubRemixNote');
+    if(d.remixOf){
+      note.hidden=false;
+      note.textContent='This will be published as a remix, crediting the original.';
+    }else note.hidden=true;
+    share.hidden=false;
+  });
+  el('pubShareClose').addEventListener('click',()=>{ share.hidden=true; });
+  share.addEventListener('click',e=>{ if(e.target===share) share.hidden=true; });
+  el('pubGo').addEventListener('click', async ev=>{
+    const btn=ev.currentTarget; btn.disabled=true;
+    try{
+      const d=docs[activeDoc]; d.code=ta.value;
+      const body={title:el('pubTitle').value.trim()||d.name,
+        descr:el('pubDescr').value.trim(), code:d.code, thumb:thumbDataURL()};
+      if(d.remixOf) body.remixOf=d.remixOf;
+      if(d.pubId) body.id=d.pubId;
+      const r=await acctApi('/api/pub/publish',{method:'POST',body});
+      d.pubId=r.id;
+      if(typeof persistDocs==='function') persistDocs();
+      share.hidden=true;
+      plMetric('pub-publish');
+      apiStatus('published - "'+body.title+'" is now on the community wall, credited to '
+        +(acct.handle||'you'), true);
+    }catch(e){ apiStatus('publish: '+e.message, false); }
+    btn.disabled=false;
+  });
+
+  function pubCard(it){
+    const card=document.createElement('div'); card.className='pub-item';
+    const img=document.createElement('img');
+    img.loading='lazy';
+    img.src=API_BASE+'/api/pub/thumb?id='+it.id;
+    img.alt=it.title+' by '+it.author;
+    img.addEventListener('error',()=>{ img.style.display='none'; });
+    card.appendChild(img);
+    const pb=document.createElement('div'); pb.className='pb';
+    const b=document.createElement('b'); b.textContent=it.title;
+    const pm=document.createElement('div'); pm.className='pm';
+    pm.textContent='by '+it.author+' · '+timeAgo(it.created)
+      +(it.opens?' · opened '+it.opens+'×':'');
+    pb.append(b,pm);
+    if(it.remixOf&&it.remixTitle){
+      const pr=document.createElement('div'); pr.className='pr';
+      pr.textContent='remix of "'+it.remixTitle+'" by '+(it.remixAuthor||'?');
+      pb.appendChild(pr);
+    }
+    const pa=document.createElement('div'); pa.className='pa';
+    const love=acctBtnEl(plIco('heart')+' '+it.loves, async ()=>{
+      if(!acct.key){ apiStatus('sign in to love paintings', false); return; }
+      try{
+        const r=await acctApi('/api/pub/love',{method:'POST',body:{id:it.id}});
+        love.innerHTML=plIco('heart')+' '+r.loves;
+        love.classList.toggle('loved', r.loved);
+        plMetric('pub-love');
+      }catch(e){}
+    });
+    love.classList.add('lovebtn');
+    if(it.loved) love.classList.add('loved');
+    const open=acctBtnEl('Open', async ()=>{
+      try{
+        const r=await fetch(API_BASE+'/api/pub/get?id='+it.id).then(x=>x.json());
+        if(!r.code){ apiStatus('could not open it', false); return; }
+        modal.hidden=true;
+        window.__plHoldRun=true;
+        newDoc(r.title, r.code);
+        docs[activeDoc].remixOf=it.id;
+        if(typeof persistDocs==='function') persistDocs();
+        plMetric('pub-open');
+      }catch(e){ apiStatus('open: '+e.message, false); }
+    }, true);
+    pa.append(open,love);
+    if(it.mine){
+      pa.appendChild(acctBtnEl(plIco('trash'), async ()=>{
+        if(!confirm('Remove "'+it.title+'" from the community? Existing remixes keep their copies.')) return;
+        try{ await acctApi('/api/pub/remove',{method:'POST',body:{id:it.id}});
+          card.remove(); apiStatus('removed from the community', true);
+        }catch(e){ apiStatus('remove: '+e.message, false); }
+      }));
+    }
+    const rep=document.createElement('button'); rep.className='repbtn';
+    rep.textContent='report'; rep.title='Report this painting';
+    rep.addEventListener('click', async ()=>{
+      if(!confirm('Report this painting as inappropriate?')) return;
+      try{ await fetch(API_BASE+'/api/pub/report',{method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({id:it.id})});
+        rep.textContent='reported';
+      }catch(e){}
+    });
+    pa.appendChild(rep);
+    pb.appendChild(pa);
+    card.appendChild(pb);
+    return card;
+  }
+  async function loadFeed(){
+    const my=++feedT;
+    list.innerHTML='<p class="libintro">loading...</p>';
+    try{
+      const h={};
+      if(acct.key) h.authorization='Bearer '+acct.key;
+      const r=await fetch(API_BASE+'/api/pub/feed?sort='+(sort==='loved'?'loved':'new'),
+        {headers:h}).then(x=>x.json());
+      if(my!==feedT) return;
+      list.innerHTML='';
+      for(const it of (r.items||[])) list.appendChild(pubCard(it));
+      if(!(r.items||[]).length)
+        list.innerHTML='<p class="libintro">The wall is empty - publish the first painting from the menu.</p>';
+    }catch(e){
+      if(my===feedT)
+        list.innerHTML='<p class="libintro">could not reach the community</p>';
+    }
+  }
+  el('communityBtn').addEventListener('click',()=>{
+    closeDrawer(); modal.hidden=false; loadFeed();
+  });
+  el('pubClose').addEventListener('click',()=>{ modal.hidden=true; });
+  modal.addEventListener('click',e=>{ if(e.target===modal) modal.hidden=true; });
+  for(const [id,s] of [['pubSortNew','new'],['pubSortLoved','loved']])
+    el(id).addEventListener('click',()=>{
+      sort=s;
+      el('pubSortNew').classList.toggle('on',s==='new');
+      el('pubSortLoved').classList.toggle('on',s==='loved');
+      loadFeed();
+    });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      if(!modal.hidden) modal.hidden=true;
+      if(!share.hidden) share.hidden=true;
+    }
   });
 })();
 

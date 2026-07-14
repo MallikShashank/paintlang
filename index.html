@@ -64,6 +64,7 @@ try{
       <div class="dsec">
         <div class="dlabel">Galleries</div>
         <div class="drow"><a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><button><span data-ico="frame"></span> The Coded Gallery</button></a></div>
+        <div class="drow"><button id="communityBtn" title="Paintings published by everyone - open them, love them, remix them"><span data-ico="people"></span> Community <span class="dhint">public</span></button></div>
         <div class="drow"><button id="myGalleryBtn" title="Your private cloud gallery - every painting you saved, with its version history"><span data-ico="folder"></span> My gallery <span class="dhint">private</span></button></div>
         <div class="drow"><button id="libraryBtn" title="Shared components anyone can drop into a painting - official Paintlang ones plus community contributions"><span data-ico="globe"></span> Global library <span class="dhint">public</span></button></div>
       </div>
@@ -75,6 +76,9 @@ try{
         </div>
         <div class="drow">
           <button id="replayVidBtn" title="Record the painting painting itself as a video file - pick the speed and the medium. A Pro feature."><span data-ico="film"></span> Download replay video <span class="dhint">pro</span></button>
+        </div>
+        <div class="drow">
+          <button id="publishBtn" title="Publish this painting to the community - public, remixable, credited to you"><span data-ico="people"></span> Publish to community</button>
         </div>
       </div>
       <div class="dsec" id="acctSec">
@@ -244,6 +248,35 @@ try{
           <option value="flat">Flat colour</option>
         </select></div>
       <div class="drow"><button id="repGo" class="primary">Record and download</button></div>
+    </div>
+  </div>
+
+  <div id="pubModal" hidden>
+    <div id="pubCard">
+      <button id="pubClose">Close</button>
+      <h2>Community</h2>
+      <p class="libintro">Paintings published by everyone. Open one and it arrives held -
+        glance at the code, press Ctrl+Enter to run it, remix it, and publish your own
+        version. Remixes credit the original.</p>
+      <div class="pubsort">
+        <button id="pubSortNew" class="on">Newest</button>
+        <button id="pubSortLoved">Most loved</button>
+      </div>
+      <div id="pubList"><p class="libintro">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="pubShare" hidden>
+    <div id="pubShareCard">
+      <button id="pubShareClose">Close</button>
+      <h2>Publish to the community</h2>
+      <p class="libintro">Publishing is public: the painting, its code and your artist name
+        are visible to everyone, and anyone may open and remix a copy. Removing it later
+        stops new copies; existing remixes keep theirs.</p>
+      <div class="drow"><input id="pubTitle" placeholder="title"></div>
+      <div class="drow"><input id="pubDescr" placeholder="a line about it (optional)"></div>
+      <div id="pubRemixNote" class="libintro" hidden></div>
+      <div class="drow"><button id="pubGo" class="primary">Publish</button></div>
     </div>
   </div>
 

@@ -74,7 +74,8 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
       const s=JSON.parse(raw);
       if(s&&Array.isArray(s.d)&&s.d.length){
         docs=s.d.map(x=>({name:String(x.n||'painting').slice(0,40),
-          code:String(x.c||''), cloudId:x.w||undefined, undo:[], redo:[]}));
+          code:String(x.c||''), cloudId:x.w||undefined,
+          remixOf:x.r||undefined, pubId:x.p||undefined, undo:[], redo:[]}));
         activeDoc=Math.min(Math.max(0,s.a|0), docs.length-1);
       }
     }
@@ -110,6 +111,21 @@ exSel.addEventListener('change',()=>{ sel=-1; setCode(EXAMPLES[exSel.value]); })
   }
   let openedGallery=false;
   const openQ=new URLSearchParams(location.search).get('open');
+  if(openQ&&/^pub\/[a-z0-9]{6}$/.test(openQ)){
+    // a community painting by link: foreign code, so it arrives held
+    try{
+      const api=localStorage.getItem('paintlang-trace-api')
+        ||'https://paintlang-trace.paintlang.workers.dev';
+      const r=await fetch(api+'/api/pub/get?id='+openQ.slice(4)).then(x=>x.json());
+      if(r.code){
+        docs.push({name:uniqueDocName(String(r.title||'community').slice(0,24)),
+          code:r.code, remixOf:openQ.slice(4), undo:[], redo:[]});
+        activeDoc=docs.length-1;
+        sharedArrival=true;
+        plMetric('pub-open');
+      }
+    }catch(e){}
+  }
   if(openQ&&/^gallery\/[a-z0-9\-]+\.paint$/.test(openQ)){
     try{
       const r=await fetch('/'+openQ);

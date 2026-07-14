@@ -69,6 +69,12 @@ const PLICON=(function(){
   I.film=S+'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round">'
     +'<rect x="1.8" y="4" width="9.2" height="8" rx="1.2"/>'
     +'<path d="M11 7.6l3.2-2.4v5.6L11 8.4" fill="#75beff" stroke="#75beff"/></svg>';
+  I.people=S+'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">'
+    +'<circle cx="5.6" cy="5.6" r="2.2"/><path d="M1.8 13.2c.6-2.4 2.1-3.6 3.8-3.6s3.2 1.2 3.8 3.6"/>'
+    +'<circle cx="11.3" cy="4.9" r="1.8" stroke="#75beff"/>'
+    +'<path d="M10.2 9.2c1.8-.3 3.5.9 4 3.2" stroke="#75beff"/></svg>';
+  I.heart=S+'fill="currentColor" stroke="none">'
+    +'<path d="M8 13.6S2.2 10 2.2 6.2C2.2 4.3 3.7 3 5.3 3c1.1 0 2.1.6 2.7 1.5C8.6 3.6 9.6 3 10.7 3c1.6 0 3.1 1.3 3.1 3.2 0 3.8-5.8 7.4-5.8 7.4z"/></svg>';
   I.sun=S+'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">'
     +'<circle cx="8" cy="8" r="3.1"/><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"/></svg>';
   I.moon=S+'fill="currentColor" stroke="none">'
