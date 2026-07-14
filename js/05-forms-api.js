@@ -107,46 +107,56 @@ function drawOneStroke(c,s,size,al,media,rng){
       _slPolyline(c,p,size*1.6);
       return;
     }
-    // washes must FUSE: concentric soft passes with no hard core, so
-    // neighbouring strokes melt together instead of reading as pipes
-    c.strokeStyle=_mixWhite(pig,.3); c.globalAlpha=al*.1;
+    // washes must FUSE: concentric soft passes with no hard core. And the
+    // same law as oil: character marks die in the dark - dried edges,
+    // pooling and granulation exist only where there is light to show them
+    const lit2=Math.min(1,lum/150);
+    c.strokeStyle=_mixWhite(pig,.3); c.globalAlpha=al*.09;
     _slPolyline(c,p,size*2.2);
-    c.strokeStyle=_mixWhite(pig,.12); c.globalAlpha=al*.2;
+    c.strokeStyle=_mixWhite(pig,.12); c.globalAlpha=al*.18;
     _slPolyline(c,p,size*1.5);
     c.strokeStyle=pig; c.globalAlpha=al*.3; _slPolyline(c,p,size*1.0);
-    c.globalAlpha=al*.24;
+    c.globalAlpha=al*.22;
     _offsetPath(c,p,nx*size*.18,ny*size*.18,size*.6);
-    // dried edges and pooling happen here and there, not on every stroke
-    if(rng()<.3){
-      c.strokeStyle=shadeRGB(pig,-.2); c.globalAlpha=al*.1;
-      c.setLineDash([size*1.8, size*1.4]);
-      _slPolyline(c,p,size*1.25); c.setLineDash([]);
-    }
-    if(rng()<.22){
-      c.globalAlpha=al*.24; c.fillStyle=shadeRGB(pig,-.26);
-      c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.4),0,7); c.fill();
-    }
-    if(rng()<.25){
-      c.globalAlpha=al*.13; c.fillStyle=shadeRGB(pig,-.2);
-      const gp=p[Math.floor(rng()*m)];
-      c.beginPath(); c.arc(gp[0]+(rng()-.5)*size,gp[1]+(rng()-.5)*size,size*.15,0,7);
-      c.fill();
+    if(lit2>.55){
+      if(rng()<.25){
+        c.strokeStyle=shadeRGB(pig,-.16); c.globalAlpha=al*.08;
+        c.setLineDash([size*1.8, size*1.4]);
+        _slPolyline(c,p,size*1.2); c.setLineDash([]);
+      }
+      if(rng()<.18){
+        c.globalAlpha=al*.18; c.fillStyle=shadeRGB(pig,-.2);
+        c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.38),0,7); c.fill();
+      }
+      if(rng()<.2){
+        c.globalAlpha=al*.1; c.fillStyle=shadeRGB(pig,-.16);
+        const gp=p[Math.floor(rng()*m)];
+        c.beginPath(); c.arc(gp[0]+(rng()-.5)*size,gp[1]+(rng()-.5)*size,size*.14,0,7);
+        c.fill();
+      }
     }
   } else if(media==='oil'){
     // paint with a body: a soft dark underlay, the loaded pass, bristle
-    // striations pulled through the wet paint, and one studio light
-    const bodyCol=shadeRGB(s.col,(rng()-.5)*.08);
+    // striations pulled through the wet paint, and one studio light.
+    // Relief follows the light: dark passages keep their ridges QUIET -
+    // otherwise big coarse strokes in shadow read as criss-crossed sticks
+    const mm=s.col.match(/\d+/g)||[128,128,128];
+    const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
+    const lit=Math.min(1,lum/150);
+    const big=size>9?.5:1;
+    const bodyCol=shadeRGB(s.col,(rng()-.5)*.08*big*(.4+.6*lit));
     c.strokeStyle=shadeRGB(bodyCol,-.1); c.globalAlpha=al*.45;
     if(m===2||size<3) _slPolyline(c,p,size*1.15); else _slTaper(c,p,size*1.15);
     c.strokeStyle=bodyCol; c.globalAlpha=al*.92;
     if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size*.95);
-    if(size>=2){
-      c.strokeStyle=shadeRGB(bodyCol,.24); c.globalAlpha=al*.22;
+    const rel=(.3+.7*lit)*big;
+    if(size>=2&&rel>.15){
+      c.strokeStyle=shadeRGB(bodyCol,.24); c.globalAlpha=al*.22*rel;
       _offsetPath(c,p,nx*size*.26,ny*size*.26,Math.max(.5,size*.22));
-      c.strokeStyle=shadeRGB(bodyCol,-.24); c.globalAlpha=al*.16;
+      c.strokeStyle=shadeRGB(bodyCol,-.24); c.globalAlpha=al*.16*rel;
       _offsetPath(c,p,-nx*size*.3,-ny*size*.3,Math.max(.5,size*.2));
       for(const b of [-.22,.16]){
-        c.strokeStyle=shadeRGB(bodyCol,b<0?-.12:.1); c.globalAlpha=al*.14;
+        c.strokeStyle=shadeRGB(bodyCol,b<0?-.12:.1); c.globalAlpha=al*.14*rel;
         _offsetPath(c,p,nx*size*b,ny*size*b,Math.max(.4,size*.11));
       }
     }
