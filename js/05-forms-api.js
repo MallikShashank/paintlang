@@ -88,28 +88,44 @@ function drawOneStroke(c,s,size,al,media,rng){
   if(nx*_LX+ny*_LY<0){ nx=-nx; ny=-ny; }
 
   if(media==='watercolor'){
-    // transparent pigment: a soft feather, a wet body, a second slightly
-    // shifted charge, and pigment pooling at the tail - no dark halo
-    const pig=_mixWhite(s.col,.16);
-    c.strokeStyle=pig; c.globalAlpha=al*.14; _slPolyline(c,p,size*2.0);
-    c.globalAlpha=al*.4; _slPolyline(c,p,size*1.15);
-    c.globalAlpha=al*.28;
-    _offsetPath(c,p,nx*size*.22,ny*size*.22,size*.8);
-    c.globalAlpha=al*.2; c.fillStyle=shadeRGB(s.col,-.18);
-    c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.42),0,7); c.fill();
+    // luminous, not washed out: the pigment keeps its chroma, the paper
+    // glows through the middle, edges dry darker in broken patches, and
+    // pigment pools where the stroke ends
+    c.strokeStyle=_mixWhite(s.col,.3); c.globalAlpha=al*.12;
+    _slPolyline(c,p,size*2.1);
+    c.strokeStyle=shadeRGB(s.col,-.15); c.globalAlpha=al*.1;
+    c.setLineDash([size*1.8, size*1.3]);
+    _slPolyline(c,p,size*1.35); c.setLineDash([]);
+    c.strokeStyle=s.col; c.globalAlpha=al*.36; _slPolyline(c,p,size*1.1);
+    c.globalAlpha=al*.3;
+    _offsetPath(c,p,nx*size*.2,ny*size*.2,size*.85);
+    c.strokeStyle=_mixWhite(s.col,.28); c.globalAlpha=al*.16;
+    _slPolyline(c,p,size*.45);
+    c.globalAlpha=al*.26; c.fillStyle=shadeRGB(s.col,-.25);
+    c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.45),0,7); c.fill();
+    if(rng()<.3){
+      c.globalAlpha=al*.14; c.fillStyle=shadeRGB(s.col,-.2);
+      const gp=p[Math.floor(rng()*m)];
+      c.beginPath(); c.arc(gp[0]+(rng()-.5)*size,gp[1]+(rng()-.5)*size,size*.16,0,7);
+      c.fill();
+    }
   } else if(media==='oil'){
-    // a loaded brush: full body, one quiet lit ridge, one quiet shadow,
-    // and a dry bristle line riding the body
-    c.strokeStyle=s.col; c.globalAlpha=al*.96;
-    if(m===2||size<3) _slPolyline(c,p,size*.95); else _slTaper(c,p,size);
+    // paint with a body: a soft dark underlay, the loaded pass, bristle
+    // striations pulled through the wet paint, and one studio light
+    const bodyCol=shadeRGB(s.col,(rng()-.5)*.08);
+    c.strokeStyle=shadeRGB(bodyCol,-.1); c.globalAlpha=al*.45;
+    if(m===2||size<3) _slPolyline(c,p,size*1.15); else _slTaper(c,p,size*1.15);
+    c.strokeStyle=bodyCol; c.globalAlpha=al*.92;
+    if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size*.95);
     if(size>=2){
-      c.strokeStyle=shadeRGB(s.col,.2); c.globalAlpha=al*.2;
-      _offsetPath(c,p,nx*size*.26,ny*size*.26,Math.max(.5,size*.26));
-      c.strokeStyle=shadeRGB(s.col,-.22); c.globalAlpha=al*.16;
-      _offsetPath(c,p,-nx*size*.28,-ny*size*.28,Math.max(.5,size*.24));
-      c.strokeStyle=shadeRGB(s.col,(rng()-.4)*.2); c.globalAlpha=al*.12;
-      const b=(rng()-.5)*size*.3;
-      _offsetPath(c,p,nx*b,ny*b,Math.max(.4,size*.14));
+      c.strokeStyle=shadeRGB(bodyCol,.24); c.globalAlpha=al*.22;
+      _offsetPath(c,p,nx*size*.26,ny*size*.26,Math.max(.5,size*.22));
+      c.strokeStyle=shadeRGB(bodyCol,-.24); c.globalAlpha=al*.16;
+      _offsetPath(c,p,-nx*size*.3,-ny*size*.3,Math.max(.5,size*.2));
+      for(const b of [-.22,.16]){
+        c.strokeStyle=shadeRGB(bodyCol,b<0?-.12:.1); c.globalAlpha=al*.14;
+        _offsetPath(c,p,nx*size*b,ny*size*b,Math.max(.4,size*.11));
+      }
     }
   } else if(media==='impasto'){
     // oil with the paint laid on thick: wider body, brighter catch of
@@ -177,6 +193,70 @@ function drawOneStroke(c,s,size,al,media,rng){
     c.globalAlpha=al*(.06+den*.14); _slPolyline(c,p,size*1.9);
     c.globalAlpha=al*(.12+den*.55);
     if(m===2||size<3) _slPolyline(c,p,size*.8); else _slTaper(c,p,size*.85);
+  } else if(media==='pointillism'){
+    // Seurat's arithmetic: the stroke dissolves into touched dots of
+    // slightly wandering hue
+    const step=Math.max(1.6,size*1.05);
+    for(let i2=0;i2<m-1;i2++){
+      const ax=p[i2][0],ay=p[i2][1],bx=p[i2+1][0],by=p[i2+1][1];
+      const seg=Math.hypot(bx-ax,by-ay), n2=Math.max(1,Math.round(seg/step));
+      for(let k=0;k<n2;k++){
+        const t=k/n2;
+        c.fillStyle=shadeRGB(s.col,(rng()-.5)*.3);
+        c.globalAlpha=al*(.75+rng()*.25);
+        c.beginPath();
+        c.arc(ax+(bx-ax)*t+(rng()-.5)*size*.3,
+              ay+(by-ay)*t+(rng()-.5)*size*.3,
+              Math.max(.7,size*(.34+rng()*.22)),0,7);
+        c.fill();
+      }
+    }
+  } else if(media==='marker'){
+    // alcohol marker: flat translucent bands that darken where they overlap
+    const cap=c.lineCap; c.lineCap='butt';
+    c.strokeStyle=s.col; c.globalAlpha=al*.38; _slPolyline(c,p,size*1.35);
+    c.globalAlpha=al*.34; _slPolyline(c,p,size*.8);
+    c.strokeStyle=shadeRGB(s.col,-.1); c.globalAlpha=al*.18;
+    _offsetPath(c,p,nx*size*.5,ny*size*.5,Math.max(.5,size*.22));
+    c.lineCap=cap;
+  } else if(media==='spray'){
+    // airbrush: a drifting cloud of fine droplets around the path
+    for(let i2=0;i2<m-1;i2++){
+      const ax=p[i2][0],ay=p[i2][1],bx=p[i2+1][0],by=p[i2+1][1];
+      const seg=Math.hypot(bx-ax,by-ay), n2=Math.max(2,Math.round(seg/1.4));
+      for(let k=0;k<n2;k++){
+        const t=k/n2, sc=(rng()-.5)*size*1.7;
+        c.fillStyle=s.col; c.globalAlpha=al*(.1+rng()*.2);
+        c.beginPath();
+        c.arc(ax+(bx-ax)*t+nx*sc, ay+(by-ay)*t+ny*sc,
+              Math.max(.4,size*(.08+rng()*.16)),0,7);
+        c.fill();
+      }
+    }
+  } else if(media==='charcoal'){
+    // burnt willow: colour surrenders to warm grey, pressure varies,
+    // and the side of the stick smudges alongside
+    const mm=s.col.match(/\d+/g)||[0,0,0];
+    const g=Math.round((.3*mm[0]+.59*mm[1]+.11*mm[2])*.55);
+    const cc='rgb('+(g+14)+','+(g+9)+','+(g+5)+')';
+    c.strokeStyle=cc; c.globalAlpha=al*.12;
+    _offsetPath(c,p,nx*size*.45,ny*size*.45,size*1.5);
+    for(let i2=0;i2<m-1;i2++){
+      const jx=(rng()-.5)*size*.3, jy=(rng()-.5)*size*.3;
+      c.globalAlpha=al*(.35+rng()*.4);
+      c.lineWidth=Math.max(.5,size*(.45+rng()*.4));
+      c.beginPath(); c.moveTo(p[i2][0]+jx,p[i2][1]+jy);
+      c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
+    }
+  } else if(media==='neon'){
+    // light itself: additive glow around a white-hot core
+    const comp=c.globalCompositeOperation;
+    c.globalCompositeOperation='lighter';
+    c.strokeStyle=s.col; c.globalAlpha=al*.09; _slPolyline(c,p,size*2.6);
+    c.globalAlpha=al*.2; _slPolyline(c,p,size*1.3);
+    c.strokeStyle=_mixWhite(s.col,.55); c.globalAlpha=al*.5;
+    _slPolyline(c,p,Math.max(.6,size*.4));
+    c.globalCompositeOperation=comp;
   } else {
     c.strokeStyle=s.col; c.globalAlpha=al;
     if(m===2||size<3) _slPolyline(c,p,size*.9); else _slTaper(c,p,size);

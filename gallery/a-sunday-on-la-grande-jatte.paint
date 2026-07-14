@@ -5,7 +5,7 @@
 //   x, y - its CENTRE · w, h - its size (click any number for a slider)
 //   color - its dark tone · shade: [litTone, angle°] - how the light falls
 //   pts - the packed outline; leave it be (or delete it -> plain rectangle)
-const MEDIUM = 'oil'  // one word repaints it all: 'oil', 'impasto', 'acrylic', 'gouache', 'watercolor', 'pastel', 'chalk', 'pencil', 'ink', 'flat'
+const MEDIUM = 'oil'  // one word repaints it all - try 'watercolor', 'impasto', 'pointillism', 'ink', 'neon'... (15 media, see API reference)
 layer('base wash')
 rect(32, 0, 895, 600, { color: '#485a4e' })  // base wash
 layer('earth')  // 14 masses
