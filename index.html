@@ -264,9 +264,10 @@ try{
       <p>Everything on the canvas is a function call. The code re-renders live as you type
         (<kbd>Ctrl</kbd>+<kbd>Enter</kbd> forces a run). Painting with any tool writes code back
         into the editor. The <b>menu</b> (top left) holds importing, examples, the Coded Gallery,
-        the global library, sharing and your account (cloud saves with version history). The
+        the global library, sharing, replay and your account. The
         <b>Tools box</b> floats over the canvas - drag its header to move it, its corner to
-        resize it, the caret to collapse it. With <b>Select</b>: drag an object to move it, drag a corner handle to
+        resize it, the caret to collapse it. The sun and moon button in the header switches
+        between the dark and light studio. With <b>Select</b>: drag an object to move it, drag a corner handle to
         resize it, press <kbd>Delete</kbd> to hide it - each rewrites the actual numbers in the
         call that painted it, and selecting highlights that exact line in the editor.
         <b>Recolour</b> rewrites an object's <code>color:</code> literal; <b>Eyedropper</b> picks
@@ -336,6 +337,36 @@ try{
         scatter, bristles, blend mode - with a live sample stroke. Tuned values are written into
         each stroke's code as <code>tune: { ... }</code>, so a customised stroke re-renders
         identically anywhere, and re-tuning a brush later never changes strokes already painted.</p>
+
+      <h3>Studio, accounts and sharing</h3>
+      <table class="api">
+        <tr><td>Tabs</td><td>Each painting is a tab, mirrored above the code and the canvas, with
+          its own undo history. Tabs are remembered by this browser; signed in, they are your
+          account's workspace and follow you to any device.</td></tr>
+        <tr><td>Account</td><td>Sign in with GitHub, Google, or a key account (no email - you hold
+          a secret key). Signing in loads your studio from the cloud; work painted before signing
+          in is carried into your account. Signing out saves everything up and leaves this
+          device's studio completely clean - nothing remains for the next person.</td></tr>
+        <tr><td>Cloud saves and versions</td><td>Save this painting (menu, Account) stores a new
+          version every time, with an optional label. My gallery lists your paintings; History
+          reopens any earlier version as a new tab. Free: 25 paintings, 20 versions each.
+          Pro: 200 and 100.</td></tr>
+        <tr><td>Import and trace</td><td>Any PNG, JPG or SVG becomes editable code at four detail
+          levels. Ultra (the finest: up to 900 masses and 96,000 strokes) is metered daily -
+          10 a day free, 70 on Pro.</td></tr>
+        <tr><td>Global library</td><td>Shared components - official and community. Insert appends
+          the snippet to your painting as a copy. Contribute one layer of your own work; you can
+          remove your contributions later.</td></tr>
+        <tr><td>Share links</td><td>Small paintings travel entirely inside the link. Large ones
+          are stored server side behind a short link. Either way, a shared painting opens held
+          and unrendered - the recipient glances at the code and presses
+          <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run it.</td></tr>
+        <tr><td>Replay</td><td>Watch any painting paint itself, stroke by stroke. Download replay
+          video (menu, Pro) records it as WebM at your chosen speed, in any of the fifteen
+          media.</td></tr>
+        <tr><td>Export</td><td>Export PNG downloads the canvas at 2x resolution. No watermark,
+          ever.</td></tr>
+      </table>
 
       <h3>Atmosphere &amp; colour</h3>
       <table class="api">

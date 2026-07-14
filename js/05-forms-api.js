@@ -75,6 +75,13 @@ function _offsetPath(c,p,nx,ny,w){
   c.stroke();
 }
 function _mixWhite(col,f){ return shadeRGB(col,f); }
+/* push a colour's channels away from its own luminance: chroma turned up */
+function _vivid(col,f){
+  const m=col.match(/\d+/g); if(!m) return col;
+  const L=.3*m[0]+.59*m[1]+.11*m[2];
+  const v=ch=>Math.max(0,Math.min(255,Math.round(L+(ch-L)*(1+f))));
+  return 'rgb('+v(+m[0])+','+v(+m[1])+','+v(+m[2])+')';
+}
 function drawOneStroke(c,s,size,al,media,rng){
   const p=s.pts, m=p.length;
   if(m===1){
@@ -88,23 +95,32 @@ function drawOneStroke(c,s,size,al,media,rng){
   if(nx*_LX+ny*_LY<0){ nx=-nx; ny=-ny; }
 
   if(media==='watercolor'){
-    // luminous, not washed out: the pigment keeps its chroma, the paper
-    // glows through the middle, edges dry darker in broken patches, and
-    // pigment pools where the stroke ends
-    c.strokeStyle=_mixWhite(s.col,.3); c.globalAlpha=al*.12;
+    // a masterpiece wash is SATURATED: chroma turned up, the lightest
+    // passages reserved as paper, broken dried edges, a glow through the
+    // middle and pigment pooling at the tail
+    const mm=s.col.match(/\d+/g)||[128,128,128];
+    const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
+    const pig=_vivid(s.col,.4);
+    if(lum>228&&rng()<.55){
+      // the whites belong to the paper - barely breathe on them
+      c.strokeStyle=_mixWhite(pig,.3); c.globalAlpha=al*.1;
+      _slPolyline(c,p,size*1.6);
+      return;
+    }
+    c.strokeStyle=_mixWhite(pig,.22); c.globalAlpha=al*.13;
     _slPolyline(c,p,size*2.1);
-    c.strokeStyle=shadeRGB(s.col,-.15); c.globalAlpha=al*.1;
+    c.strokeStyle=shadeRGB(pig,-.22); c.globalAlpha=al*.12;
     c.setLineDash([size*1.8, size*1.3]);
-    _slPolyline(c,p,size*1.35); c.setLineDash([]);
-    c.strokeStyle=s.col; c.globalAlpha=al*.36; _slPolyline(c,p,size*1.1);
-    c.globalAlpha=al*.3;
-    _offsetPath(c,p,nx*size*.2,ny*size*.2,size*.85);
-    c.strokeStyle=_mixWhite(s.col,.28); c.globalAlpha=al*.16;
-    _slPolyline(c,p,size*.45);
-    c.globalAlpha=al*.26; c.fillStyle=shadeRGB(s.col,-.25);
+    _slPolyline(c,p,size*1.3); c.setLineDash([]);
+    c.strokeStyle=pig; c.globalAlpha=al*.5; _slPolyline(c,p,size*1.05);
+    c.globalAlpha=al*.32;
+    _offsetPath(c,p,nx*size*.2,ny*size*.2,size*.8);
+    c.strokeStyle=_mixWhite(pig,.34); c.globalAlpha=al*.14;
+    _slPolyline(c,p,size*.4);
+    c.globalAlpha=al*.3; c.fillStyle=shadeRGB(pig,-.28);
     c.beginPath(); c.arc(p[m-1][0],p[m-1][1],Math.max(.6,size*.45),0,7); c.fill();
     if(rng()<.3){
-      c.globalAlpha=al*.14; c.fillStyle=shadeRGB(s.col,-.2);
+      c.globalAlpha=al*.15; c.fillStyle=shadeRGB(pig,-.22);
       const gp=p[Math.floor(rng()*m)];
       c.beginPath(); c.arc(gp[0]+(rng()-.5)*size,gp[1]+(rng()-.5)*size,size*.16,0,7);
       c.fill();
@@ -185,14 +201,18 @@ function drawOneStroke(c,s,size,al,media,rng){
     _offsetPath(c,p,(rng()-.5)*size*.35,(rng()-.5)*size*.35,Math.max(.4,size*.22));
     c.setLineDash([]);
   } else if(media==='ink'){
-    // sumi wash: the colour becomes ink density - darks carry the drawing,
-    // lights become breath-thin washes
+    // sumi lives on reserved paper: light and mid tones are mostly LEFT
+    // OUT, and what remains is a thin wash - only true darks carry the
+    // drawing. Painting every stroke dark is how you get a black slab.
     const mm=s.col.match(/\d+/g)||[0,0,0];
-    const den=1-(.3*mm[0]+.59*mm[1]+.11*mm[2])/255;
-    c.strokeStyle='rgb(32,27,22)';
-    c.globalAlpha=al*(.06+den*.14); _slPolyline(c,p,size*1.9);
-    c.globalAlpha=al*(.12+den*.55);
-    if(m===2||size<3) _slPolyline(c,p,size*.8); else _slTaper(c,p,size*.85);
+    let den=1-(.3*mm[0]+.59*mm[1]+.11*mm[2])/255;
+    den=Math.pow(den,2.2);
+    if(den<.22&&rng()>den*3.2) return;      // the paper keeps the lights
+    if(den<.5&&rng()>.72) return;           // and breathes in the midtones
+    c.strokeStyle='rgb(34,29,24)';
+    c.globalAlpha=al*(.04+den*.09); _slPolyline(c,p,size*1.8);
+    c.globalAlpha=al*(.07+den*.4);
+    if(m===2||size<3) _slPolyline(c,p,size*.78); else _slTaper(c,p,size*.82);
   } else if(media==='pointillism'){
     // Seurat's arithmetic: the stroke dissolves into touched dots of
     // slightly wandering hue
