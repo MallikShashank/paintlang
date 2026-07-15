@@ -14,14 +14,13 @@ main{max-width:440px;text-align:center}
 h1{font-size:22px;color:#fff;margin:18px 0 6px}
 p{font-size:14px;color:#8a8a8a;margin:0 0 8px}
 .mark{width:96px;height:96px;border-radius:22px;background:#161616;display:inline-block}
-.btns{display:flex;flex-direction:column;gap:10px;margin:26px 0 14px}
+.btns{display:flex;flex-direction:column;gap:16px;margin:26px 0 14px}
+.rail{display:flex;flex-direction:column;gap:8px;align-items:center}
+.raillbl{font-size:12px;color:#8a8a8a}
 a.pay{display:block;padding:13px 18px;border-radius:5px;text-decoration:none;
-  font-size:14px;font-weight:600;border:1px solid #454545;color:#ccc}
+  font-size:14px;font-weight:600;border:1px solid #454545;color:#ccc;width:100%}
 a.pay b{display:block;font-size:12px;font-weight:400;color:#8a8a8a;margin-top:2px}
-a.pay.upi{background:#0e639c;border-color:#0e639c;color:#fff}
-a.pay.upi b{color:rgba(255,255,255,.75)}
 a.pay:hover{filter:brightness(1.15)}
-.soon{opacity:.55;pointer-events:none}
 .back{font-size:12px;color:#5a5a5a;text-decoration:none}
 .back:hover{color:#8a8a8a}
 </style>
@@ -42,10 +41,11 @@ a.pay:hover{filter:brightness(1.15)}
 <p>Paintlang is free forever - the whole studio, every brush, every export.
 If it made you smile, a coffee keeps the solo dev painting.</p>
 <div class="btns">
-  <a class="pay upi" href="https://rzp.io/rzp/XQDMCWc">
-    UPI, cards and netbanking (India)
-    <b>via Razorpay - any amount you like</b>
-  </a>
+  <div class="rail">
+    <div class="raillbl">India - UPI, cards, netbanking · any amount you like</div>
+    <form><script src="https://checkout.razorpay.com/v1/payment-button.js"
+      data-payment_button_id="pl_TDttn2BojVm2Ga" async></script></form>
+  </div>
   <a class="pay" href="https://checkout.dodopayments.com/buy/pdt_0NjG4JjhtyN1kV3YI8cj5?quantity=1&redirect_url=https%3A%2F%2Fpaintlang.com">
     International cards
     <b>via Dodo Payments - bump the quantity for more coffees</b>
