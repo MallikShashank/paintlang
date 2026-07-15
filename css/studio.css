@@ -34,7 +34,8 @@
 
   header{display:flex;align-items:center;gap:12px;padding:0 14px;height:44px;
     background:var(--header);border-bottom:1px solid var(--line);flex:none}
-  .logo{font-size:13px;font-weight:600;letter-spacing:.02em}
+  .logo{font-size:13px;font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:11px}
+  .logo svg{display:block}
   .logo b{font-weight:600;color:var(--text)}
   .logo .sub{font-weight:400;font-size:11px;color:var(--muted);
     margin-left:10px;letter-spacing:.08em;text-transform:uppercase}
@@ -249,7 +250,7 @@
   #drawerWrap[hidden]{display:none}
   #drawerShade{position:absolute;inset:0;background:rgba(0,0,0,.45);
     opacity:0;transition:opacity .22s}
-  #drawer{position:absolute;top:0;left:48px;bottom:0;width:312px;max-width:86vw;
+  #drawer{position:absolute;top:44px;left:48px;bottom:24px;width:312px;max-width:86vw;
     background:var(--panel);border-right:1px solid var(--line2);
     box-shadow:14px 0 40px rgba(0,0,0,.45);overflow-y:auto;
     transform:translateX(-100%);transition:transform .22s ease}
