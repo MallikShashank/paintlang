@@ -76,7 +76,7 @@ try{
       </div>
       <div class="dsec" id="secGalleries">
         <div class="dlabel">Galleries</div>
-        <div class="drow"><a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><button><span data-ico="frame"></span> The Coded Gallery</button></a></div>
+        <div class="drow"><a class="abtn" href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><span data-ico="frame"></span> The Coded Gallery</a></div>
         <div class="drow"><button id="communityBtn" title="Paintings published by everyone - open them, love them, remix them"><span data-ico="people"></span> Community <span class="dhint">public</span></button></div>
         <div class="drow"><button id="myGalleryBtn" title="Your private cloud gallery - every painting you saved, with its version history"><span data-ico="folder"></span> My gallery <span class="dhint">private</span></button></div>
         <div class="drow"><button id="libraryBtn" title="Shared components anyone can drop into a painting - official Paintlang ones plus community contributions"><span data-ico="globe"></span> Global library <span class="dhint">public</span></button></div>
@@ -197,8 +197,8 @@ try{
       <div id="workarea">
         <div id="stage">
           <div id="canvasWrap">
-            <canvas id="paint" width="960" height="600"></canvas>
-            <canvas id="overlay" width="960" height="600" class="draw"></canvas>
+            <canvas id="paint" width="960" height="600" role="img" aria-label="The painting canvas - everything the code paints renders here"></canvas>
+            <canvas id="overlay" aria-label="Painting surface - paint, select and drag here; every gesture is written back as code" width="960" height="600" class="draw"></canvas>
             <button id="selAction" hidden title="Rewrite this mass's packed outline into an editable polygon point list (P)"><span data-ico="unpack"></span> Unpack outline</button>
           </div>
         </div>
@@ -217,7 +217,7 @@ try{
   </footer>
 
   <div id="welcome" hidden>
-    <div id="welcomeCard">
+    <div id="welcomeCard" role="dialog" aria-modal="true" aria-label="Welcome to Paintlang">
       <h2>Paintlang</h2>
       <p class="wtag">The code and the canvas are the same artwork - edited from either side.</p>
       <ul>
@@ -234,7 +234,7 @@ try{
   </div>
 
   <div id="libModal" hidden>
-    <div id="libCard">
+    <div id="libCard" role="dialog" aria-modal="true" aria-label="Global library">
       <button id="libClose">Close</button>
       <h2>Global library</h2>
       <p class="libintro">Every component is a snippet of Paintlang code, shared by everyone.
@@ -246,7 +246,7 @@ try{
   </div>
 
   <div id="repModal" hidden>
-    <div id="repCard">
+    <div id="repCard" role="dialog" aria-modal="true" aria-label="Download replay video">
       <button id="repClose">Close</button>
       <h2>Download replay video</h2>
       <p class="libintro">Records this painting painting itself, straight from your canvas,
@@ -282,7 +282,7 @@ try{
   </div>
 
   <div id="pubModal" hidden>
-    <div id="pubCard">
+    <div id="pubCard" role="dialog" aria-modal="true" aria-label="Community">
       <button id="pubClose">Close</button>
       <h2>Community</h2>
       <p class="libintro">Paintings published by everyone. Open one and it arrives held -
@@ -298,7 +298,7 @@ try{
   </div>
 
   <div id="profileModal" hidden>
-    <div id="profileCard">
+    <div id="profileCard" role="dialog" aria-modal="true" aria-label="Artist profile">
       <button id="profClose">Close</button>
       <h2 id="profHandle">artist</h2>
       <p class="libintro" id="profMeta">loading...</p>
@@ -308,7 +308,7 @@ try{
   </div>
 
   <div id="pubShare" hidden>
-    <div id="pubShareCard">
+    <div id="pubShareCard" role="dialog" aria-modal="true" aria-label="Publish to the community">
       <button id="pubShareClose">Close</button>
       <h2>Publish to the community</h2>
       <p class="libintro">Publishing is public: the painting, its code and your artist name
@@ -322,7 +322,7 @@ try{
   </div>
 
   <div id="exportModal" hidden>
-    <div id="exportCard">
+    <div id="exportCard" role="dialog" aria-modal="true" aria-label="Export this painting">
       <button id="exportClose">Close</button>
       <h2>Export as...</h2>
       <p class="libintro">Take this painting into other tools as code, vectors or
@@ -344,7 +344,7 @@ try{
   </div>
 
   <div id="myModal" hidden>
-    <div id="myCard">
+    <div id="myCard" role="dialog" aria-modal="true" aria-label="My gallery">
       <button id="myClose">Close</button>
       <h2>My gallery</h2>
       <p class="libintro">Your private cloud gallery. Every save adds a version, so you can step
@@ -354,7 +354,7 @@ try{
   </div>
 
   <div id="helpModal" hidden>
-    <div id="helpCard">
+    <div id="helpCard" role="dialog" aria-modal="true" aria-label="API reference">
       <button id="helpClose">Close</button>
       <h2>Paintlang reference</h2>
       <p>Everything on the canvas is a function call. The code re-renders live as you type

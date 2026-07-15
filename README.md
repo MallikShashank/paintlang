@@ -54,6 +54,14 @@ talk to the hosted service; everything else is fully client-side.)
 - **Share links** - small paintings travel deflate-compressed in the URL fragment
   with no server involved; larger ones are stored by the hosted service behind a
   six character short link.
+- **A community wall** - publish paintings publicly, open and remix anyone's (with
+  automatic credit lineage), love them, follow artists, and browse their profiles.
+  Unique artist names. Any code arriving from outside your studio - shared links,
+  community paintings, library components - is held unrendered until you press
+  Ctrl+Enter.
+- **Export anywhere** - take a painting out as raw Paintlang code, SVG vectors, a
+  self-contained HTML5 canvas page, a p5.js sketch, a WebGL page with an editable
+  GLSL shader, or a Lottie animation of it painting itself.
 
 ## The Coded Gallery
 
@@ -68,15 +76,18 @@ the Art Institute of Chicago open access program (CC0).
 
 ```
 index.html            entry - markup + ordered script tags
-css/studio.css        theme (VS Code Dark+ design language, all tokens in :root)
-js/00...12-*.js       modules in load order (classic scripts, shared global scope):
+css/studio.css        theme (VS Code Dark+ and Light+ design language, dark and
+                      light studio, all tokens in :root)
+js/00...13-*.js       modules in load order (classic scripts, shared global scope):
                       icons → core → scene/caches → scenery API → brush engine →
                       forms/api → runtime → editor → tools → chrome/layers/tabs →
-                      importer → examples/boot → drawer/accounts/library
+                      importer → examples/boot → drawer/accounts/community →
+                      export engine (SVG, canvas JS, p5.js, WebGL/GLSL, Lottie)
 gallery.html          the exhibition page
 gallery/              traced masterpieces (.paint code, .svg thumbnails, pieces.json)
+assets/brand/         the mark and social assets
 build.mjs             node build.mjs → dist/ single-file bundles
-marketing/            launch copy + demo video script
+test/run-tests.mjs    node test/run-tests.mjs → syntax, build, and unit checks
 ```
 
 **Load order matters** - the numbered files share top-level scope. Add new modules by

@@ -234,6 +234,10 @@
   [data-ico]{display:inline-flex;align-items:center;vertical-align:middle}
   button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
   .drow>button,.drow>a button{justify-content:flex-start}
+  .abtn{display:flex;align-items:center;gap:6px;font-size:12.5px;
+    color:var(--text);background:var(--panel2);border:1px solid var(--line2);
+    border-radius:3px;padding:5px 11px;text-decoration:none;cursor:pointer}
+  .abtn:hover{background:var(--hover)}
   .lctl button svg.ico{width:13px;height:13px}
 
   /* ---- sign-in brand buttons ---- */

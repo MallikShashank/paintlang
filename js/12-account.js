@@ -704,9 +704,13 @@ function layerBlocksOf(src){
         row.appendChild(acctBtnEl('+ Insert', async ()=>{
           try{
             const full=await acctApi('/api/library/get?id='+encodeURIComponent(it.id));
+            // a component is a program from a stranger: it arrives HELD,
+            // exactly like shared links and community paintings. Look at
+            // what it appends, then Ctrl+Enter runs it.
+            window.__plHoldRun=true;
             appendCode('\n'+full.code.trim());
             modal.hidden=true;
-            apiStatus('"'+it.name+'" added to your painting - scroll the code to the bottom to edit it', true);
+            apiStatus('"'+it.name+'" appended to your code, held unrendered - look it over, then press Ctrl+Enter to paint it', true);
           }catch(e){ apiStatus('insert: '+e.message, false); }
         }));
         if(it.mine){
@@ -1049,6 +1053,25 @@ function layerBlocksOf(src){
 
 /* hydrate static markup icons: <span data-ico="name"> -> inline svg */
 document.querySelectorAll('[data-ico]').forEach(n=>{ n.innerHTML=plIco(n.dataset.ico); });
+
+/* icon-only controls get real accessible names from their tooltips */
+document.querySelectorAll('button[title]:not([aria-label]), a[title]:not([aria-label])')
+  .forEach(b=>{ if(!b.textContent.trim()) b.setAttribute('aria-label', b.title.split(' - ')[0]); });
+
+/* one focus trap for every dialog: Tab cycles inside the open modal */
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Tab') return;
+  const dlg=[...document.querySelectorAll('[role="dialog"]')]
+    .find(d=>d.offsetParent!==null);
+  if(!dlg) return;
+  const f=[...dlg.querySelectorAll('button,select,input,textarea,a[href],[tabindex]:not([tabindex="-1"])')]
+    .filter(x=>!x.disabled&&x.offsetParent!==null);
+  if(!f.length) return;
+  if(!dlg.contains(document.activeElement)){ e.preventDefault(); f[0].focus(); return; }
+  const i=f.indexOf(document.activeElement);
+  if(e.shiftKey&&i<=0){ e.preventDefault(); f[f.length-1].focus(); }
+  else if(!e.shiftKey&&i===f.length-1){ e.preventDefault(); f[0].focus(); }
+});
 
 /* ------------------------------ theme ------------------------------
    Dark is the studio at night; light is the same studio in daylight.

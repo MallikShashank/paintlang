@@ -30,7 +30,7 @@ function runCode(){
     window.__plHoldRun=false;
     ctx.setTransform(DPR,0,0,DPR,0,0);
     ctx.fillStyle='#f6f1e7'; ctx.fillRect(0,0,W,H);
-    statusMsgEl.textContent='shared painting loaded - look over the code, then press Ctrl+Enter to render it';
+    statusMsgEl.textContent='code from outside this studio loaded, held unrendered - look it over, then press Ctrl+Enter to paint it';
     statusMsgEl.className='ok';
     return;
   }
