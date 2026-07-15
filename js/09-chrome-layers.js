@@ -12,9 +12,10 @@ divider.addEventListener('pointerdown', e=>{
   divider.addEventListener('pointerup',up);
 });
 document.getElementById('exportBtn').addEventListener('click', ()=>{
-  const a=document.createElement('a'); a.download='paintlang.png';
-  a.href=paintCanvas.toDataURL('image/png'); a.click();
-  plMetric('export');
+  // one export door: open This painting with Export as... waving hello
+  openDrawerSec('secPainting');
+  const b=document.getElementById('exportCodeBtn');
+  b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
 });
 
 /* ---- share links: the whole painting travels compressed in the URL hash,

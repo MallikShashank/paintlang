@@ -392,11 +392,15 @@
     background:var(--accent-soft);color:var(--link);font-size:10px;
     letter-spacing:.06em;vertical-align:middle}
   .pubmore{grid-column:1/-1;justify-self:center;padding:6px 30px}
+  @keyframes plpulse{0%,100%{box-shadow:none}
+    50%{box-shadow:0 0 0 3px var(--accent-soft);border-color:var(--focus)}}
+  .pulse{animation:plpulse .8s ease 2}
   #profileCard{width:min(920px,96vw)}
   #profFollow{flex:0 0 auto;padding:5px 26px;text-align:center}
   #exportCard{width:min(520px,94vw)}
   #exportCard .drow{margin-top:10px}
   #exportCard select{flex:1}
+  #exportGo{flex:0 0 auto;padding:5px 26px}
   #repCard{width:min(430px,94vw)}
   #repCard .drow{margin-top:10px;align-items:center}
   .replbl{font-size:12px;color:var(--muted);width:58px;flex:none}

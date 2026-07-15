@@ -535,6 +535,10 @@
 
   /* ---- the dialog ---- */
   const NOTES={
+    png:'The canvas as a lossless image at 2x resolution (1920x1200). No '
+      +'watermark, ever.',
+    jpg:'The canvas as a smaller JPG at 2x resolution - good for sharing '
+      +'where file size matters. For lossless, use PNG.',
     paint:'The painting exactly as it is: the code in this tab. Open it back '
       +'at paintlang.com any time - this is the only format that stays editable '
       +'as a painting.',
@@ -559,12 +563,19 @@
     lottie:'.json'};
   const MIME={paint:'text/plain',svg:'image/svg+xml',html:'text/html',
     p5:'text/javascript',glsl:'text/html',lottie:'application/json'};
+  function safeName(name){
+    return name.replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/ +/g,'-')||'painting';
+  }
   function download(name,ext,mime,text){
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([text],{type:mime}));
-    a.download=name.replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/ +/g,'-')+ext;
+    a.download=safeName(name)+ext;
     a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  }
+  function downloadURL(name,ext,url){
+    const a=document.createElement('a');
+    a.href=url; a.download=safeName(name)+ext; a.click();
   }
   // headless-test and power-user hook: returns the serialized text
   window.__plExport=function(f){
@@ -598,7 +609,9 @@
     xgo.disabled=true; xgo.textContent='Exporting...';
     setTimeout(()=>{
       try{
-        if(f==='paint') download(name,EXT[f],MIME[f],ta.value);
+        if(f==='png') downloadURL(name,'.png',paintCanvas.toDataURL('image/png'));
+        else if(f==='jpg') downloadURL(name,'.jpg',paintCanvas.toDataURL('image/jpeg',.95));
+        else if(f==='paint') download(name,EXT[f],MIME[f],ta.value);
         else if(f==='glsl') download(name,EXT[f],MIME[f],serializeGLSL(name));
         else{
           const r=recordPainting();

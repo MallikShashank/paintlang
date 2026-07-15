@@ -53,7 +53,7 @@ try{
     <div class="hgap"></div>
     <button id="themeBtn" title="Switch between the dark and light studio"></button>
     <button id="acctBtn" title="Your account - cloud saves and version history"><span data-ico="person"></span> <span id="acctBtnLabel">Sign in</span></button>
-    <button id="exportBtn" title="Download the canvas as PNG">Export PNG</button>
+    <button id="exportBtn" title="Export this painting - PNG, JPG, SVG, code formats, animation">Export</button>
   </header>
 
   <div id="drawerWrap" hidden>
@@ -330,7 +330,9 @@ try{
         editable original.</p>
       <div class="drow">
         <select id="exportFmt" title="Choose the export format">
-          <option value="paint" selected>Paintlang code (.paint)</option>
+          <option value="png" selected>PNG image, 2x (.png)</option>
+          <option value="jpg">JPG image, 2x (.jpg)</option>
+          <option value="paint">Paintlang code (.paint)</option>
           <option value="svg">SVG vector (.svg)</option>
           <option value="html">HTML5 canvas page (.html)</option>
           <option value="p5">p5.js sketch (.js)</option>
@@ -482,13 +484,12 @@ try{
         <tr><td>Replay</td><td>Watch any painting paint itself, stroke by stroke. Download replay
           video (menu, Pro) records it as WebM at your chosen speed, in any of the fifteen
           media.</td></tr>
-        <tr><td>Export</td><td>Export PNG downloads the canvas at 2x resolution. No watermark,
-          ever.</td></tr>
-        <tr><td>Export as...</td><td>Take a painting into other tools (menu, This painting):
-          raw Paintlang code, SVG vectors, a self-contained HTML5 canvas page with the full
-          ctx command stream, a p5.js sketch, a WebGL page with an editable GLSL shader over
-          your painting, or a Lottie animation of it painting itself. For video use Download
-          replay video (WebM).</td></tr>
+        <tr><td>Export</td><td>One door for every format (the Export button, or menu,
+          This painting, Export as...): PNG or JPG images at 2x resolution (no watermark,
+          ever), raw Paintlang code, SVG vectors, a self-contained HTML5 canvas page with
+          the full ctx command stream, a p5.js sketch, a WebGL page with an editable GLSL
+          shader over your painting, or a Lottie animation of it painting itself. For video
+          use Download replay video (WebM).</td></tr>
         <tr><td>Profiles and follows</td><td>Every author name in the community is a profile:
           their published paintings, joined date and followers. Follow artists to get a
           Following tab on the community wall. Profiles show only what is already public -
