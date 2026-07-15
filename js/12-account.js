@@ -41,6 +41,7 @@ const el=id=>document.getElementById(id);
 (function(){
   const wrap=el('drawerWrap');
   let closeT=null;
+  const RAIL=[...document.querySelectorAll('#actbar [data-sec]')];
   window.openDrawer=function(){
     clearTimeout(closeT);
     wrap.hidden=false;
@@ -48,9 +49,30 @@ const el=id=>document.getElementById(id);
   };
   window.closeDrawer=function(){
     wrap.classList.remove('open');
-    closeT=setTimeout(()=>{ wrap.hidden=true; }, 240);
+    for(const b of RAIL) b.classList.remove('on');
+    closeT=setTimeout(()=>{ wrap.hidden=true; wrap.classList.remove('solo'); }, 240);
   };
-  el('menuBtn').addEventListener('click', openDrawer);
+  // section mode: an activity-bar icon opens the drawer beside the rail
+  // showing only that section (VS Code sidebar behavior)
+  window.openDrawerSec=function(id){
+    for(const s of document.querySelectorAll('#drawer .dsec'))
+      s.classList.toggle('on', s.id===id);
+    for(const b of RAIL) b.classList.toggle('on', b.dataset.sec===id);
+    wrap.classList.add('solo');
+    openDrawer();
+  };
+  for(const b of RAIL)
+    b.addEventListener('click', ()=>{
+      if(b.classList.contains('on')&&wrap.classList.contains('open')){
+        closeDrawer(); return;
+      }
+      openDrawerSec(b.dataset.sec);
+    });
+  el('menuBtn').addEventListener('click', ()=>{
+    wrap.classList.remove('solo');
+    for(const b of RAIL) b.classList.remove('on');
+    openDrawer();
+  });
   el('drawerClose').addEventListener('click', closeDrawer);
   el('drawerShade').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', e=>{
@@ -60,10 +82,7 @@ const el=id=>document.getElementById(id);
   for(const id of ['importBtn','replayBtn','shareBtn','helpBtn'])
     el(id).addEventListener('click', closeDrawer);
   el('examples').addEventListener('change', closeDrawer);
-  el('acctBtn').addEventListener('click', ()=>{
-    openDrawer();
-    setTimeout(()=>el('acctSec').scrollIntoView({block:'nearest'}), 60);
-  });
+  el('acctBtn').addEventListener('click', ()=>{ openDrawerSec('acctSec'); });
 })();
 
 /* -------------------------- floating toolbox --------------------------

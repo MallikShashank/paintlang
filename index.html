@@ -47,7 +47,7 @@ try{
     <div id="drawerShade"></div>
     <nav id="drawer" aria-label="Main menu">
       <div class="dhead"><b>Menu</b><span class="hgap"></span><button id="drawerClose" title="Close menu">×</button></div>
-      <div class="dsec">
+      <div class="dsec" id="secCreate">
         <div class="dlabel">Create</div>
         <div class="drow">
           <button id="importBtn" title="Trace any image (PNG, JPG, SVG...) into an editable code layer - or drop a file on the canvas"><span data-ico="image"></span> Import image</button>
@@ -61,14 +61,14 @@ try{
         <input type="file" id="importFile" accept="image/*,.svg" hidden>
         <div class="drow"><select id="examples" title="Load an example painting"></select></div>
       </div>
-      <div class="dsec">
+      <div class="dsec" id="secGalleries">
         <div class="dlabel">Galleries</div>
         <div class="drow"><a href="/gallery.html" title="Masterpieces traced into editable code - open and remix them"><button><span data-ico="frame"></span> The Coded Gallery</button></a></div>
         <div class="drow"><button id="communityBtn" title="Paintings published by everyone - open them, love them, remix them"><span data-ico="people"></span> Community <span class="dhint">public</span></button></div>
         <div class="drow"><button id="myGalleryBtn" title="Your private cloud gallery - every painting you saved, with its version history"><span data-ico="folder"></span> My gallery <span class="dhint">private</span></button></div>
         <div class="drow"><button id="libraryBtn" title="Shared components anyone can drop into a painting - official Paintlang ones plus community contributions"><span data-ico="globe"></span> Global library <span class="dhint">public</span></button></div>
       </div>
-      <div class="dsec">
+      <div class="dsec" id="secPainting">
         <div class="dlabel">This painting</div>
         <div class="drow">
           <button id="replayBtn" title="Watch this painting paint itself, stroke by stroke"><span data-ico="play"></span> Replay</button>
@@ -88,7 +88,7 @@ try{
         <div class="dlabel">Account</div>
         <div id="acctBody"></div>
       </div>
-      <div class="dsec">
+      <div class="dsec" id="secHelp">
         <div class="dlabel">Help</div>
         <div class="drow"><button id="helpBtn" title="Language reference"><span data-ico="book"></span> API reference</button></div>
         <div class="drow"><button id="devProfileBtn" title="The Paintlang studio journal - follow for new media, features and gallery rooms"><span data-ico="person"></span> Paintlang on Paintlang</button></div>
@@ -103,6 +103,14 @@ try{
   </div>
 
   <main>
+    <nav id="actbar" aria-label="Menu sections">
+      <button data-sec="secCreate" title="Create - import an image to trace, or start from an example"><span data-ico="image"></span></button>
+      <button data-sec="secGalleries" title="Galleries - the Coded Gallery, the community, your gallery, the global library"><span data-ico="frame"></span></button>
+      <button data-sec="secPainting" title="This painting - replay, share, publish, export"><span data-ico="brush"></span></button>
+      <span class="asp"></span>
+      <button data-sec="acctSec" title="Account - sign in, cloud gallery, plan"><span data-ico="person"></span></button>
+      <button data-sec="secHelp" title="Help - API reference, the Paintlang profile, follow us"><span data-ico="book"></span></button>
+    </nav>
     <section id="left">
       <div id="codeTabs" class="tabstrip"></div>
       <div id="editor">

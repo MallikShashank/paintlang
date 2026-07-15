@@ -9,6 +9,7 @@
     --row-hover:#2a2d2e; --row-line:#2b2b2b; --card:#2a2a2b; --caret:#aeafad;
     --code-sel:rgba(38,79,120,.65); --linebar:rgba(255,255,255,.07);
     --linebar-edge:rgba(255,255,255,.05); --link:#75beff;
+    --sb:rgba(121,121,121,.35); --sb-h:rgba(160,160,160,.6); --sb-a:rgba(191,191,191,.65);
     --mono:"Cascadia Code",ui-monospace,Consolas,"SF Mono",Menlo,monospace;
     --sans:"Segoe UI",ui-sans-serif,system-ui,sans-serif;
   }
@@ -22,6 +23,7 @@
     --tk-c:#008000; --tk-s:#a31515; --tk-n:#098658; --tk-k:#0000ff; --tk-a:#795e26;
     --header:#dddddd; --hover:#e4e4e4; --tab:#ececec; --stage:#e6e6e6;
     --row-hover:#e8e8e8; --row-line:#e2e2e2; --card:#ffffff; --caret:#333333;
+    --sb:rgba(100,100,100,.3); --sb-h:rgba(80,80,80,.55); --sb-a:rgba(60,60,60,.65);
     --code-sel:rgba(173,214,255,.75); --linebar:rgba(0,0,0,.05);
     --linebar-edge:rgba(0,0,0,.04); --link:#0066bf;
   }
@@ -46,6 +48,25 @@
   #exportBtn:hover{background:var(--accent-hi)}
 
   main{flex:1;display:flex;min-height:0}
+
+  /* ---- activity bar (VS Code style): one icon per menu section ---- */
+  #actbar{width:48px;flex:none;display:flex;flex-direction:column;align-items:center;
+    gap:4px;padding:8px 0;background:var(--header);border-right:1px solid var(--line);
+    position:relative;z-index:80}
+  #actbar button{width:40px;height:40px;display:flex;align-items:center;
+    justify-content:center;background:none;border:none;border-radius:5px;
+    color:var(--muted);position:relative;padding:0}
+  #actbar button:hover{color:var(--text);background:var(--hover)}
+  #actbar button.on{color:var(--text)}
+  #actbar button.on::before{content:'';position:absolute;left:-4px;top:7px;bottom:7px;
+    width:2px;background:var(--focus)}
+  #actbar button svg{width:20px;height:20px}
+  #actbar .asp{flex:1}
+
+  /* the drawer in section mode: opens beside the rail, shows one section */
+  #drawerWrap.solo #drawer{left:48px}
+  #drawerWrap.solo .dsec{display:none}
+  #drawerWrap.solo .dsec.on{display:block}
   #left{width:44%;min-width:260px;flex:none;display:flex;flex-direction:column;
     background:var(--bg);min-height:0}
   #divider{width:5px;cursor:col-resize;background:var(--panel);border-left:1px solid var(--line);
@@ -367,7 +388,7 @@
     background:var(--accent-soft);color:var(--link);font-size:10px;
     letter-spacing:.06em;vertical-align:middle}
   #profileCard{width:min(920px,96vw)}
-  #profFollow{padding:4px 18px}
+  #profFollow{flex:0 0 auto;padding:5px 26px;text-align:center}
   #exportCard{width:min(520px,94vw)}
   #exportCard .drow{margin-top:10px}
   #exportCard select{flex:1}
@@ -438,5 +459,19 @@
     #tbHead{display:none}
     #toolbox #toolbar{overflow-y:visible}
     #drawer{width:84vw}
+    #actbar{display:none}
+    #drawerWrap.solo #drawer{left:0}
     #acctBtnLabel{display:none}
   }
+
+  /* ---- scrollbars, the VS Code way: slim, quiet, brighter under the hand ---- */
+  *{scrollbar-width:thin;scrollbar-color:var(--sb) transparent}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--sb);border-radius:5px;
+    border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:var(--sb-h);background-clip:content-box;
+    border:2px solid transparent}
+  ::-webkit-scrollbar-thumb:active{background:var(--sb-a);background-clip:content-box;
+    border:2px solid transparent}
+  ::-webkit-scrollbar-corner{background:transparent}
