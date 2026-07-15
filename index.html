@@ -88,7 +88,7 @@ try{
           <button id="shareBtn" title="Copy a link that contains this painting - code and all, no account needed"><span data-ico="link"></span> Share link</button>
         </div>
         <div class="drow">
-          <button id="replayVidBtn" title="Record the painting painting itself as a video file - pick the speed and the medium. A Pro feature."><span data-ico="film"></span> Download replay video <span class="dhint">pro</span></button>
+          <button id="replayVidBtn" title="Record the painting painting itself as a video file - pick the speed and the medium. Comes with Hobby and Artist plans."><span data-ico="film"></span> Download replay video <span class="dhint">hobby+</span></button>
         </div>
         <div class="drow">
           <button id="publishBtn" title="Publish this painting to the community - public, remixable, credited to you"><span data-ico="people"></span> Publish to community</button>
@@ -214,6 +214,8 @@ try{
   <footer>
     <span id="statusMsg" class="ok">ready</span>
     <span id="statusPos"></span>
+    <a id="coffeeLink" href="https://buymeacoffee.com/paintlang" target="_blank"
+       rel="noopener" title="Paintlang is free forever - if it made you smile, a coffee keeps the dev painting">buy the dev a coffee</a>
   </footer>
 
   <div id="welcome" hidden>
@@ -268,6 +270,7 @@ try{
           <option value="watercolor">Watercolour</option>
           <option value="pastel">Pastel</option>
           <option value="chalk">Chalk</option>
+          <option value="graphite">Graphite pencil</option>
           <option value="pencil">Coloured pencil</option>
           <option value="charcoal">Charcoal</option>
           <option value="pointillism">Pointillism</option>
@@ -405,7 +408,7 @@ try{
         <tr><td>line(x1, y1, x2, y2, {color, size})</td><td>Straight stroke.</td></tr>
         <tr><td>polygon(points, {color, smooth, seal})</td><td>Closed filled polygon from [[x,y], ...]. <code>smooth: true</code> draws it as a flowing curve through the points instead of straight edges; <code>seal: true</code> outlines it in its own colour to close hairline gaps between traced shapes; <code>shade: ['#tone', angle°]</code> adds the same lighting gradient as form().</td></tr>
         <tr><td>form({x, y, w, h, color, shade, pts})</td><td>A traced painting mass with readable placement: <b>x, y is its centre, w, h its size</b> - edit those numbers (or click one for a slider) to move and stretch it. <code>color</code> is its dark tone; <code>shade: ['#tone', angle°]</code> grades it toward a lit tone in that direction, sampled from the imported photo. <code>pts</code> holds the packed outline (leave it be; delete it and the form becomes a plain rectangle). What the image tracer writes; positional <code>form(x, y, w, h, {...})</code> also works. Select a form and press <kbd>P</kbd> to unpack its outline into an editable <code>polygon()</code> point list.</td></tr>
-        <tr><td>strokes(blob, {size, media, opacity})</td><td>A packed bundle of painterly detail strokes - the trace service's coarse-to-fine paint passes. <code>media</code> renders the same strokes in any of the fifteen media listed below. Traced paintings declare <code>const MEDIUM</code> at the top - change that one word and the whole painting re-renders in a different medium.</td></tr>
+        <tr><td>strokes(blob, {size, media, opacity})</td><td>A packed bundle of painterly detail strokes - the trace service's coarse-to-fine paint passes. <code>media</code> renders the same strokes in any of the sixteen media listed below. Traced paintings declare <code>const MEDIUM</code> at the top - change that one word and the whole painting re-renders in a different medium.</td></tr>
         <tr><td>triangle(x1,y1, x2,y2, x3,y3, {color})</td><td>Filled triangle.</td></tr>
         <tr><td>star(x, y, spikes, outer, inner, {color})</td><td>Star polygon.</td></tr>
         <tr><td>ngon(x, y, sides, r, {color, rotate})</td><td>Regular polygon - diamond (4), pentagon (5), hexagon (6)...</td></tr>
@@ -417,7 +420,7 @@ try{
         <tr><td>text(x, y, str, {size, color, font, align})</td><td>Painted lettering.</td></tr>
       </table>
 
-      <h3>The fifteen media</h3>
+      <h3>The sixteen media</h3>
       <p>Every value below works as <code>media</code> in <code>strokes()</code> and as the
         <code>const MEDIUM</code> word at the top of a traced painting. The strokes stay the
         same; the physics of the paint changes.</p>
@@ -430,7 +433,8 @@ try{
         <tr><td>'pastel'</td><td>Soft dust - a broad tender body with grain drifting off both edges.</td></tr>
         <tr><td>'chalk'</td><td>Dry broken pressure - each segment lands with its own weight and wobble.</td></tr>
         <tr><td>'charcoal'</td><td>Burnt willow: colour surrenders to warm grey, and the side of the stick smudges alongside the line.</td></tr>
-        <tr><td>'pencil'</td><td>Coloured pencil - two fine jittered passes that never quite align.</td></tr>
+        <tr><td>'graphite'</td><td>The pencil sketch: graphite on paper - tone is hatched, never filled. Lights stay paper, darks gain a cross-hatch, and the sheet dries to warm grey. What the Sketch trace tier speaks natively.</td></tr>
+        <tr><td>'pencil'</td><td>Coloured pencil over paper - two fine jittered passes that never quite align. What the Balanced trace tier speaks natively.</td></tr>
         <tr><td>'pointillism'</td><td>Seurat's arithmetic: every stroke dissolves into touched dots of slightly wandering hue.</td></tr>
         <tr><td>'marker'</td><td>Alcohol marker - flat translucent bands that darken where they overlap.</td></tr>
         <tr><td>'spray'</td><td>Airbrush - a drifting cloud of fine droplets around each path.</td></tr>
@@ -470,10 +474,11 @@ try{
         <tr><td>Cloud saves and versions</td><td>Save this painting (menu, Account) stores a new
           version every time, with an optional label. My gallery lists your paintings; History
           reopens any earlier version as a new tab. Free: 25 paintings, 20 versions each.
-          Pro: 200 and 100.</td></tr>
+          Hobby: 90 and 45. Artist: 200 and 100.</td></tr>
         <tr><td>Import and trace</td><td>Any PNG, JPG or SVG becomes editable code at four detail
-          levels. Ultra (the finest: up to 900 masses and 96,000 strokes) is metered daily -
-          10 a day free, 70 on Pro.</td></tr>
+          levels: Sketch is a graphite pencil drawing, Balanced a coloured pencil sketch, Fine
+          a full painting, Ultra the finest (up to 900 masses and 96,000 strokes). Ultra is
+          metered daily - 10 free, 30 on Hobby, 70 on Artist.</td></tr>
         <tr><td>Global library</td><td>Shared components - official and community. Insert appends
           the snippet to your painting as a copy. Contribute one layer of your own work; you can
           remove your contributions later.</td></tr>
@@ -482,7 +487,7 @@ try{
           and unrendered - the recipient glances at the code and presses
           <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run it.</td></tr>
         <tr><td>Replay</td><td>Watch any painting paint itself, stroke by stroke. Download replay
-          video (menu, Pro) records it as WebM at your chosen speed, in any of the fifteen
+          video (menu, Pro) records it as WebM at your chosen speed, in any of the sixteen
           media.</td></tr>
         <tr><td>Export</td><td>One door for every format (the Export button, or menu,
           This painting, Export as...): PNG or JPG images at 2x resolution (no watermark,

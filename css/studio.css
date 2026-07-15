@@ -130,6 +130,9 @@
   footer .err{color:#ffd0c2;font-weight:600}
   footer .ok{color:#fff}
   #statusPos{margin-left:auto;color:rgba(255,255,255,.75)}
+  #coffeeLink{color:rgba(255,255,255,.4);text-decoration:none;font-size:10.5px;
+    letter-spacing:.02em;flex:none}
+  #coffeeLink:hover{color:rgba(255,255,255,.85);text-decoration:underline}
 
   /* ---- help modal ---- */
   #helpModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;

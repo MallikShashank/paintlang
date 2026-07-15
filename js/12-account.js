@@ -383,57 +383,63 @@ function renderAcct(){
     const e2=b.ent||{};
     planBox.textContent=(e2.label||'Free')+' plan: '+e2.works+' cloud paintings, '
       +e2.versions+' versions each, '+e2.ultraDay+' ultra traces a day.';
-    if(e2.plan==='pro') return;
+    if(e2.plan==='artist'||e2.plan==='pro') return;
     // checkout opens in a new tab; the studio stays put and watches for the
-    // payment webhook, flipping to Pro the moment it lands
+    // payment webhook, flipping the plan the moment it lands
     let pollT=null;
-    const startProPoll=()=>{
+    const startPoll=()=>{
       clearInterval(pollT);
       let tries=0;
       pollT=setInterval(async ()=>{
         if(++tries>120){ clearInterval(pollT); return; }
         try{
           const me=await acctApi('/api/me');
-          if(me.ent&&me.ent.plan==='pro'){
+          if(me.ent&&me.ent.plan!=='free'&&me.ent.plan!==e2.plan){
             clearInterval(pollT);
             renderAcct();
-            apiStatus('Pro is active - welcome! '+me.ent.works+' cloud paintings, '
-              +me.ent.ultraDay+' ultra traces a day are yours', true);
+            apiStatus(me.ent.label+' is active - welcome! '+me.ent.works
+              +' cloud paintings, '+me.ent.ultraDay+' ultra traces a day are yours', true);
           }
         }catch(e){}
       }, 6000);
     };
-    // one button, one price: the visitor's country picks the rail
-    const useIndia=b.region==='in'?b.inAvailable:!(b.intlLink);
-    let btn=null;
-    if(useIndia&&b.inAvailable){
-      btn=acctBtnEl('Upgrade to Pro', async ev=>{
+    // two tiers, one row: the visitor's country picks the rail per tier
+    const tiers=b.tiers||{};
+    const price=t=>b.prices&&b.prices[t]
+      ?(b.region==='in'?b.prices[t].inr:b.prices[t].usd):'';
+    const caps=t=>b.caps&&b.caps[t]
+      ?b.caps[t].works+' paintings, '+b.caps[t].versions+' versions each, '
+        +b.caps[t].ultraDay+' ultra a day':'';
+    const mkTier=(t,label2)=>{
+      const cfg=tiers[t]||{};
+      const useIndia=b.region==='in'&&cfg.inAvailable;
+      if(!useIndia&&!cfg.intlLink) return null;
+      const btn=acctBtnEl(label2+' · '+price(t), async ev=>{
         const el2=ev.currentTarget; el2.disabled=true;
-        plMetric('upgrade-click');
+        plMetric('upgrade-click-'+t);
         try{
-          const r=await acctApi('/api/billing/rzp/subscribe',{method:'POST',body:{}});
-          window.open(r.url,'_blank','noopener');
+          if(useIndia){
+            const r=await acctApi('/api/billing/rzp/subscribe',
+              {method:'POST',body:{tier:t}});
+            window.open(r.url,'_blank','noopener');
+          }else{
+            window.open(cfg.intlLink,'_blank','noopener');
+          }
           apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
-          startProPoll(); el2.disabled=false;
-        }catch(e){ apiStatus('upgrade: '+e.message, false); el2.disabled=false; }
+          startPoll();
+        }catch(e){ apiStatus('upgrade: '+e.message, false); }
+        el2.disabled=false;
       });
-      btn.title='Paintlang Pro - Rs 399 per month via UPI. Cancel anytime.';
-    }else if(b.intlLink){
-      btn=acctBtnEl('Upgrade to Pro', ()=>{
-        plMetric('upgrade-click');
-        window.open(b.intlLink,'_blank','noopener');
-        apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
-        startProPoll();
-      });
-      btn.title='Paintlang Pro - $7.99 per month. Cancel anytime.';
-    }
-    if(btn){
-      btn.className='pro-btn';
-      const row=document.createElement('div'); row.className='drow upgrade-row';
-      row.style.marginTop='7px';
-      row.appendChild(btn);
-      body.appendChild(row);
-    }
+      btn.title='Paintlang '+label2+' - '+price(t)+', cancel anytime. '+caps(t);
+      return btn;
+    };
+    const row=document.createElement('div'); row.className='drow upgrade-row';
+    row.style.marginTop='7px';
+    const hb=e2.plan==='hobby'?null:mkTier('hobby','Go Hobby');
+    const ab=mkTier('artist','Go Artist');
+    if(hb) row.appendChild(hb);
+    if(ab){ ab.className='pro-btn'; row.appendChild(ab); }
+    if(row.children.length) body.appendChild(row);
   }).catch(()=>{ planBox.remove(); });
 
   const label=mkInput('version label (optional, e.g. "before sky rework")');
@@ -756,13 +762,13 @@ function layerBlocksOf(src){
   let recording=false;
   el('replayVidBtn').addEventListener('click', async ()=>{
     if(!acct.key){
-      apiStatus('replay videos are a Pro feature - sign in from the Account section first', false);
+      apiStatus('replay videos come with Hobby and Artist plans - sign in from the Account section first', false);
       return;
     }
     try{
       const me=await acctApi('/api/me');
-      if(!me.ent||me.ent.plan!=='pro'){
-        apiStatus('downloading replay videos is a Pro feature - upgrade from the Account section', false);
+      if(!me.ent||me.ent.plan==='free'){
+        apiStatus('downloading replay videos comes with the Hobby and Artist plans - upgrade from the Account section', false);
         return;
       }
     }catch(e){ apiStatus('could not check your plan: '+e.message, false); return; }

@@ -86,7 +86,22 @@ function drawOneStroke(c,s,size,al,media,rng,df){
   df=df||1;
   const p=s.pts, m=p.length;
   if(m===1){
-    c.globalAlpha=al; c.fillStyle=s.col; c.beginPath();
+    // a single touch obeys its medium too - dry media dot softly in their
+    // own grey/colour instead of stamping a full-strength disc
+    if(media==='graphite'){
+      const mm=s.col.match(/\d+/g)||[0,0,0];
+      const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
+      if(lum>170) return;
+      const g=Math.round(52+lum*.6);
+      c.globalAlpha=al*.3; c.fillStyle='rgb('+g+','+g+','+(g+4)+')';
+    }else if(media==='pencil'||media==='pastel'||media==='chalk'||media==='charcoal'){
+      c.globalAlpha=al*.35; c.fillStyle=s.col;
+    }else if(media==='ink'||media==='neon'){
+      return;
+    }else{
+      c.globalAlpha=al; c.fillStyle=s.col;
+    }
+    c.beginPath();
     c.arc(p[0][0],p[0][1],size/2,0,7); c.fill(); return;
   }
   const dx=p[m-1][0]-p[0][0], dy=p[m-1][1]-p[0][1];
@@ -200,13 +215,38 @@ function drawOneStroke(c,s,size,al,media,rng,df){
       c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
     }
   } else if(media==='pencil'){
-    // coloured pencil: two fine jittered passes that never quite align
+    // coloured pencil: two fine jittered passes that never quite align,
+    // over paper (the veil) so it reads as a sketch, not lines on poster
     c.strokeStyle=s.col; c.globalAlpha=al*.55;
     _offsetPath(c,p,(rng()-.5)*size*.2,(rng()-.5)*size*.2,Math.max(.5,size*.3));
     c.strokeStyle=shadeRGB(s.col,-.12); c.globalAlpha=al*.35;
     c.setLineDash([size*2.5, size*.7]);
     _offsetPath(c,p,(rng()-.5)*size*.35,(rng()-.5)*size*.35,Math.max(.4,size*.22));
     c.setLineDash([]);
+  } else if(media==='graphite'){
+    // the pencil sketch: graphite on paper. Tone is HATCHED, never filled -
+    // lights stay paper, midtones get strokes, darks get a second hatch
+    // across the first, with a soft smudge of graphite dust underneath
+    const mm=s.col.match(/\d+/g)||[0,0,0];
+    const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
+    let den=1-lum/255; den=Math.pow(den,1.4);
+    if(rng()>den*1.35+.08) return;          // the paper keeps the lights
+    const g=Math.round(52+lum*.6), a3=(.5+.5*df);
+    c.strokeStyle='rgb('+g+','+g+','+(g+4)+')';
+    c.globalAlpha=(.08+den*.1)*a3; _slPolyline(c,p,size*1.7);   // dust
+    c.globalAlpha=(.3+den*.42)*a3;
+    _offsetPath(c,p,(rng()-.5)*size*.25,(rng()-.5)*size*.25,
+      Math.max(.5,size*.34));
+    if(den>.45&&rng()<.55){
+      // cross-hatch across the stroke where the drawing is dark
+      const mid=p[m>>1], L2=size*(2.2+rng()*2.2);
+      c.globalAlpha=(.24+den*.3)*a3;
+      c.lineWidth=Math.max(.45,size*.26);
+      c.beginPath();
+      c.moveTo(mid[0]-nx*L2/2, mid[1]-ny*L2/2);
+      c.lineTo(mid[0]+nx*L2/2, mid[1]+ny*L2/2);
+      c.stroke();
+    }
   } else if(media==='ink'){
     // sumi on reserved paper: tone is carried by HOW MANY strokes are
     // allowed to exist, and each surviving stroke is a wash whose weight
@@ -312,10 +352,12 @@ function _toneFinish(c,media){
     c.setTransform(1,0,0,1,0,0); c.globalAlpha=1;
     c.filter=media==='ink'?'saturate(0.12) sepia(0.26) brightness(1.05)'
       :media==='charcoal'?'saturate(0.16) brightness(1.03)'
+      :media==='graphite'?'saturate(0.06) brightness(1.06) contrast(1.04)'
+      :media==='pencil'?'saturate(1.04) brightness(1.05)'
       :media==='neon'?'saturate(1.4) brightness(0.88) contrast(1.05)'
       :'saturate(1.12) brightness(1.08)';
     c.drawImage(_toneTmp,0,0); c.filter='none';
-  } else if(media==='ink'||media==='charcoal'){
+  } else if(media==='ink'||media==='charcoal'||media==='graphite'){
     // no canvas filters (Safari): blend modes still dry the sheet to
     // warm monochrome
     c.setTransform(DPR,0,0,DPR,0,0); c.globalAlpha=1;
@@ -331,12 +373,13 @@ function drawStrokesRange(c,st,from,to){
   /* neon is light in darkness and sumi is ink on paper: before the first
      bundle of those media touches the canvas, the underpainting is veiled -
      dimmed to night for neon, calmed to paper for ink */
-  if(st.first&&from===0&&
-     (st.media==='neon'||st.media==='ink'||st.media==='charcoal')){
+  const VEIL={neon:'rgba(9,8,15,0.9)', ink:'rgba(246,241,231,0.93)',
+    charcoal:'rgba(246,241,231,0.88)', graphite:'rgba(247,243,235,0.94)',
+    pencil:'rgba(247,243,235,0.84)'};
+  if(st.first&&from===0&&VEIL[st.media]){
     c.save(); c.setTransform(DPR,0,0,DPR,0,0);
     c.globalAlpha=1;
-    c.fillStyle=st.media==='neon'?'rgba(9,8,15,0.9)'
-      :st.media==='ink'?'rgba(246,241,231,0.93)':'rgba(246,241,231,0.88)';
+    c.fillStyle=VEIL[st.media];
     c.fillRect(0,0,W,H);
     c.restore();
   }
@@ -376,8 +419,8 @@ function strokes(blob,o={}){
   const idx=addOp('strokes',[x0-size*2,y0-size*2,x1-x0+size*4,y1-y0+size*4],
     c=>drawStrokesRange(c,st,0,st.list.length), false);
   ops[idx]._strokes=st;
-  if(!window.__plTonePost&&
-     (media==='ink'||media==='neon'||media==='watercolor'||media==='charcoal')){
+  if(!window.__plTonePost&&['ink','neon','watercolor','charcoal',
+     'graphite','pencil'].includes(media)){
     window.__plTonePost=1;
     ops[idx].post=c=>_toneFinish(c,media);
   }
