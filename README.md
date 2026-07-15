@@ -78,11 +78,12 @@ the Art Institute of Chicago open access program (CC0).
 index.html            entry - markup + ordered script tags
 css/studio.css        theme (VS Code Dark+ and Light+ design language, dark and
                       light studio, all tokens in :root)
-js/00...13-*.js       modules in load order (classic scripts, shared global scope):
+js/00...12-*.js       modules in load order (classic scripts, shared global scope):
                       icons → core → scene/caches → scenery API → brush engine →
                       forms/api → runtime → editor → tools → chrome/layers/tabs →
-                      importer → examples/boot → drawer/accounts/community →
-                      export engine (SVG, canvas JS, p5.js, WebGL/GLSL, Lottie)
+                      importer → examples/boot → drawer/accounts/community
+                      (the export engine is proprietary and served by the
+                      hosted API as a minified bundle)
 gallery.html          the exhibition page
 gallery/              traced masterpieces (.paint code, .svg thumbnails, pieces.json)
 assets/brand/         the mark and social assets
@@ -118,5 +119,6 @@ tracing and accounts.
 
 ## License
 
-MIT - see [LICENSE](LICENSE). The image-tracing service is proprietary and not part of
-this repository.
+MIT - see [LICENSE](LICENSE). The image-tracing service and the export engine
+(the SVG / canvas / p5.js / WebGL / Lottie converters) are proprietary and not
+part of this repository.

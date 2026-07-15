@@ -12,8 +12,17 @@ let html=read('index.html');
 
 html=html.replace(/<link rel="stylesheet" href="([^"]+)">/g,
   (_,href)=>'<style>\n'+read(href).trim()+'\n</style>');
-html=html.replace(/<script src="([^"]+)"><\/script>/g,
-  (_,src)=>'<script>\n'+read(src)+'\n</script>');
+html=html.replace(/<script src="([^"]+)"><\/script>/g, (_,src)=>{
+  if(/^https?:/.test(src)){
+    // the proprietary export engine: inline the local minified copy when
+    // this machine has the private repo, else keep loading it remotely
+    const local=path.join(ROOT,'server','client','export.min.js');
+    if(fs.existsSync(local))
+      return '<script>\n'+fs.readFileSync(local,'utf8')+'\n</script>';
+    return '<script src="'+src+'"></'+'script>';
+  }
+  return '<script>\n'+read(src)+'\n</script>';
+});
 
 fs.mkdirSync(path.join(ROOT,'dist'),{recursive:true});
 fs.writeFileSync(path.join(ROOT,'dist','paintlang-standalone.html'),html);

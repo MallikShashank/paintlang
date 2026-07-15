@@ -21,7 +21,7 @@ const jsFiles=fs.readdirSync(path.join(ROOT,'js')).filter(f=>f.endsWith('.js')).
 
 console.log('\n-- syntax --');
 for(const f of [...jsFiles.map(f=>'js/'+f),'build.mjs','server/og-gen.mjs',
-    'server/dev-profile.mjs'].filter(f=>fs.existsSync(path.join(ROOT,f))))
+    'server/dev-profile.mjs','server/client/export-src.js','server/build-export.mjs'].filter(f=>fs.existsSync(path.join(ROOT,f))))
   t('node --check '+f, ()=>{
     execFileSync(process.execPath,['--check',path.join(ROOT,f)],{stdio:'pipe'});
   });
