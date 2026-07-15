@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500">
+  <!-- Paintlang social banner (X header 1500x500; crop center for others) -->
+  <rect width="1500" height="500" fill="#1e1e1e"/>
+  <!-- faint canvas texture band on the right -->
+  <rect x="1010" y="0" width="490" height="500" fill="#f6f1e7" opacity=".05"/>
+  <!-- the mark -->
+  <g transform="translate(120,90) scale(0.63)">
+    <path d="M218 118 C170 118 180 166 180 198 C180 234 152 246 134 256
+             C152 266 180 278 180 314 C180 346 170 394 218 394"
+          fill="none" stroke="#569cd6" stroke-width="32" stroke-linecap="round"/>
+    <path d="M296 112 C382 148 408 236 376 312 C352 370 314 408 288 428
+             C304 362 324 314 332 268 C342 216 334 158 284 128 Z"
+          fill="#ce9178" opacity=".35" transform="translate(-6 -4) scale(1.045)"/>
+    <path d="M296 112 C382 148 408 236 376 312 C352 370 314 408 288 428
+             C304 362 324 314 332 268 C342 216 334 158 284 128 Z"
+          fill="#ce9178"/>
+    <path d="M310 136 C368 170 386 234 368 292 C378 228 362 172 310 136 Z"
+          fill="#e8b48d" opacity=".8"/>
+    <circle cx="278" cy="446" r="13" fill="#ce9178"/>
+  </g>
+  <!-- wordmark -->
+  <text x="470" y="255" font-family="Consolas,Menlo,monospace" font-size="104"
+        font-weight="bold" fill="#cccccc">paintlang</text>
+  <text x="474" y="322" font-family="'Segoe UI',system-ui,sans-serif" font-size="34"
+        fill="#8a8a8a">the code and the canvas are the same artwork</text>
+  <text x="474" y="386" font-family="Consolas,Menlo,monospace" font-size="30"
+        fill="#569cd6">paintlang.com</text>
+</svg>

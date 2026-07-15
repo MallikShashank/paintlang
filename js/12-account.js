@@ -837,8 +837,13 @@ function layerBlocksOf(src){
     const pb=document.createElement('div'); pb.className='pb';
     const b=document.createElement('b'); b.textContent=it.title;
     const pm=document.createElement('div'); pm.className='pm';
-    pm.textContent='by '+it.author+' · '+timeAgo(it.created)
-      +(it.opens?' · opened '+it.opens+'×':'');
+    const al=document.createElement('button'); al.className='authorlink';
+    al.textContent=it.author; al.title='View '+it.author+"'s profile and follow them";
+    if(it.uid) al.addEventListener('click',()=>openProfile({u:it.uid}));
+    pm.append('by ',al);
+    if(it.dev){ const dv=document.createElement('span'); dv.className='devbadge';
+      dv.textContent='paintlang'; pm.appendChild(dv); }
+    pm.append(' · '+timeAgo(it.created)+(it.opens?' · opened '+it.opens+'×':''));
     pb.append(b,pm);
     if(it.remixOf&&it.remixTitle){
       const pr=document.createElement('div'); pr.className='pr';
@@ -899,13 +904,17 @@ function layerBlocksOf(src){
     try{
       const h={};
       if(acct.key) h.authorization='Bearer '+acct.key;
-      const r=await fetch(API_BASE+'/api/pub/feed?sort='+(sort==='loved'?'loved':'new'),
+      const r=await fetch(API_BASE+'/api/pub/feed?sort='+sort,
         {headers:h}).then(x=>x.json());
       if(my!==feedT) return;
       list.innerHTML='';
       for(const it of (r.items||[])) list.appendChild(pubCard(it));
       if(!(r.items||[]).length)
-        list.innerHTML='<p class="libintro">The wall is empty - publish the first painting from the menu.</p>';
+        list.innerHTML='<p class="libintro">'+(r.needAuth
+          ?'Sign in (menu, Account) to see paintings from artists you follow.'
+          :sort==='following'
+            ?'No paintings yet from artists you follow - find artists on the Newest wall and follow them from their profile.'
+            :'The wall is empty - publish the first painting from the menu.')+'</p>';
     }catch(e){
       if(my===feedT)
         list.innerHTML='<p class="libintro">could not reach the community</p>';
@@ -916,17 +925,77 @@ function layerBlocksOf(src){
   });
   el('pubClose').addEventListener('click',()=>{ modal.hidden=true; });
   modal.addEventListener('click',e=>{ if(e.target===modal) modal.hidden=true; });
-  for(const [id,s] of [['pubSortNew','new'],['pubSortLoved','loved']])
+  const SORTS=[['pubSortNew','new'],['pubSortLoved','loved'],
+    ['pubSortFollowing','following']];
+  for(const [id,s] of SORTS)
     el(id).addEventListener('click',()=>{
       sort=s;
-      el('pubSortNew').classList.toggle('on',s==='new');
-      el('pubSortLoved').classList.toggle('on',s==='loved');
+      for(const [id2,s2] of SORTS) el(id2).classList.toggle('on',s2===s);
       loadFeed();
     });
+
+  /* ---- artist profiles: only what is already public (handle, joined,
+     published paintings, follower counts) - follow from anywhere an
+     author's name appears */
+  const prof=el('profileModal');
+  async function openProfile(q){
+    closeDrawer(); modal.hidden=true;
+    prof.hidden=false;
+    el('profHandle').textContent='...';
+    el('profMeta').textContent='loading...';
+    el('profPubs').innerHTML=''; el('profFollow').hidden=true;
+    try{
+      const h={};
+      if(acct.key) h.authorization='Bearer '+acct.key;
+      const qs=q.dev?'dev=1':'u='+encodeURIComponent(q.u);
+      const r=await fetch(API_BASE+'/api/profile?'+qs,{headers:h})
+        .then(x=>x.json());
+      if(r.error){
+        el('profMeta').textContent=q.dev
+          ?'the Paintlang studio profile is not set up yet - check back soon'
+          :'could not find this artist';
+        return;
+      }
+      el('profHandle').textContent=r.handle;
+      if(r.dev){ const dv=document.createElement('span'); dv.className='devbadge';
+        dv.textContent='paintlang'; el('profHandle').appendChild(dv); }
+      let fers=r.followers;
+      const meta=()=>{ el('profMeta').textContent='joined '+timeAgo(r.joined)
+        +' · '+fers+(fers===1?' follower':' followers')
+        +' · '+r.pubs.length+(r.pubs.length===1?' published painting':' published paintings'); };
+      meta();
+      const fb=el('profFollow');
+      if(!r.mine){
+        fb.hidden=false;
+        let fol=r.isFollowing;
+        const setL=()=>{ fb.textContent=fol?'Following':'Follow';
+          fb.classList.toggle('primary',!fol); };
+        setL();
+        fb.onclick=async()=>{
+          if(!acct.key){
+            apiStatus('sign in (menu, Account) to follow artists', false);
+            return;
+          }
+          try{
+            const x=await acctApi('/api/follow',{method:'POST',body:{uid:r.uid}});
+            fol=x.following; fers=x.followers; setL(); meta();
+            plMetric('follow');
+          }catch(e){ apiStatus('follow: '+e.message, false); }
+        };
+      }
+      for(const it of r.pubs) el('profPubs').appendChild(pubCard(it));
+      if(!r.pubs.length)
+        el('profPubs').innerHTML='<p class="libintro">nothing published yet</p>';
+    }catch(e){ el('profMeta').textContent='could not load the profile'; }
+  }
+  el('profClose').addEventListener('click',()=>{ prof.hidden=true; });
+  prof.addEventListener('click',e=>{ if(e.target===prof) prof.hidden=true; });
+  el('devProfileBtn').addEventListener('click',()=>openProfile({dev:1}));
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
       if(!modal.hidden) modal.hidden=true;
       if(!share.hidden) share.hidden=true;
+      if(!prof.hidden) prof.hidden=true;
     }
   });
 })();

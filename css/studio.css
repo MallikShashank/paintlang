@@ -249,6 +249,10 @@
   .drow>a{flex:1;text-decoration:none}
   .drow>a button{width:100%;text-align:left}
   .drow>select{text-align:inherit}
+  .dsoc{display:flex;align-items:center;gap:10px;margin-top:12px;
+    font-size:11px;color:var(--faint)}
+  .dsoc a{color:var(--muted);display:flex;padding:3px;border-radius:4px}
+  .dsoc a:hover{color:var(--text);background:var(--hover)}
   .dfoot{margin-top:10px;font-size:11px;color:var(--faint)}
   .dfoot a{color:var(--muted);text-decoration:none}
   .dfoot a:hover{color:var(--text)}
@@ -319,16 +323,16 @@
     align-content:flex-start}
 
   /* ---- library + my-gallery + replay-video + community modals ---- */
-  #libModal,#myModal,#repModal,#pubModal,#pubShare{position:fixed;inset:0;
+  #libModal,#myModal,#repModal,#pubModal,#pubShare,#profileModal,#exportModal{position:fixed;inset:0;
     background:rgba(0,0,0,.6);display:flex;
     align-items:center;justify-content:center;z-index:55}
-  #libModal[hidden],#myModal[hidden],#repModal[hidden],#pubModal[hidden],#pubShare[hidden]{display:none}
-  #libCard,#myCard,#repCard,#pubCard,#pubShareCard{background:var(--panel);
+  #libModal[hidden],#myModal[hidden],#repModal[hidden],#pubModal[hidden],#pubShare[hidden],#profileModal[hidden],#exportModal[hidden]{display:none}
+  #libCard,#myCard,#repCard,#pubCard,#pubShareCard,#profileCard,#exportCard{background:var(--panel);
     border:1px solid var(--line2);border-radius:5px;
     width:min(780px,94vw);max-height:86vh;overflow-y:auto;padding:22px 26px;
     box-shadow:0 18px 48px rgba(0,0,0,.55)}
-  #libCard h2,#myCard h2,#repCard h2,#pubCard h2,#pubShareCard h2{margin:0 0 4px;font-size:19px;font-weight:600}
-  #libClose,#myClose,#repClose,#pubClose,#pubShareClose{float:right}
+  #libCard h2,#myCard h2,#repCard h2,#pubCard h2,#pubShareCard h2,#profileCard h2,#exportCard h2{margin:0 0 4px;font-size:19px;font-weight:600}
+  #libClose,#myClose,#repClose,#pubClose,#pubShareClose,#profClose,#exportClose{float:right}
   #pubCard{width:min(920px,96vw)}
   #pubShareCard{width:min(460px,94vw)}
   #pubShareCard .drow{margin-top:10px}
@@ -338,7 +342,7 @@
   .pubsort{display:flex;gap:6px;margin-top:12px}
   .pubsort button{font-size:11.5px;padding:4px 12px;border-radius:12px}
   .pubsort button.on{background:var(--sel-bg);border-color:var(--focus);color:var(--sel-text)}
-  #pubList{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));
+  #pubList,#profPubs{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));
     gap:12px;margin-top:14px}
   .pub-item{border:1px solid var(--line2);border-radius:5px;overflow:hidden;
     background:var(--card);display:flex;flex-direction:column}
@@ -356,6 +360,17 @@
   .pub-item .repbtn{margin-left:auto;background:none;border:none;color:var(--faint);
     font-size:10px;padding:2px}
   .pub-item .repbtn:hover{color:var(--muted)}
+  .authorlink{background:none;border:none;padding:0;color:var(--link);
+    font-size:inherit;cursor:pointer}
+  .authorlink:hover{text-decoration:underline}
+  .devbadge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;
+    background:var(--accent-soft);color:var(--link);font-size:10px;
+    letter-spacing:.06em;vertical-align:middle}
+  #profileCard{width:min(920px,96vw)}
+  #profFollow{padding:4px 18px}
+  #exportCard{width:min(520px,94vw)}
+  #exportCard .drow{margin-top:10px}
+  #exportCard select{flex:1}
   #repCard{width:min(430px,94vw)}
   #repCard .drow{margin-top:10px;align-items:center}
   .replbl{font-size:12px;color:var(--muted);width:58px;flex:none}

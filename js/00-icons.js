@@ -79,6 +79,12 @@ const PLICON=(function(){
     +'<circle cx="8" cy="8" r="3.1"/><path d="M8 1.6v1.8M8 12.6v1.8M1.6 8h1.8M12.6 8h1.8M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3"/></svg>';
   I.moon=S+'fill="currentColor" stroke="none">'
     +'<path d="M13.4 9.8A5.8 5.8 0 016.2 2.6a5.8 5.8 0 107.2 7.2z"/></svg>';
+  I.instagram=S+'fill="none" stroke="currentColor" stroke-width="1.3">'
+    +'<rect x="2" y="2" width="12" height="12" rx="3.4"/>'
+    +'<circle cx="8" cy="8" r="2.9"/>'
+    +'<circle cx="11.9" cy="4.1" r=".9" fill="currentColor" stroke="none"/></svg>';
+  I.xsocial=S+'fill="currentColor" stroke="none">'
+    +'<path d="M9.3 6.9L14.6 1h-1.3L8.7 6.1 5.1 1H1l5.6 8L1 15h1.3l4.9-5.5 3.9 5.5H15L9.3 6.9zM7.9 8.6l-.6-.8L2.7 2h1.9l3.7 5.2.6.8 4.8 6.8h-1.9L7.9 8.6z"/></svg>';
   return I;
 })();
 function plIco(name){ return PLICON[name]||''; }

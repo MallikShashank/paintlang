@@ -80,6 +80,9 @@ try{
         <div class="drow">
           <button id="publishBtn" title="Publish this painting to the community - public, remixable, credited to you"><span data-ico="people"></span> Publish to community</button>
         </div>
+        <div class="drow">
+          <button id="exportCodeBtn" title="Export this painting as SVG, HTML5 canvas, p5.js, a WebGL shader shell, Lottie JSON or raw Paintlang code"><span data-ico="unpack"></span> Export as...</button>
+        </div>
       </div>
       <div class="dsec" id="acctSec">
         <div class="dlabel">Account</div>
@@ -88,6 +91,12 @@ try{
       <div class="dsec">
         <div class="dlabel">Help</div>
         <div class="drow"><button id="helpBtn" title="Language reference"><span data-ico="book"></span> API reference</button></div>
+        <div class="drow"><button id="devProfileBtn" title="The Paintlang studio journal - follow for new media, features and gallery rooms"><span data-ico="person"></span> Paintlang on Paintlang</button></div>
+        <div class="dsoc">follow us on
+          <a href="https://instagram.com/paintlang" target="_blank" rel="noopener" title="Paintlang on Instagram"><span data-ico="instagram"></span></a>
+          <a href="https://x.com/paintlang" target="_blank" rel="noopener" title="Paintlang on X"><span data-ico="xsocial"></span></a>
+          <a href="https://github.com/MallikShashank/paintlang" target="_blank" rel="noopener" title="Paintlang on GitHub"><span data-ico="github"></span></a>
+        </div>
         <div class="dfoot"><a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a> · <a href="https://github.com/MallikShashank/paintlang">GitHub</a></div>
       </div>
     </nav>
@@ -261,8 +270,19 @@ try{
       <div class="pubsort">
         <button id="pubSortNew" class="on">Newest</button>
         <button id="pubSortLoved">Most loved</button>
+        <button id="pubSortFollowing" title="Paintings from artists you follow">Following</button>
       </div>
       <div id="pubList"><p class="libintro">loading...</p></div>
+    </div>
+  </div>
+
+  <div id="profileModal" hidden>
+    <div id="profileCard">
+      <button id="profClose">Close</button>
+      <h2 id="profHandle">artist</h2>
+      <p class="libintro" id="profMeta">loading...</p>
+      <div class="drow"><button id="profFollow" class="primary" hidden>Follow</button></div>
+      <div id="profPubs"></div>
     </div>
   </div>
 
@@ -277,6 +297,28 @@ try{
       <div class="drow"><input id="pubDescr" placeholder="a line about it (optional)"></div>
       <div id="pubRemixNote" class="libintro" hidden></div>
       <div class="drow"><button id="pubGo" class="primary">Publish</button></div>
+    </div>
+  </div>
+
+  <div id="exportModal" hidden>
+    <div id="exportCard">
+      <button id="exportClose">Close</button>
+      <h2>Export as...</h2>
+      <p class="libintro">Take this painting into other tools as code, vectors or
+        animation. Exports are one-way snapshots - the tab you are in stays the
+        editable original.</p>
+      <div class="drow">
+        <select id="exportFmt" title="Choose the export format">
+          <option value="paint" selected>Paintlang code (.paint)</option>
+          <option value="svg">SVG vector (.svg)</option>
+          <option value="html">HTML5 canvas page (.html)</option>
+          <option value="p5">p5.js sketch (.js)</option>
+          <option value="glsl">WebGL + GLSL shader shell (.html)</option>
+          <option value="lottie">Lottie animation (.json)</option>
+        </select>
+      </div>
+      <p class="libintro" id="exportNote"></p>
+      <div class="drow"><button id="exportGo" class="primary">Export</button></div>
     </div>
   </div>
 
@@ -421,6 +463,15 @@ try{
           media.</td></tr>
         <tr><td>Export</td><td>Export PNG downloads the canvas at 2x resolution. No watermark,
           ever.</td></tr>
+        <tr><td>Export as...</td><td>Take a painting into other tools (menu, This painting):
+          raw Paintlang code, SVG vectors, a self-contained HTML5 canvas page with the full
+          ctx command stream, a p5.js sketch, a WebGL page with an editable GLSL shader over
+          your painting, or a Lottie animation of it painting itself. For video use Download
+          replay video (WebM).</td></tr>
+        <tr><td>Profiles and follows</td><td>Every author name in the community is a profile:
+          their published paintings, joined date and followers. Follow artists to get a
+          Following tab on the community wall. Profiles show only what is already public -
+          private galleries and workspaces never appear.</td></tr>
       </table>
 
       <h3>Atmosphere &amp; colour</h3>
@@ -463,5 +514,6 @@ try{
 <script src="js/10-importer.js"></script>
 <script src="js/11-examples.js"></script>
 <script src="js/12-account.js"></script>
+<script src="js/13-export.js"></script>
 </body>
 </html>
