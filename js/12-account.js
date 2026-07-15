@@ -382,7 +382,8 @@ function renderAcct(){
     const stale=body.querySelector('.upgrade-row'); if(stale) stale.remove();
     const e2=b.ent||{};
     planBox.textContent=(e2.label||'Free')+' plan: '+e2.works+' cloud paintings, '
-      +e2.versions+' versions each, '+e2.ultraDay+' ultra traces a day.';
+      +e2.versions+' versions each, '+e2.ultraDay+' ultra and '
+      +(e2.fineDay||50)+' fine traces a day.';
     if(e2.plan==='artist'||e2.plan==='pro') return;
     // checkout opens in a new tab; the studio stays put and watches for the
     // payment webhook, flipping the plan the moment it lands
@@ -409,7 +410,7 @@ function renderAcct(){
       ?(b.region==='in'?b.prices[t].inr:b.prices[t].usd):'';
     const caps=t=>b.caps&&b.caps[t]
       ?b.caps[t].works+' paintings, '+b.caps[t].versions+' versions each, '
-        +b.caps[t].ultraDay+' ultra a day':'';
+        +b.caps[t].ultraDay+' ultra and '+b.caps[t].fineDay+' fine a day':'';
     const mkTier=(t,label2)=>{
       const cfg=tiers[t]||{};
       const useIndia=b.region==='in'&&cfg.inAvailable;
