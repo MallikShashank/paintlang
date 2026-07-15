@@ -317,6 +317,80 @@ async function getProviders(){
 }
 const PROVIDER_NAME={github:'GitHub', google:'Google'};
 
+/* ---- the plans dialog: both tiers side by side, one subscribe each ----
+   Fed by /api/billing/info; each tier's button follows the visitor's
+   region (UPI via Razorpay in India, card MoR elsewhere). A tier whose
+   rail is not configured yet shows as coming soon instead of vanishing. */
+function renderPlanModal(b, currentPlan, startPoll){
+  const modal=el('planModal'), grid=el('planGrid');
+  grid.innerHTML='';
+  const price=t=>b.prices&&b.prices[t]
+    ?(b.region==='in'?b.prices[t].inr:b.prices[t].usd):'';
+  const mkCard=(t,name,blurb,best)=>{
+    const cfg=(b.tiers||{})[t]||{}, cp=(b.caps||{})[t]||{};
+    const card=document.createElement('div');
+    card.className='plan-card'+(best?' best':'');
+    const h=document.createElement('h3'); h.textContent=name;
+    const pr=document.createElement('div'); pr.className='plan-price';
+    pr.innerHTML=price(t).replace(/\/mo/,' <span>per month</span>');
+    const ul=document.createElement('ul');
+    for(const li of [
+      cp.works+' cloud paintings',
+      cp.versions+' versions of each',
+      cp.ultraDay+' ultra traces a day',
+      cp.fineDay+' fine traces a day',
+      cp.pubs+' community publishes',
+      'replay video export',
+      blurb
+    ]){ const e3=document.createElement('li'); e3.textContent=li; ul.appendChild(e3); }
+    const useIndia=b.region==='in'&&cfg.inAvailable;
+    let btn;
+    if(currentPlan===t){
+      btn=acctBtnEl('Your current plan', ()=>{});
+      btn.disabled=true;
+    }else if(useIndia||cfg.intlLink){
+      btn=acctBtnEl('Subscribe', async ev=>{
+        const el2=ev.currentTarget; el2.disabled=true;
+        plMetric('upgrade-click-'+t);
+        try{
+          if(useIndia){
+            const r=await acctApi('/api/billing/rzp/subscribe',
+              {method:'POST',body:{tier:t}});
+            window.open(r.url,'_blank','noopener');
+          }else{
+            window.open(cfg.intlLink,'_blank','noopener');
+          }
+          apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
+          if(startPoll) startPoll();
+          modal.hidden=true;
+        }catch(e){ apiStatus('subscribe: '+e.message, false); }
+        el2.disabled=false;
+      }, true);
+      btn.className='primary';
+      btn.title=name+' - '+price(t)+' via '
+        +(useIndia?'UPI (Razorpay)':'card (Dodo Payments)')+'. Cancel anytime.';
+    }else{
+      btn=acctBtnEl('Coming soon', ()=>{});
+      btn.disabled=true;
+    }
+    card.append(h,pr,ul,btn);
+    return card;
+  };
+  grid.appendChild(mkCard('hobby','Hobby',
+    'for painting most weekends', false));
+  grid.appendChild(mkCard('artist','Artist',
+    'for artists who live in the studio', true));
+  modal.hidden=false;
+}
+(function(){
+  const modal=el('planModal');
+  el('planClose').addEventListener('click',()=>{ modal.hidden=true; });
+  modal.addEventListener('click',e=>{ if(e.target===modal) modal.hidden=true; });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&!modal.hidden) modal.hidden=true;
+  });
+})();
+
 function renderAcct(){
   const body=el('acctBody'); body.innerHTML='';
   if(!acct.key){ renderSignedOut(body); return; }
@@ -404,43 +478,23 @@ function renderAcct(){
         }catch(e){}
       }, 6000);
     };
-    // two tiers, one row: the visitor's country picks the rail per tier
+    // one button; the plans dialog holds both tiers side by side
     const tiers=b.tiers||{};
-    const price=t=>b.prices&&b.prices[t]
-      ?(b.region==='in'?b.prices[t].inr:b.prices[t].usd):'';
-    const caps=t=>b.caps&&b.caps[t]
-      ?b.caps[t].works+' paintings, '+b.caps[t].versions+' versions each, '
-        +b.caps[t].ultraDay+' ultra and '+b.caps[t].fineDay+' fine a day':'';
-    const mkTier=(t,label2)=>{
+    const avail=t=>{
       const cfg=tiers[t]||{};
-      const useIndia=b.region==='in'&&cfg.inAvailable;
-      if(!useIndia&&!cfg.intlLink) return null;
-      const btn=acctBtnEl(label2+' · '+price(t), async ev=>{
-        const el2=ev.currentTarget; el2.disabled=true;
-        plMetric('upgrade-click-'+t);
-        try{
-          if(useIndia){
-            const r=await acctApi('/api/billing/rzp/subscribe',
-              {method:'POST',body:{tier:t}});
-            window.open(r.url,'_blank','noopener');
-          }else{
-            window.open(cfg.intlLink,'_blank','noopener');
-          }
-          apiStatus('complete the payment in the new tab - your plan activates here by itself', true);
-          startPoll();
-        }catch(e){ apiStatus('upgrade: '+e.message, false); }
-        el2.disabled=false;
-      });
-      btn.title='Paintlang '+label2+' - '+price(t)+', cancel anytime. '+caps(t);
-      return btn;
+      return (b.region==='in'&&cfg.inAvailable)||!!cfg.intlLink;
     };
+    if(!avail('hobby')&&!avail('artist')) return;
     const row=document.createElement('div'); row.className='drow upgrade-row';
     row.style.marginTop='7px';
-    const hb=e2.plan==='hobby'?null:mkTier('hobby','Go Hobby');
-    const ab=mkTier('artist','Go Artist');
-    if(hb) row.appendChild(hb);
-    if(ab){ ab.className='pro-btn'; row.appendChild(ab); }
-    if(row.children.length) body.appendChild(row);
+    const openBtn=acctBtnEl('Subscribe for more usage', ()=>{
+      plMetric('plans-open');
+      renderPlanModal(b, e2.plan, startPoll);
+    });
+    openBtn.className='pro-btn';
+    openBtn.title='The studio is free forever - plans raise the ceilings. See both plans.';
+    row.appendChild(openBtn);
+    body.appendChild(row);
   }).catch(()=>{ planBox.remove(); });
 
   const label=mkInput('version label (optional, e.g. "before sky rework")');

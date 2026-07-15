@@ -215,33 +215,38 @@ function drawOneStroke(c,s,size,al,media,rng,df){
       c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
     }
   } else if(media==='pencil'){
-    // coloured pencil: two fine jittered passes that never quite align,
-    // over paper (the veil) so it reads as a sketch, not lines on poster
-    c.strokeStyle=s.col; c.globalAlpha=al*.55;
-    _offsetPath(c,p,(rng()-.5)*size*.2,(rng()-.5)*size*.2,Math.max(.5,size*.3));
-    c.strokeStyle=shadeRGB(s.col,-.12); c.globalAlpha=al*.35;
-    c.setLineDash([size*2.5, size*.7]);
-    _offsetPath(c,p,(rng()-.5)*size*.35,(rng()-.5)*size*.35,Math.max(.4,size*.22));
-    c.setLineDash([]);
+    // coloured pencil over paper: one clean vivid line doing the work,
+    // a soft tint of the same colour beneath it, an occasional second
+    // pass that never quite aligns
+    const pig2=_vivid(s.col,.2);
+    c.strokeStyle=pig2;
+    c.globalAlpha=al*.14; _slPolyline(c,p,size*1.35);   // waxy tint
+    c.globalAlpha=al*.6;
+    _slPolyline(c,p,Math.max(.5,size*.34));
+    if(rng()<.45){
+      c.strokeStyle=shadeRGB(pig2,-.1); c.globalAlpha=al*.3;
+      _offsetPath(c,p,(rng()-.5)*size*.3,(rng()-.5)*size*.3,
+        Math.max(.4,size*.24));
+    }
   } else if(media==='graphite'){
-    // the pencil sketch: graphite on paper. Tone is HATCHED, never filled -
-    // lights stay paper, midtones get strokes, darks get a second hatch
-    // across the first, with a soft smudge of graphite dust underneath
+    // the pencil sketch: graphite on paper. Long clean strokes follow the
+    // form; tone comes from how many strokes land and how hard they press.
+    // Lights stay paper, only true darks earn a quiet cross-hatch.
     const mm=s.col.match(/\d+/g)||[0,0,0];
     const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
-    let den=1-lum/255; den=Math.pow(den,1.4);
-    if(rng()>den*1.35+.08) return;          // the paper keeps the lights
-    const g=Math.round(52+lum*.6), a3=(.5+.5*df);
+    let den=1-lum/255; den=Math.pow(den,1.35);
+    if(rng()>den*1.4+.06) return;           // the paper keeps the lights
+    const g=Math.round(46+lum*.62), a3=(.5+.5*df);
     c.strokeStyle='rgb('+g+','+g+','+(g+4)+')';
-    c.globalAlpha=(.08+den*.1)*a3; _slPolyline(c,p,size*1.7);   // dust
-    c.globalAlpha=(.3+den*.42)*a3;
-    _offsetPath(c,p,(rng()-.5)*size*.25,(rng()-.5)*size*.25,
-      Math.max(.5,size*.34));
-    if(den>.45&&rng()<.55){
-      // cross-hatch across the stroke where the drawing is dark
-      const mid=p[m>>1], L2=size*(2.2+rng()*2.2);
-      c.globalAlpha=(.24+den*.3)*a3;
-      c.lineWidth=Math.max(.45,size*.26);
+    c.globalAlpha=(.06+den*.08)*a3;          // graphite dust, barely there
+    _slPolyline(c,p,size*1.5);
+    c.globalAlpha=(.26+den*.4)*a3;           // the pencil line itself
+    _slPolyline(c,p,Math.max(.5,size*.32));
+    if(den>.62&&rng()<.35){
+      // a short quiet hatch across the stroke, only in the true darks
+      const mid=p[m>>1], L2=size*(1.6+rng()*1.2);
+      c.globalAlpha=(.18+den*.22)*a3;
+      c.lineWidth=Math.max(.45,size*.24);
       c.beginPath();
       c.moveTo(mid[0]-nx*L2/2, mid[1]-ny*L2/2);
       c.lineTo(mid[0]+nx*L2/2, mid[1]+ny*L2/2);
