@@ -329,7 +329,7 @@ function renderAcct(){
   who.append('Signed in as ', nameB,
     acct.provider?' via '+(PROVIDER_NAME[acct.provider]||acct.provider):'');
   const rename=acctBtnEl(plIco('pencil'), async ()=>{
-    const n=prompt('Your artist name (shown on library contributions):', acct.handle||'');
+    const n=prompt('Your artist name - unique across the community, shown on everything you publish (3-24 letters, digits, - or _):', acct.handle||'');
     if(n===null) return;
     try{
       const r=await acctApi('/api/account/handle',{method:'POST',body:{handle:n.trim()}});
@@ -482,8 +482,27 @@ function renderSignedOut(body){
       location.href=API_BASE+'/api/auth/github/start'; }));
   });
   keyForm.appendChild(noteEl('You pick a name, we issue a secret key. Whoever holds the key holds the account - copy it somewhere safe.'));
-  const name=mkInput('your artist name');
+  const name=mkInput('your artist name (unique, 3-24 letters, digits, - or _)');
   keyForm.appendChild(acctRow(name));
+  // live availability: artist names are unique across the community
+  const avail=noteEl(''); avail.style.minHeight='15px';
+  keyForm.appendChild(avail);
+  let avT=0;
+  name.addEventListener('input',()=>{
+    clearTimeout(avT);
+    const h=name.value.trim();
+    if(h.length<3){ avail.textContent=''; return; }
+    avT=setTimeout(async ()=>{
+      try{
+        const r=await fetch(API_BASE+'/api/account/check?h='+encodeURIComponent(h))
+          .then(x=>x.json());
+        if(h!==name.value.trim()) return;
+        avail.textContent=r.ok?'"'+h+'" is free'
+          :r.why?'"'+h+'" - '+r.why:'"'+h+'" is taken - pick another';
+        avail.style.color=r.ok?'var(--tk-c)':'#f48771';
+      }catch(e){}
+    },350);
+  });
   keyForm.appendChild(acctRow(acctBtnEl('Create key account', async ()=>{
     const handle=name.value.trim();
     if(!handle){
@@ -917,25 +936,34 @@ function layerBlocksOf(src){
     card.appendChild(pb);
     return card;
   }
-  async function loadFeed(){
-    const my=++feedT;
-    list.innerHTML='<p class="libintro">loading...</p>';
+  let feedCursor=0;
+  async function loadFeed(more){
+    const my=more?feedT:++feedT;
+    if(!more){ feedCursor=0; list.innerHTML='<p class="libintro">loading...</p>'; }
     try{
       const h={};
       if(acct.key) h.authorization='Bearer '+acct.key;
-      const r=await fetch(API_BASE+'/api/pub/feed?sort='+sort,
+      const r=await fetch(API_BASE+'/api/pub/feed?sort='+sort
+        +(more&&feedCursor?'&before='+feedCursor:''),
         {headers:h}).then(x=>x.json());
       if(my!==feedT) return;
-      list.innerHTML='';
+      const old=list.querySelector('.pubmore'); if(old) old.remove();
+      if(!more) list.innerHTML='';
       for(const it of (r.items||[])) list.appendChild(pubCard(it));
-      if(!(r.items||[]).length)
+      if(!list.children.length)
         list.innerHTML='<p class="libintro">'+(r.needAuth
           ?'Sign in (menu, Account) to see paintings from artists you follow.'
           :sort==='following'
             ?'No paintings yet from artists you follow - find artists on the Newest wall and follow them from their profile.'
             :'The wall is empty - publish the first painting from the menu.')+'</p>';
+      if(r.more){
+        feedCursor=r.more;
+        const mb=acctBtnEl('Show more', ()=>loadFeed(true));
+        mb.className='pubmore';
+        list.appendChild(mb);
+      }
     }catch(e){
-      if(my===feedT)
+      if(my===feedT&&!more)
         list.innerHTML='<p class="libintro">could not reach the community</p>';
     }
   }
