@@ -214,43 +214,59 @@ function drawOneStroke(c,s,size,al,media,rng,df){
       c.beginPath(); c.moveTo(p[i2][0]+jx,p[i2][1]+jy);
       c.lineTo(p[i2+1][0]+jx,p[i2+1][1]+jy); c.stroke();
     }
-  } else if(media==='pencil'){
-    // coloured pencil over paper: one clean vivid line doing the work,
-    // a soft tint of the same colour beneath it, an occasional second
-    // pass that never quite aligns
-    const pig2=_vivid(s.col,.2);
-    c.strokeStyle=pig2;
-    c.globalAlpha=al*.14; _slPolyline(c,p,size*1.35);   // waxy tint
-    c.globalAlpha=al*.6;
-    _slPolyline(c,p,Math.max(.5,size*.34));
-    if(rng()<.45){
-      c.strokeStyle=shadeRGB(pig2,-.1); c.globalAlpha=al*.3;
-      _offsetPath(c,p,(rng()-.5)*size*.3,(rng()-.5)*size*.3,
-        Math.max(.4,size*.24));
-    }
-  } else if(media==='graphite'){
-    // the pencil sketch: graphite on paper. Long clean strokes follow the
-    // form; tone comes from how many strokes land and how hard they press.
-    // Lights stay paper, only true darks earn a quiet cross-hatch.
-    const mm=s.col.match(/\d+/g)||[0,0,0];
+  } else if(media==='pencil'||media==='graphite'){
+    // THE SKETCH GEOMETRY: a pencil stroke is a shallow clean curve, not a
+    // wandering worm - sweep once through start, middle and end. Tone is
+    // GRADED, never binary: the lights get faint delicate lines (that is
+    // where a face lives), the darks get firm layered pressure.
+    const mm=s.col.match(/\d+/g)||[128,128,128];
     const lum=.3*mm[0]+.59*mm[1]+.11*mm[2];
-    let den=1-lum/255; den=Math.pow(den,1.35);
-    if(rng()>den*1.4+.06) return;           // the paper keeps the lights
-    const g=Math.round(46+lum*.62), a3=(.5+.5*df);
-    c.strokeStyle='rgb('+g+','+g+','+(g+4)+')';
-    c.globalAlpha=(.06+den*.08)*a3;          // graphite dust, barely there
-    _slPolyline(c,p,size*1.5);
-    c.globalAlpha=(.26+den*.4)*a3;           // the pencil line itself
-    _slPolyline(c,p,Math.max(.5,size*.32));
-    if(den>.62&&rng()<.35){
-      // a short quiet hatch across the stroke, only in the true darks
-      const mid=p[m>>1], L2=size*(1.6+rng()*1.2);
-      c.globalAlpha=(.18+den*.22)*a3;
-      c.lineWidth=Math.max(.45,size*.24);
-      c.beginPath();
-      c.moveTo(mid[0]-nx*L2/2, mid[1]-ny*L2/2);
-      c.lineTo(mid[0]+nx*L2/2, mid[1]+ny*L2/2);
+    const den=1-lum/255;
+    const a3=(.5+.5*df);
+    const curve=(w,alpha)=>{
+      c.lineWidth=w; c.globalAlpha=alpha;
+      const p0=p[0], pe=p[m-1], pm=p[m>>1];
+      c.beginPath(); c.moveTo(p0[0],p0[1]);
+      if(m>2) c.quadraticCurveTo(2*pm[0]-(p0[0]+pe[0])/2,
+        2*pm[1]-(p0[1]+pe[1])/2, pe[0], pe[1]);
+      else c.lineTo(pe[0],pe[1]);
       c.stroke();
+    };
+    if(media==='graphite'){
+      if(den<.05) return;                       // pure paper stays paper
+      if(den<.28&&rng()>den*2.6+.14) return;    // lights: sparse and light
+      const g=Math.round(38+lum*.72);
+      c.strokeStyle='rgb('+g+','+g+','+(g+4)+')';
+      if(den>.4){                                // side-tone under the darks
+        curve(size*1.25,(.05+den*.07)*a3);
+      }
+      curve(Math.max(.5,size*.3),(.14+den*.5)*a3);
+      if(den>.58&&rng()<.4){
+        // a short quiet hatch across the stroke, darks only
+        const mid=p[m>>1], L2=size*(1.5+rng()*1.1);
+        c.globalAlpha=(.12+den*.2)*a3;
+        c.lineWidth=Math.max(.45,size*.22);
+        c.beginPath();
+        c.moveTo(mid[0]-nx*L2/2, mid[1]-ny*L2/2);
+        c.lineTo(mid[0]+nx*L2/2, mid[1]+ny*L2/2);
+        c.stroke();
+      }
+    }else{
+      // coloured pencil: same clean geometry, pigment does the talking
+      if(lum>244) return;                        // paper stays paper
+      const pig2=_vivid(s.col,.1);
+      c.strokeStyle=pig2;
+      if(den>.35) curve(size*1.2,.09*a3);        // waxy tone under darks
+      curve(Math.max(.5,size*.34),(.34+den*.22)*a3);
+      if(rng()<.3){
+        c.strokeStyle=shadeRGB(pig2,-.08);
+        c.globalAlpha=.2*a3;
+        c.lineWidth=Math.max(.4,size*.22);
+        const jx=(rng()-.5)*size*.3, jy=(rng()-.5)*size*.3;
+        const p0=p[0], pe=p[m-1];
+        c.beginPath(); c.moveTo(p0[0]+jx,p0[1]+jy);
+        c.lineTo(pe[0]+jx,pe[1]+jy); c.stroke();
+      }
     }
   } else if(media==='ink'){
     // sumi on reserved paper: tone is carried by HOW MANY strokes are
@@ -357,8 +373,8 @@ function _toneFinish(c,media){
     c.setTransform(1,0,0,1,0,0); c.globalAlpha=1;
     c.filter=media==='ink'?'saturate(0.12) sepia(0.26) brightness(1.05)'
       :media==='charcoal'?'saturate(0.16) brightness(1.03)'
-      :media==='graphite'?'saturate(0.06) brightness(1.06) contrast(1.04)'
-      :media==='pencil'?'saturate(1.04) brightness(1.05)'
+      :media==='graphite'?'saturate(0.06) brightness(1.04) contrast(1.05)'
+      :media==='pencil'?'brightness(1.03)'
       :media==='neon'?'saturate(1.4) brightness(0.88) contrast(1.05)'
       :'saturate(1.12) brightness(1.08)';
     c.drawImage(_toneTmp,0,0); c.filter='none';
