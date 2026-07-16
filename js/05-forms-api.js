@@ -85,6 +85,7 @@ function _vivid(col,f){
 function drawOneStroke(c,s,size,al,media,rng,df,edge){
   df=df||1;
   const p=s.pts, m=p.length;
+  const EW=edge===1?1:edge===2?.42:edge===3?.16:1;   // confidence decay
   if(m===1){
     // a single touch obeys its medium too - dry media dot softly in their
     // own grey/colour instead of stamping a full-strength disc
@@ -139,8 +140,8 @@ function drawOneStroke(c,s,size,al,media,rng,df,edge){
     if(edge){
       // the structural line: a thin confident stroke of the edge's own
       // dark, defining the drawing under the paint
-      c.strokeStyle=shadeRGB(s.col,-.18); c.globalAlpha=al*.4;
-      _slPolyline(c,p,Math.max(.6,size*.5));
+      c.strokeStyle=shadeRGB(s.col,-.18); c.globalAlpha=al*.4*EW;
+      _slPolyline(c,p,Math.max(.55,size*.5*(edge===1?1:.85)));
       return;
     }
     // blended paint with a body: the colour lands exactly as sampled, its
@@ -234,8 +235,8 @@ function drawOneStroke(c,s,size,al,media,rng,df,edge){
       const g=Math.round(34+lum*.74);
       c.strokeStyle='rgb('+g+','+g+','+(g+4)+')';
       if(edge){
-        c.globalAlpha=(.52+den*.36)*a3;
-        _slPolyline(c,p,Math.max(.7,size*.7));
+        c.globalAlpha=(.34+den*.28)*a3*EW;
+        _slPolyline(c,p,Math.max(.55,size*.7*(edge===1?1:.85)));
       }else{
         c.globalAlpha=(.08+den*.13)*a3;          // graphite laid softly
         _slPolyline(c,p,size*1.3);
@@ -246,8 +247,8 @@ function drawOneStroke(c,s,size,al,media,rng,df,edge){
       if(lum>246) return;
       c.strokeStyle=_vivid(s.col,.12);
       if(edge){
-        c.globalAlpha=(.48+den*.3)*a3;
-        _slPolyline(c,p,Math.max(.65,size*.65));
+        c.globalAlpha=(.32+den*.24)*a3*EW;
+        _slPolyline(c,p,Math.max(.55,size*.65*(edge===1?1:.85)));
       }else{
         c.globalAlpha=.1*a3;
         _slPolyline(c,p,size*1.15);
@@ -360,8 +361,8 @@ function _toneFinish(c,media){
     c.setTransform(1,0,0,1,0,0); c.globalAlpha=1;
     c.filter=media==='ink'?'saturate(0.12) sepia(0.26) brightness(1.05)'
       :media==='charcoal'?'saturate(0.16) brightness(1.03)'
-      :media==='graphite'?'saturate(0.06) brightness(1.16) contrast(1.04) blur(0.9px)'
-      :media==='pencil'?'brightness(1.03)'
+      :media==='graphite'?'saturate(0.06) brightness(1.16) contrast(1.04) blur(1.3px)'
+      :media==='pencil'?'brightness(1.04) blur(1.4px)'
       :media==='neon'?'saturate(1.4) brightness(0.88) contrast(1.05)'
       :'saturate(1.12) brightness(1.08)';
     c.drawImage(_toneTmp,0,0); c.filter='none';
@@ -432,6 +433,11 @@ function strokes(blob,o={}){
     window.__plTonePost=1;
     ops[idx].post=c=>_toneFinish(c,media);
   }
+  // the blend cascade: the base is blended by the finish, then the drawing
+  // lines are laid back on top, crisp - the artist finishing the sheet
+  if(st.edge&&(media==='graphite'||media==='pencil'))
+    ops[idx].post=c=>{ c.save(); c.setTransform(DPR,0,0,DPR,0,0);
+      drawStrokesRange(c,st,0,st.list.length); c.restore(); };
 }
 function form(x,y,w,h,o={}){
   if(x&&typeof x==='object'){ o=x;
