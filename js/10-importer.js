@@ -6,7 +6,9 @@
    browser with localStorage 'paintlang-trace-api'. */
 const TRACE_API = localStorage.getItem('paintlang-trace-api')
   || 'https://paintlang-trace.paintlang.workers.dev';
-const TRACE_GRID = { sketch:320, balanced:460, fine:960, ultra:1280 };
+/* sketch raised 320 -> 460 (2026-07-16, owner call): continuous tone for
+   the pencil sketch - still the cheapest tier by far */
+const TRACE_GRID = { sketch:460, balanced:460, fine:960, ultra:1280 };
 const TRACE_MAX_CELLS = 1600000;
 
 const importBtn=document.getElementById('importBtn');
